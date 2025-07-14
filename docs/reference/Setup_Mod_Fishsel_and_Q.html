@@ -51,6 +51,8 @@
 <span>  fish_q_spec <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  fish_sel_devs_spec <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  corr_opt_semipar <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  Use_fish_selex_prior <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  fish_selex_prior <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -184,6 +186,21 @@ in time-varying fishery selectivity dimensioned by the number of fishery fleets.
 <li><p><code>"corr_zero_y_a_c"</code>: Sets all correlations (year, age, and cohort) to 0.
       Only valid for <code>cont_tv_sel</code> = <code>"3dmarg"</code> or <code>"3dcond"</code>; equivalent to an iid structure.</p></li>
 </ul><p>These correlation-suppression flags are ignored when <code>cont_tv_sel</code> is set to any other value.</p></dd>
+
+
+<dt id="arg-use-fish-selex-prior">Use_fish_selex_prior<a class="anchor" aria-label="anchor" href="#arg-use-fish-selex-prior"></a></dt>
+<dd><p>Integer (0 or 1). Flag to enable/disable fishery selectivity priors.
+When set to 1, applies log-normal priors to fishery selectivity parameters as specified
+in <code>fish_selex_prior</code>. When set to 0, no priors are applied.</p></dd>
+
+
+<dt id="arg-fish-selex-prior">fish_selex_prior<a class="anchor" aria-label="anchor" href="#arg-fish-selex-prior"></a></dt>
+<dd><p>Data frame containing prior specifications for fishery selectivity parameters.
+Must include columns: <code>region</code> (region index), <code>fleet</code> (fleet index),
+<code>block</code> (time block index), <code>sex</code> (sex index), <code>par</code> (parameter index),
+<code>mu</code> (prior mean on natural scale), and <code>sd</code> (prior standard deviation on log scale).
+Each row specifies a log-normal prior N(log(mu), sd) for one selectivity parameter.
+Only parameters with rows in this data frame will have priors applied.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>

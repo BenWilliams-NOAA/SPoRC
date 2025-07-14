@@ -941,6 +941,44 @@ SPoRC_rtmb = function(pars, data) {
     } # end sf loop
   } # end r loop
 
+
+  ### Selectivity (Prior) -----------------------------------------------------
+
+  # Fishery selectivity parameters
+  if(Use_fish_selex_prior == 1) {
+
+    for(i in 1:nrow(fish_selex_prior)) {
+
+      # Extract indices
+      r = fish_selex_prior$region[i]
+      p = fish_selex_prior$par[i]
+      b = fish_selex_prior$block[i]
+      s = fish_selex_prior$sex[i]
+      f = fish_selex_prior$fleet[i]
+
+      # Compute penalty / prior here
+      sel_nLL = sel_nLL - sum(RTMB::dnorm(ln_fish_fixed_sel_pars[r,p,b,s,f], log(fish_selex_prior$mu[i]), fish_selex_prior$sd[i], TRUE))
+
+    } # end i loop
+  } # end if using selex priors
+
+  # Survey selectivity parameters
+  if(Use_srv_selex_prior == 1) {
+    for(i in 1:nrow(srv_selex_prior)) {
+
+      # Extract indices
+      r = srv_selex_prior$region[i]
+      p = srv_selex_prior$par[i]
+      b = srv_selex_prior$block[i]
+      s = srv_selex_prior$sex[i]
+      sf = srv_selex_prior$fleet[i]
+
+      # Compute penalty / prior here
+      sel_nLL = sel_nLL - sum(RTMB::dnorm(ln_srv_fixed_sel_pars[r,p,b,s,sf], log(srv_selex_prior$mu[i]), srv_selex_prior$sd[i], TRUE))
+
+    } # end i loop
+  } # end if using selex priors
+
   ### Recruitment (Penalty) ----------------------------------------------------
   if(likelihoods == 0) {
     for(r in 1:n_regions) {

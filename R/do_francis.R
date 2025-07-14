@@ -11,7 +11,7 @@
 #' @param weights Array of francis weights (NAs) to apply dimensioned by n_regions, n_years, n_sexes, n_fleets
 #' @param comp_type Matrix of composition structure types dimensioned by year and fleet
 #'
-#' @returns Value for calculated francis weight
+#' @returns List of values for calculated francis weight, and a dataframe of observed and expected means
 #' @keywords internal
 #'
 #' @examples
@@ -31,6 +31,7 @@ get_francis_weights <- function(n_regions,
                                 comp_type
                                 ) {
 
+  mean_francis <- data.frame()
   n_years <- dim(Use)[2] # get n_years
 
   for(f in 1:n_fleets) {
@@ -51,8 +52,8 @@ get_francis_weights <- function(n_regions,
     data_yrs <- sort(unique(data_indices[,2]))
 
     # Set up reweighting vectors
-    exp_bar <- array(NA, dim = c(length(unique(data_indices[,1])), length(data_yrs), n_sexes)) # mean expected
-    obs_bar <- array(NA, dim = c(length(unique(data_indices[,1])), length(data_yrs), n_sexes))  # mean observed
+    exp_bar <- array(NA, dim = c(length(unique(data_indices[,1])), length(data_yrs), n_sexes), dimnames = list(NULL, data_yrs, NULL)) # mean expected
+    obs_bar <- array(NA, dim = c(length(unique(data_indices[,1])), length(data_yrs), n_sexes), dimnames = list(NULL, data_yrs, NULL))  # mean observed
     v_y <- array(NA, dim = c(length(unique(data_indices[,1])), length(data_yrs), n_sexes))  # variance
     w_denom <- array(NA, dim = c(length(unique(data_indices[,1])), length(data_yrs), n_sexes))  # weight factor in denominator
 
@@ -115,9 +116,20 @@ get_francis_weights <- function(n_regions,
       if(unique_comp_type[j] == 2) for(r in 1:n_regions) weights[r,data_yrs,1,f] <- 1 / var(w_denom[r,year_pointer,1], na.rm = TRUE)
 
     } # end j loop
+
+    # Summarize observed and expected means
+    tmp_means <- reshape2::melt(obs_bar) %>%
+      dplyr::rename(Region = Var1, Comp_Year = Var2, Sex = Var3, obs = value) %>%
+      dplyr::left_join(reshape2::melt(exp_bar) %>%
+                         dplyr::rename(Region = Var1, Comp_Year = Var2, Sex = Var3, pred = value),
+                       by = c("Region", "Comp_Year", "Sex")) %>%
+      dplyr::mutate(Fleet = f)
+
+    mean_francis <- rbind(mean_francis, tmp_means)
+
   } # end f loop
 
-  return(weights)
+  return(list(weights = weights, mean_francis = mean_francis))
 } # end function
 
 #' Run Francis Reweighting
@@ -128,7 +140,7 @@ get_francis_weights <- function(n_regions,
 #' @param year_labels Year labels
 #' @param data List of data inputs
 #'
-#' @return A list object of francis weights (note that it will be NAs for some, if using jnt composition approaches - i.e., only uses one dimension)
+#' @return A list object of francis weights (note that it will be NAs for some, if using jnt composition approaches - i.e., only uses one dimension), as well as a dataframe of francis mean fits
 #' @export do_francis_reweighting
 #'
 #' @examples
@@ -157,7 +169,7 @@ get_francis_weights <- function(n_regions,
 #'
 #'   rep <- sabie_rtmb_model$report(sabie_rtmb_model$env$last.par.best) # Get report
 #'   wts <- do_francis_reweighting(data = data, rep = rep, age_labels = 2:31,
-#'                                 len_labels = seq(41, 99, 2), year_labels = 1960:2021)
+#'                                 len_labels = seq(41, 99, 2), year_labels = 1960:2024)
 #' }
 #' }
 do_francis_reweighting <- function(data,
@@ -193,7 +205,7 @@ do_francis_reweighting <- function(data,
   new_fish_age_wts[] <- NA
 
   # Get francis weights here
-  new_fish_age_wts[] <- get_francis_weights(
+  fish_age_info <- get_francis_weights(
     n_regions = n_regions,
     n_sexes = n_sexes,
     n_fleets = n_fish_fleets,
@@ -205,6 +217,8 @@ do_francis_reweighting <- function(data,
     bins = age_labels,
     comp_type = tmp_comp_type
   )
+
+  new_fish_age_wts[] <- fish_age_info$weights
 
   # Fishery Lengths ------------------------------------------------------------
 
@@ -219,7 +233,7 @@ do_francis_reweighting <- function(data,
   new_fish_len_wts[] <- NA
 
   # Get francis weights here
-  new_fish_len_wts[] <- get_francis_weights(
+  fish_len_info <- get_francis_weights(
     n_regions = n_regions,
     n_sexes = n_sexes,
     n_fleets = n_fish_fleets,
@@ -231,6 +245,8 @@ do_francis_reweighting <- function(data,
     bins = len_labels,
     comp_type = tmp_comp_type
   )
+
+  new_fish_len_wts[] <- fish_len_info$weights
 
   # Survey Ages ------------------------------------------------------------
 
@@ -245,7 +261,7 @@ do_francis_reweighting <- function(data,
   new_srv_age_wts[] <- NA
 
   # Get francis weights here
-  new_srv_age_wts[] <- get_francis_weights(
+  srv_age_info <- get_francis_weights(
     n_regions = n_regions,
     n_sexes = n_sexes,
     n_fleets = n_srv_fleets,
@@ -257,6 +273,8 @@ do_francis_reweighting <- function(data,
     bins = age_labels,
     comp_type = tmp_comp_type
   )
+
+  new_srv_age_wts[] <- srv_age_info$weights
 
   # Survey Lengths ------------------------------------------------------------
 
@@ -271,7 +289,7 @@ do_francis_reweighting <- function(data,
   new_srv_len_wts[] <- NA
 
   # Get francis weights here
-  new_srv_len_wts[] <- get_francis_weights(
+  srv_len_info <- get_francis_weights(
     n_regions = n_regions,
     n_sexes = n_sexes,
     n_fleets = n_srv_fleets,
@@ -284,7 +302,17 @@ do_francis_reweighting <- function(data,
     comp_type = tmp_comp_type
   )
 
+  new_srv_len_wts[] <- srv_len_info$weights
+
+  # Get francis mean fits
+  mean_francis <- rbind(
+    fish_age_info$mean_francis %>% dplyr::mutate(Type = "Fishery Ages"),
+    srv_age_info$mean_francis %>% dplyr::mutate(Type = "Survey Ages"),
+    fish_len_info$mean_francis %>% dplyr::mutate(Type = "Fishery Lengths"),
+    srv_len_info$mean_francis %>% dplyr::mutate(Type = "Survey Lengths")
+  )
+
   return(list(new_fish_age_wts = new_fish_age_wts, new_fish_len_wts = new_fish_len_wts,
-              new_srv_age_wts = new_srv_age_wts, new_srv_len_wts = new_srv_len_wts))
+              new_srv_age_wts = new_srv_age_wts, new_srv_len_wts = new_srv_len_wts, mean_francis = mean_francis))
 
 } # end function

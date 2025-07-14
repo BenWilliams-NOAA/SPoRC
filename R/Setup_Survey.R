@@ -685,6 +685,16 @@ Setup_Mod_SrvIdx_and_Comps <- function(input_list,
 #'   covariates used in the `srv_q_formula`. Each entry should be a numeric vector of length equal to the
 #'   number of years, and names must match the variable names used in the formulas. If `NULL`, survey
 #'   catchability is assumed to be time-invariant (i.e., not influenced by environmental variables).
+#' @param Use_srv_selex_prior Integer (0 or 1). Flag to enable/disable survey selectivity priors.
+#'   When set to 1, applies log-normal priors to fishery selectivity parameters as specified
+#'   in \code{srv_selex_prior}. When set to 0, no priors are applied.
+#' @param srv_selex_prior Data frame containing prior specifications for survey selectivity parameters.
+#'   Must include columns: \code{region} (region index), \code{fleet} (fleet index),
+#'   \code{block} (time block index), \code{sex} (sex index), \code{par} (parameter index),
+#'   \code{mu} (prior mean on natural scale), and \code{sd} (prior standard deviation on log scale).
+#'   Each row specifies a log-normal prior N(log(mu), sd) for one selectivity parameter.
+#'   Only parameters with rows in this data frame will have priors applied.
+#'
 #'
 #' @details
 #' If both `srv_q_formula` and `srv_q_cov_dat` are non-`NULL`, the model constructs time-varying design matrices
@@ -731,6 +741,8 @@ Setup_Mod_Srvsel_and_Q <- function(input_list,
                                    corr_opt_semipar = NULL,
                                    srv_q_formula = NULL,
                                    srv_q_cov_dat = NULL,
+                                   Use_srv_selex_prior = 0,
+                                   srv_selex_prior = NULL,
                                    ...
                                    ) {
 
@@ -743,6 +755,16 @@ Setup_Mod_Srvsel_and_Q <- function(input_list,
   collect_message("Survey Catchability priors are: ", ifelse(Use_srv_q_prior == 0, "Not Used", "Used"))
   if(is.null(input_list$data$Selex_Type)) stop("Selectivity type (age or length-based) has not been specified yet! Make sure to first specify biological inputs with Setup_Mod_Biologicals.")
   if(!is.null(srv_q_cov_dat) && !is.null(srv_q_formula)) collect_message("Using covariates to predict survey catchability")
+
+  # Checking selectivity priors
+  if(Use_srv_selex_prior == 1) {
+    collect_message("Using priors for survey selectivity fixed effects")
+    required_cols <- c("region", "fleet", "block", "sex", "par", "mu", "sd")
+    missing_cols <- setdiff(required_cols, names(srv_selex_prior))
+    if(length(missing_cols) > 0) {
+      stop("srv_selex_prior is missing required columns: ", paste(missing_cols, collapse = ", "))
+    }
+  }
 
   # define for continuous time-varying selectivity
   cont_tv_srv_sel_mat <- array(NA, dim = c(input_list$data$n_regions, input_list$data$n_srv_fleets))
@@ -908,6 +930,8 @@ Setup_Mod_Srvsel_and_Q <- function(input_list,
   input_list$data$Use_srv_q_prior <- Use_srv_q_prior
   input_list$data$do_srv_q_cov <- do_srv_q_cov
   input_list$data$srv_q_cov <- srv_q_cov
+  input_list$data$Use_srv_selex_prior <- Use_srv_selex_prior
+  input_list$data$srv_selex_prior <- srv_selex_prior
 
   # Set up parameter inputs
   starting_values <- list(...)

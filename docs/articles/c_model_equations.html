@@ -1151,6 +1151,36 @@ would have the same values. Increasing the values of
 increases the concentration (i.e., the weight of the prior).</p>
 </div>
 <div class="section level4">
+<h4 id="selectivity">Selectivity<a class="anchor" aria-label="anchor" href="#selectivity"></a>
+</h4>
+<p>Priors on selectivity can also be invoked, which generally serve as
+regularizing priors to ensure stable parameter estimation. These priors
+are applied to the underlying selectivity parameters before
+transformation to selectivity-at-age curves.</p>
+<p>For selectivity parameters, log-normal priors can be specified:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>θ</mi><mrow><mi>r</mi><mo>,</mo><mi>f</mi><mo>,</mo><mi>b</mi><mo>,</mo><mi>s</mi><mo>,</mo><mi>p</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mfrac><mn>1</mn><mrow><msub><mi>θ</mi><mrow><mi>r</mi><mo>,</mo><mi>f</mi><mo>,</mo><mi>b</mi><mo>,</mo><mi>s</mi><mo>,</mo><mi>p</mi></mrow></msub><msub><mi>σ</mi><mrow><mi>r</mi><mo>,</mo><mi>f</mi><mo>,</mo><mi>b</mi><mo>,</mo><mi>s</mi><mo>,</mo><mi>p</mi></mrow></msub><msqrt><mrow><mn>2</mn><mi>π</mi></mrow></msqrt></mrow></mfrac><mo>exp</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>−</mi><mfrac><msup><mrow><mo stretchy="true" form="prefix">(</mo><mo>ln</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>θ</mi><mrow><mi>r</mi><mo>,</mo><mi>f</mi><mo>,</mo><mi>b</mi><mo>,</mo><mi>s</mi><mo>,</mo><mi>p</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mo>ln</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>μ</mi><mrow><mi>r</mi><mo>,</mo><mi>f</mi><mo>,</mo><mi>b</mi><mo>,</mo><mi>s</mi><mo>,</mo><mi>p</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup><mrow><mn>2</mn><msubsup><mi>σ</mi><mrow><mi>r</mi><mo>,</mo><mi>f</mi><mo>,</mo><mi>b</mi><mo>,</mo><mi>s</mi><mo>,</mo><mi>p</mi></mrow><mn>2</mn></msubsup></mrow></mfrac><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
+P(\theta_{r,f,b,s,p}) = \frac{1}{\theta_{r,f,b,s,p} \sigma_{r,f,b,s,p} \sqrt{2\pi}} \exp\left(-\frac{(\ln(\theta_{r,f,b,s,p}) - \ln(\mu_{r,f,b,s,p}))^2}{2\sigma_{r,f,b,s,p}^2}\right)
+</annotation></semantics></math></p>
+<p>where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>θ</mi><mrow><mi>r</mi><mo>,</mo><mi>p</mi><mo>,</mo><mi>b</mi><mo>,</mo><mi>s</mi><mo>,</mo><mi>f</mi></mrow></msub><annotation encoding="application/x-tex">\theta_{r,p,b,s,f}</annotation></semantics></math>
+is the selectivity parameter for region
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>,
+parameter
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math>,
+time block
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>b</mi><annotation encoding="application/x-tex">b</annotation></semantics></math>,
+sex
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>s</mi><annotation encoding="application/x-tex">s</annotation></semantics></math>,
+and fleet
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>f</mi><annotation encoding="application/x-tex">f</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>μ</mi><mrow><mi>r</mi><mo>,</mo><mi>p</mi><mo>,</mo><mi>b</mi><mo>,</mo><mi>s</mi><mo>,</mo><mi>f</mi></mrow></msub><annotation encoding="application/x-tex">\mu_{r,p,b,s,f}</annotation></semantics></math>
+is the prior mean on the natural scale, and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>σ</mi><mrow><mi>r</mi><mo>,</mo><mi>p</mi><mo>,</mo><mi>b</mi><mo>,</mo><mi>s</mi><mo>,</mo><mi>f</mi></mrow></msub><annotation encoding="application/x-tex">\sigma_{r,p,b,s,f}</annotation></semantics></math>
+is the prior standard deviation on the log scale. Together, these priors
+provide flexibility to regularize specific selectivity parameters across
+different fleet configurations, time blocks, and demographic strata.</p>
+</div>
+<div class="section level4">
 <h4 id="tag-reporting-rates">Tag Reporting Rates<a class="anchor" aria-label="anchor" href="#tag-reporting-rates"></a>
 </h4>
 <p>Two types of priors can be specified for facilitating the estimation

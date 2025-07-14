@@ -984,6 +984,15 @@ Setup_Mod_FishIdx_and_Comps <- function(input_list,
 #' @param Use_fish_q_prior Integer specifying whether to use fishery q prior or not (0 dont use) (1 use)
 #' @param fish_q_prior Fishery q priors in normal space, dimensioned by region, block,  fishery fleet, and 2 (mean, and sd in the 4 dimension of array)
 #' @param ... Additional arguments specifying starting values for fishery selectivity and catchability parameters (fishsel_pe_pars, ln_fishsel_devs, ln_fish_fixed_sel_pars, ln_fish_q)
+#' @param Use_fish_selex_prior Integer (0 or 1). Flag to enable/disable fishery selectivity priors.
+#'   When set to 1, applies log-normal priors to fishery selectivity parameters as specified
+#'   in \code{fish_selex_prior}. When set to 0, no priors are applied.
+#' @param fish_selex_prior Data frame containing prior specifications for fishery selectivity parameters.
+#'   Must include columns: \code{region} (region index), \code{fleet} (fleet index),
+#'   \code{block} (time block index), \code{sex} (sex index), \code{par} (parameter index),
+#'   \code{mu} (prior mean on natural scale), and \code{sd} (prior standard deviation on log scale).
+#'   Each row specifies a log-normal prior N(log(mu), sd) for one selectivity parameter.
+#'   Only parameters with rows in this data frame will have priors applied.
 #'
 #' @export Setup_Mod_Fishsel_and_Q
 #'
@@ -1000,6 +1009,8 @@ Setup_Mod_Fishsel_and_Q <- function(input_list,
                                     fish_q_spec = NULL,
                                     fish_sel_devs_spec = NULL,
                                     corr_opt_semipar = NULL,
+                                    Use_fish_selex_prior = 0,
+                                    fish_selex_prior = NULL,
                                     ...
                                     ) {
 
@@ -1011,6 +1022,16 @@ Setup_Mod_Fishsel_and_Q <- function(input_list,
   if(!Use_fish_q_prior %in% c(0,1)) stop("Values for Use_fish_q_prior are not valid. They are == 0 (don't use prior), or == 1 (use prior)")
   collect_message("Fishery Catchability priors are: ", ifelse(Use_fish_q_prior == 0, "Not Used", "Used"))
   if(is.null(input_list$data$Selex_Type)) stop("Selectivity type (age or length-based) has not been specified yet! Make sure to first specify biological inputs with Setup_Mod_Biologicals.")
+
+  # Checking selectivity priors
+  if(Use_fish_selex_prior == 1) {
+    collect_message("Using priors for fishery selectivity fixed effects")
+    required_cols <- c("region", "fleet", "block", "sex", "par", "mu", "sd")
+    missing_cols <- setdiff(required_cols, names(fish_selex_prior))
+    if(length(missing_cols) > 0) {
+      stop("fish_selex_prior is missing required columns: ", paste(missing_cols, collapse = ", "))
+    }
+  }
 
   # define for continuous time-varying selectivity
   cont_tv_fish_sel_mat <- array(NA, dim = c(input_list$data$n_regions, input_list$data$n_fish_fleets))
@@ -1116,6 +1137,8 @@ Setup_Mod_Fishsel_and_Q <- function(input_list,
   input_list$data$fish_q_blocks <- fish_q_blocks_arr
   input_list$data$fish_q_prior <- fish_q_prior
   input_list$data$Use_fish_q_prior <- Use_fish_q_prior
+  input_list$data$Use_fish_selex_prior <- Use_fish_selex_prior
+  input_list$data$fish_selex_prior <- fish_selex_prior
 
   # Set up parameter inputs
   starting_values <- list(...)

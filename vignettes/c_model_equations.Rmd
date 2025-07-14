@@ -661,6 +661,17 @@ P(M_{k,y,a,s}) = \frac{\Gamma(\sum_{j=1}^{n_r} \alpha_{j,y,a,s})}{\prod_{j=1}^{n
 
 where $j$ indexes movement towards a given region and $\alpha_{j,y,a,s}$ are the Dirichlet prior parameters. These priors have the flexibility to be specified for movement of individuals towards region j for any year, age, or sex partition. If a user were to specify a uniform prior, all values in $\alpha_{j,y,a,s}$ would have the same values. Increasing the values of $\alpha_{j,y,a,s}$ increases the concentration (i.e., the weight of the prior).   
 
+
+#### Selectivity
+Priors on selectivity can also be invoked, which generally serve as regularizing priors to ensure stable parameter estimation. These priors are applied to the underlying selectivity parameters before transformation to selectivity-at-age curves.
+
+For selectivity parameters, log-normal priors can be specified:
+\[
+P(\theta_{r,f,b,s,p}) = \frac{1}{\theta_{r,f,b,s,p} \sigma_{r,f,b,s,p} \sqrt{2\pi}} \exp\left(-\frac{(\ln(\theta_{r,f,b,s,p}) - \ln(\mu_{r,f,b,s,p}))^2}{2\sigma_{r,f,b,s,p}^2}\right)
+\]
+
+where $\theta_{r,p,b,s,f}$ is the selectivity parameter for region $r$, parameter $p$, time block $b$, sex $s$, and fleet $f$, $\mu_{r,p,b,s,f}$ is the prior mean on the natural scale, and $\sigma_{r,p,b,s,f}$ is the prior standard deviation on the log scale. Together, these priors provide flexibility to regularize specific selectivity parameters across different fleet configurations, time blocks, and demographic strata. 
+
 #### Tag Reporting Rates
 
 Two types of priors can be specified for facilitating the estimation of tag reporting rates. In particular, the first type of prior includes a symmetric beta parameterization, which is given by the following:

@@ -537,6 +537,57 @@ get_idx_fits_plot <- function(data,
   return(idx_fit_plot)
 }
 
+#' Title Get Catch Fits Plot
+#'
+#' @param data List of n_models of `SPoRC` data lists
+#' @param rep List of n_models of `SPoRC` report lists
+#' @param model_names Vector of model names
+#'
+#' @returns A plot of fitted values to various catch time series across models
+#' @export get_catch_fits_plot
+#'
+#' @examples
+#' \dontrun{
+#' get_catch_fits_plot(list(data1, data2), list(rep1, rep2), c("Model1", "Model2"))
+#' }
+get_catch_fits_plot <- function(data,
+                                rep,
+                                model_names
+                                ) {
+
+  catch_fits_all <- data.frame()
+  # get catch fits data
+  for(i in 1:length(rep)) {
+    # Get catch fits
+    catch_fits <- reshape2::melt(rep[[i]]$PredCatch) %>%
+      dplyr::rename(Region = Var1, Year = Var2, Fleet = Var3) %>%
+      dplyr::left_join(
+        reshape2::melt(data[[i]]$ObsCatch) %>%
+          dplyr::rename(Region = Var1, Year = Var2, Fleet = Var3, obs = value),
+        by = c("Region", "Year", "Fleet")
+        ) %>%
+      dplyr::mutate(Model = model_names[i],
+                    Region = paste('Region', Region),
+                    Fleet = paste('Fleet', Fleet))
+    catch_fits_all <- rbind(catch_fits_all, catch_fits) # bind
+  }
+
+  # Plot catch fits
+  catch_fit_plot <- ggplot2::ggplot() +
+    ggplot2::geom_line(catch_fits_all %>% dplyr::filter(obs != 0),
+                       mapping = ggplot2::aes(x = Year, y = value, color = factor(Model)), lwd = 1.3) +
+    ggplot2::geom_point(catch_fits_all %>% dplyr::filter(obs != 0),
+                             mapping = ggplot2::aes(x = Year, y = obs), color = 'black') +
+    ggplot2::labs(x = "Year", y = 'Catch', color = 'Model') +
+    theme_sablefish() +
+    ggplot2::coord_cartesian(ylim = c(0,NA)) +
+    ggplot2::facet_grid(Fleet~Region, scales = 'free_y')
+
+  return(catch_fit_plot)
+}
+
+
+
 #' Get Retrospective Plot
 #'
 #' @param retro_output Dataframe generated from do_retrospective

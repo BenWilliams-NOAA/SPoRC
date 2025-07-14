@@ -17,6 +17,8 @@ Setup_Mod_Fishsel_and_Q(
   fish_q_spec = NULL,
   fish_sel_devs_spec = NULL,
   corr_opt_semipar = NULL,
+  Use_fish_selex_prior = 0,
+  fish_selex_prior = NULL,
   ...
 )
 }
@@ -173,6 +175,17 @@ This argument is only used when a continuous time-varying selectivity form is sp
   }
 
 These correlation-suppression flags are ignored when \code{cont_tv_sel} is set to any other value.}
+
+\item{Use_fish_selex_prior}{Integer (0 or 1). Flag to enable/disable fishery selectivity priors.
+When set to 1, applies log-normal priors to fishery selectivity parameters as specified
+in \code{fish_selex_prior}. When set to 0, no priors are applied.}
+
+\item{fish_selex_prior}{Data frame containing prior specifications for fishery selectivity parameters.
+Must include columns: \code{region} (region index), \code{fleet} (fleet index),
+\code{block} (time block index), \code{sex} (sex index), \code{par} (parameter index),
+\code{mu} (prior mean on natural scale), and \code{sd} (prior standard deviation on log scale).
+Each row specifies a log-normal prior N(log(mu), sd) for one selectivity parameter.
+Only parameters with rows in this data frame will have priors applied.}
 
 \item{...}{Additional arguments specifying starting values for fishery selectivity and catchability parameters (fishsel_pe_pars, ln_fishsel_devs, ln_fish_fixed_sel_pars, ln_fish_q)}
 }

@@ -19,6 +19,8 @@ Setup_Mod_Srvsel_and_Q(
   corr_opt_semipar = NULL,
   srv_q_formula = NULL,
   srv_q_cov_dat = NULL,
+  Use_srv_selex_prior = 0,
+  srv_selex_prior = NULL,
   ...
 )
 }
@@ -186,6 +188,17 @@ If `NULL`, no environmental covariate effects are included.}
 covariates used in the `srv_q_formula`. Each entry should be a numeric vector of length equal to the
 number of years, and names must match the variable names used in the formulas. If `NULL`, survey
 catchability is assumed to be time-invariant (i.e., not influenced by environmental variables).}
+
+\item{Use_srv_selex_prior}{Integer (0 or 1). Flag to enable/disable survey selectivity priors.
+When set to 1, applies log-normal priors to fishery selectivity parameters as specified
+in \code{srv_selex_prior}. When set to 0, no priors are applied.}
+
+\item{srv_selex_prior}{Data frame containing prior specifications for survey selectivity parameters.
+Must include columns: \code{region} (region index), \code{fleet} (fleet index),
+\code{block} (time block index), \code{sex} (sex index), \code{par} (parameter index),
+\code{mu} (prior mean on natural scale), and \code{sd} (prior standard deviation on log scale).
+Each row specifies a log-normal prior N(log(mu), sd) for one selectivity parameter.
+Only parameters with rows in this data frame will have priors applied.}
 
 \item{...}{Additional arguments specifying starting values for survey selectivity and catchability parameters (srvsel_pe_pars, ln_srvsel_devs, ln_srv_fixed_sel_pars, ln_srv_q, srv_q_coeff)}
 }
