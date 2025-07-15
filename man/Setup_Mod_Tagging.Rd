@@ -17,9 +17,7 @@ Setup_Mod_Tagging(
   tag_selex = NA,
   tag_natmort = NA,
   Use_TagRep_Prior = 0,
-  TagRep_PriorType = NA,
-  TagRep_mu = NA,
-  TagRep_sd = NA,
+  TagRep_Prior = NULL,
   move_age_tag_pool = NA,
   move_sex_tag_pool = NA,
   Init_Tag_Mort_spec = NULL,
@@ -79,22 +77,12 @@ Example: \code{tag_natmort = "AgeSp_SexSp"}}
 
 \item{Use_TagRep_Prior}{Numeric (0 or 1) whether to use tag reporting rate prior}
 
-\item{TagRep_PriorType}{Numeric indicating prior type for tag reporting:
-\itemize{
-  \item 0: Symmetric beta
-  \item 1: Regular beta
-}}
-
-\item{TagRep_mu}{Numeric mean for tag reporting prior (normal space); \code{NA} if symmetric beta is used}
-
-\item{TagRep_sd}{Numeric standard deviation for tag reporting prior (normal space)}
-
-\item{move_age_tag_pool}{List or character specifying pooling of tagging data by age groups. Examples:
-\itemize{
-  \item \code{list(c(1:6), c(7:15), c(16:30))} pools ages 1–6, 7–15, 16–30
-  \item \code{"all"} pools all ages together as one group (internally converted to \code{list(1:n_ages)})
-  \item \code{list(1, 2, 3, ..., n_ages)} fits each age separately
-}}
+\item{TagRep_Prior}{Data frame containing prior specifications for tag reporting parameters.
+Must include columns: \code{region} (region index), \code{block} (time block index),
+\code{mu} (Numeric mean for tag reporting prior (normal space); \code{NA} if symmetric beta is used),
+\code{sd} (Numeric standard deviation for tag reporting prior (normal space)), and \code{type} (0 == symmetric beta, 1 == regular beta).
+Each row specifies a beta prior for one tag reporting parameter.
+Only parameters with rows in this data frame will have priors applied.}
 
 \item{move_sex_tag_pool}{List or character specifying pooling of tagging data by sex groups. Examples:
 \itemize{

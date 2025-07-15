@@ -51,9 +51,7 @@
 <span>  tag_selex <span class="op">=</span> <span class="cn">NA</span>,</span>
 <span>  tag_natmort <span class="op">=</span> <span class="cn">NA</span>,</span>
 <span>  Use_TagRep_Prior <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>  TagRep_PriorType <span class="op">=</span> <span class="cn">NA</span>,</span>
-<span>  TagRep_mu <span class="op">=</span> <span class="cn">NA</span>,</span>
-<span>  TagRep_sd <span class="op">=</span> <span class="cn">NA</span>,</span>
+<span>  TagRep_Prior <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  move_age_tag_pool <span class="op">=</span> <span class="cn">NA</span>,</span>
 <span>  move_sex_tag_pool <span class="op">=</span> <span class="cn">NA</span>,</span>
 <span>  Init_Tag_Mort_spec <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -132,25 +130,13 @@
 <dd><p>Numeric (0 or 1) whether to use tag reporting rate prior</p></dd>
 
 
-<dt id="arg-tagrep-priortype">TagRep_PriorType<a class="anchor" aria-label="anchor" href="#arg-tagrep-priortype"></a></dt>
-<dd><p>Numeric indicating prior type for tag reporting:</p><ul><li><p>0: Symmetric beta</p></li>
-<li><p>1: Regular beta</p></li>
-</ul></dd>
-
-
-<dt id="arg-tagrep-mu">TagRep_mu<a class="anchor" aria-label="anchor" href="#arg-tagrep-mu"></a></dt>
-<dd><p>Numeric mean for tag reporting prior (normal space); <code>NA</code> if symmetric beta is used</p></dd>
-
-
-<dt id="arg-tagrep-sd">TagRep_sd<a class="anchor" aria-label="anchor" href="#arg-tagrep-sd"></a></dt>
-<dd><p>Numeric standard deviation for tag reporting prior (normal space)</p></dd>
-
-
-<dt id="arg-move-age-tag-pool">move_age_tag_pool<a class="anchor" aria-label="anchor" href="#arg-move-age-tag-pool"></a></dt>
-<dd><p>List or character specifying pooling of tagging data by age groups. Examples:</p><ul><li><p><code>list(c(1:6), c(7:15), c(16:30))</code> pools ages 1–6, 7–15, 16–30</p></li>
-<li><p><code>"all"</code> pools all ages together as one group (internally converted to <code>list(1:n_ages)</code>)</p></li>
-<li><p><code>list(1, 2, 3, ..., n_ages)</code> fits each age separately</p></li>
-</ul></dd>
+<dt id="arg-tagrep-prior">TagRep_Prior<a class="anchor" aria-label="anchor" href="#arg-tagrep-prior"></a></dt>
+<dd><p>Data frame containing prior specifications for tag reporting parameters.
+Must include columns: <code>region</code> (region index), <code>block</code> (time block index),
+<code>mu</code> (Numeric mean for tag reporting prior (normal space); <code>NA</code> if symmetric beta is used),
+<code>sd</code> (Numeric standard deviation for tag reporting prior (normal space)), and <code>type</code> (0 == symmetric beta, 1 == regular beta).
+Each row specifies a beta prior for one tag reporting parameter.
+Only parameters with rows in this data frame will have priors applied.</p></dd>
 
 
 <dt id="arg-move-sex-tag-pool">move_sex_tag_pool<a class="anchor" aria-label="anchor" href="#arg-move-sex-tag-pool"></a></dt>

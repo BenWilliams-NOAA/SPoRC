@@ -110,11 +110,17 @@ The vector must be length <code>n_srv_fleets</code>, and each element must follo
 
 
 <dt id="arg-use-srv-q-prior">Use_srv_q_prior<a class="anchor" aria-label="anchor" href="#arg-use-srv-q-prior"></a></dt>
-<dd><p>Integer specifying whether to use survey q prior or not (0 dont use) (1 use)</p></dd>
+<dd><p>Integer (0 or 1). Flag to enable/disable survey catchability priors.
+When set to 1, applies log-normal priors to survey selectivity parameters as specified
+in <code>srv_q_prior</code>. When set to 0, no priors are applied.</p></dd>
 
 
 <dt id="arg-srv-q-prior">srv_q_prior<a class="anchor" aria-label="anchor" href="#arg-srv-q-prior"></a></dt>
-<dd><p>Survey q priors in normal space, dimensioned by region, block,  survey fleet, and 2 (mean, and sd in the 4 dimension of array)</p></dd>
+<dd><p>Data frame containing prior specifications for survey catchability parameters.
+Must include columns: <code>region</code> (region index), <code>fleet</code> (fleet index),
+<code>block</code> (time block index), <code>mu</code> (prior mean on natural scale), and <code>sd</code> (prior standard deviation on log scale).
+Each row specifies a log-normal prior N(log(mu), sd) for a given catchability parameter.
+Only parameters with rows in this data frame will have priors applied.</p></dd>
 
 
 <dt id="arg-srv-q-blocks">srv_q_blocks<a class="anchor" aria-label="anchor" href="#arg-srv-q-blocks"></a></dt>

@@ -943,39 +943,31 @@ SPoRC_rtmb = function(pars, data) {
 
 
   ### Selectivity (Prior) -----------------------------------------------------
-
   # Fishery selectivity parameters
   if(Use_fish_selex_prior == 1) {
-
     for(i in 1:nrow(fish_selex_prior)) {
-
       # Extract indices
       r = fish_selex_prior$region[i]
       p = fish_selex_prior$par[i]
       b = fish_selex_prior$block[i]
       s = fish_selex_prior$sex[i]
       f = fish_selex_prior$fleet[i]
-
       # Compute penalty / prior here
       sel_nLL = sel_nLL - sum(RTMB::dnorm(ln_fish_fixed_sel_pars[r,p,b,s,f], log(fish_selex_prior$mu[i]), fish_selex_prior$sd[i], TRUE))
-
     } # end i loop
   } # end if using selex priors
 
   # Survey selectivity parameters
   if(Use_srv_selex_prior == 1) {
     for(i in 1:nrow(srv_selex_prior)) {
-
       # Extract indices
       r = srv_selex_prior$region[i]
       p = srv_selex_prior$par[i]
       b = srv_selex_prior$block[i]
       s = srv_selex_prior$sex[i]
       sf = srv_selex_prior$fleet[i]
-
       # Compute penalty / prior here
       sel_nLL = sel_nLL - sum(RTMB::dnorm(ln_srv_fixed_sel_pars[r,p,b,s,sf], log(srv_selex_prior$mu[i]), srv_selex_prior$sd[i], TRUE))
-
     } # end i loop
   } # end if using selex priors
 
@@ -1011,35 +1003,29 @@ SPoRC_rtmb = function(pars, data) {
 
   ### Fishery Catchability (Prior) -----------------------------------------------
   if(Use_fish_q_prior == 1) {
-    unique_fish_q_pars = sort(unique(as.vector(map_fish_q))) # Figure out unique fish q parameters estimated
-    for(i in 1:length(unique_fish_q_pars)) {
-      par_idx = which(map_fish_q == unique_fish_q_pars[i], arr.ind = TRUE)[1,] # figure out where unique q parameter first occurs
-      r = par_idx[1] # get region index
-      b = par_idx[2] # get block index
-      f = par_idx[3] # get fleet index
-      ln_fish_q_val = ln_fish_q[r,b,f] # extract tag reporting rate value
-      if(!is.na(fish_q_prior[r,b,f,1] ) || !is.na(fish_q_prior[r,b,f,2] )) {
-        if(likelihoods == 0) fish_q_nLL = fish_q_nLL + (ln_fish_q_val - log(fish_q_prior[r,b,f,1]))^2 / (2 * (fish_q_prior[r,b,f,2])^2) # ADMB likelihood
-        if(likelihoods == 1) fish_q_nLL = fish_q_nLL -RTMB::dnorm(ln_fish_q_val, log(fish_q_prior[r,b,f,1]), fish_q_prior[r,b,f,2], TRUE) # TMB likelihood
-      } # if there are values for priors
+    for(i in 1:nrow(fish_q_prior)) {
+      # Extract indices
+      r = fish_q_prior$region[i]
+      b = fish_q_prior$block[i]
+      f = fish_q_prior$fleet[i]
+      # Compute penalty / prior here
+      if(likelihoods == 0) fish_q_nLL = fish_q_nLL + (ln_fish_q[r,b,f] - log(fish_q_prior$mu[i]))^2 / (2 * (fish_q_prior$sd[i])^2) # ADMB likelihood
+      if(likelihoods == 1) fish_q_nLL = fish_q_nLL - sum(RTMB::dnorm(ln_fish_q[r,b,f], log(fish_q_prior$mu[i]), fish_q_prior$sd[i], TRUE))
     } # end i loop
-  }
+  } # end if using survey catchability prior
 
   ### Survey Catchability (Prior) -----------------------------------------------
   if(Use_srv_q_prior == 1) {
-    unique_srv_q_pars = sort(unique(as.vector(map_srv_q))) # Figure out unique srv q parameters estimated
-    for(i in 1:length(unique_srv_q_pars)) {
-      par_idx = which(map_srv_q == unique_srv_q_pars[i], arr.ind = TRUE)[1,] # figure out where unique q parameter first occurs
-      r = par_idx[1] # get region index
-      b = par_idx[2] # get block index
-      sf = par_idx[3] # get fleet index
-      ln_srv_q_val = ln_srv_q[r,b,sf] # extract tag reporting rate value
-      if(!is.na(srv_q_prior[r,b,sf,1] ) || !is.na(srv_q_prior[r,b,sf,2] )) {
-        if(likelihoods == 0) srv_q_nLL = srv_q_nLL + (ln_srv_q_val - log(srv_q_prior[r,b,sf,1]))^2 / (2 * (srv_q_prior[r,b,sf,2])^2) # ADMB likelihood
-        if(likelihoods == 1) srv_q_nLL = srv_q_nLL -RTMB::dnorm(ln_srv_q_val, log(srv_q_prior[r,b,sf,1]), srv_q_prior[r,b,sf,2], TRUE) # TMB likelihood
-      } # if there are values for priors
+    for(i in 1:nrow(srv_q_prior)) {
+      # Extract indices
+      r = srv_q_prior$region[i]
+      b = srv_q_prior$block[i]
+      sf = srv_q_prior$fleet[i]
+      # Compute penalty / prior here
+      if(likelihoods == 0) srv_q_nLL = srv_q_nLL + (ln_srv_q[r,b,sf] - log(srv_q_prior$mu[i]))^2 / (2 * (srv_q_prior$sd[i])^2) # ADMB likelihood
+      if(likelihoods == 1) srv_q_nLL = srv_q_nLL - sum(RTMB::dnorm(ln_srv_q[r,b,sf], log(srv_q_prior$mu[i]), srv_q_prior$sd[i], TRUE))
     } # end i loop
-  }
+  } # end if using survey catchability prior
 
   ### Natural Mortality (Prior) -----------------------------------------------
   if(Use_M_prior == 1) {
@@ -1049,13 +1035,13 @@ SPoRC_rtmb = function(pars, data) {
 
   ### Steepness (Prior) -----------------------------------------------
   if(Use_h_prior == 1) {
-    unique_h_pars = sort(unique(as.vector(map_h_Pars))) # Figure out unique steepness parameters estimated
-    for(i in 1:length(unique_h_pars)) {
-      r = which(map_h_Pars == unique_h_pars[i]) # region index
-      tmp_h_beta_pars = get_beta_scaled_pars(low = 0.2, high = 1, mu = h_mu[r], sigma = h_sd[r]) # get alpha and beta parameters
+    for(i in 1:nrow(h_prior)) {
+      # Extract indicies
+      r = h_prior$region[i]
+      tmp_h_beta_pars = get_beta_scaled_pars(low = 0.2, high = 1, mu = h_prior$mu[i], sigma = h_prior$sd[i]) # get alpha and beta parameters
       tmp_h_trans = (h_trans[r] - 0.2) / (1 - 0.2) # transform random variable
       h_nLL = h_nLL - RTMB::dbeta(x = tmp_h_trans, shape1 = tmp_h_beta_pars[1], shape2 = tmp_h_beta_pars[2], log = TRUE) # penalize
-    } # end i loop
+    } # end i
   } # end if using steepness prior
 
 
@@ -1087,18 +1073,18 @@ SPoRC_rtmb = function(pars, data) {
 
   ### Tag Reporting Rate (Prior) --------------------------------------------
   if(Use_TagRep_Prior == 1) {
-    unique_tagrep_pars = sort(unique(as.vector(map_Tag_Reporting_Pars))) # Figure out unique tag reporting parameters estimated
-    for(i in 1:length(unique_tagrep_pars)) {
-      par_idx = which(map_Tag_Reporting_Pars == unique_tagrep_pars[i], arr.ind = TRUE)[1,] # figure out where unique tagrep parameter first occurs
-      r = par_idx[1] # get region index
-      b = par_idx[2] # get block index
+    for(i in 1:nrow(TagRep_Prior)) {
+      # Extract indices
+      r = TagRep_Prior$region[i]
+      b = TagRep_Prior$block[i]
       TagRep_val = RTMB::plogis(Tag_Reporting_Pars[r,b]) # extract tag reporting rate value
-      if(TagRep_PriorType == 0) {
-        TagRep_nLL = TagRep_nLL - dbeta_symmetric(p_val = TagRep_val, p_ub = 1, p_lb = 0, p_prsd = TagRep_sd, log = TRUE) # penalize
+      if(TagRep_Prior$type[i] == 0) {
+        TagRep_nLL = TagRep_nLL - dbeta_symmetric(p_val = TagRep_val, p_ub = 1, p_lb = 0, p_prsd = TagRep_Prior$sd[i], log = TRUE) # penalize
       } # end if symmetric beta
-      if(TagRep_PriorType == 1) {
-        a = TagRep_mu / (TagRep_sd * TagRep_sd) # alpha parameter
-        b = (1 - TagRep_mu) / (TagRep_sd * TagRep_sd) # beta parameter
+
+      if(TagRep_Prior$type[i] == 1) {
+        a = TagRep_Prior$mu[i] / (TagRep_Prior$sd[i] * TagRep_Prior$sd[i]) # alpha parameter
+        b = (1 - TagRep_Prior$mu[i]) / (TagRep_Prior$sd[i] * TagRep_Prior$sd[i]) # beta parameter
         TagRep_nLL = TagRep_nLL -RTMB::dbeta(x = TagRep_val, shape1 = a, shape2 = b, log = TRUE) # penalize
       } # end if for full beta
     } # end i loop

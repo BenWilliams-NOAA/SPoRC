@@ -10,8 +10,7 @@ Setup_Mod_Rec(
   rec_dd = NULL,
   rec_lag = 1,
   Use_h_prior = 0,
-  h_mu = NA,
-  h_sd = NA,
+  h_prior = NULL,
   do_rec_bias_ramp = 0,
   bias_year = NA,
   max_bias_ramp_fct = 1,
@@ -45,9 +44,12 @@ Setup_Mod_Rec(
 
 \item{Use_h_prior}{Integer flag (0 or 1) indicating whether to apply a prior on steepness \code{h}.}
 
-\item{h_mu}{Numeric vector (length \code{n_regions}) specifying the mean steepness prior values if used.}
-
-\item{h_sd}{Numeric vector (length \code{n_regions}) specifying the standard deviation for steepness priors if used.}
+\item{h_prior}{Data frame specifying beta prior distributions for the `h_trans` parameters.
+Must include the following columns:
+- `region`: Integer region index corresponding to the element in `h_trans` being penalized.
+- `mu`: Mean of the prior in normal space (used to calculate the corresponding beta distribution).
+- `sd`: Standard deviation of the prior in normal space.
+For each row, a beta distribution is scaled to the interval [0.2, 1], and the corresponding element of `h_trans` is transformed to that scale and penalized using the log-density from the beta distribution.}
 
 \item{do_rec_bias_ramp}{Integer flag (0 or 1) indicating whether to apply a recruitment bias correction ramp.}
 

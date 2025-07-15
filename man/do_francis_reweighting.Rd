@@ -18,7 +18,7 @@ do_francis_reweighting(data, rep, age_labels, len_labels, year_labels)
 \item{year_labels}{Year labels}
 }
 \value{
-A list object of francis weights (note that it will be NAs for some, if using jnt composition approaches - i.e., only uses one dimension)
+A list object of francis weights (note that it will be NAs for some, if using jnt composition approaches - i.e., only uses one dimension), as well as a dataframe of francis mean fits
 }
 \description{
 Run Francis Reweighting
@@ -49,7 +49,7 @@ for(j in 1:5) {
 
   rep <- sabie_rtmb_model$report(sabie_rtmb_model$env$last.par.best) # Get report
   wts <- do_francis_reweighting(data = data, rep = rep, age_labels = 2:31,
-                                len_labels = seq(41, 99, 2), year_labels = 1960:2021)
+                                len_labels = seq(41, 99, 2), year_labels = 1960:2024)
 }
 }
 }

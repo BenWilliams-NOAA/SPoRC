@@ -67,7 +67,7 @@
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A list object of francis weights (note that it will be NAs for some, if using jnt composition approaches - i.e., only uses one dimension)</p>
+    <p>A list object of francis weights (note that it will be NAs for some, if using jnt composition approaches - i.e., only uses one dimension), as well as a dataframe of francis mean fits</p>
     </div>
 
     <div class="section level2">
@@ -97,7 +97,7 @@
 <span></span>
 <span>  <span class="va">rep</span> <span class="op">&lt;-</span> <span class="va">sabie_rtmb_model</span><span class="op">$</span><span class="fu">report</span><span class="op">(</span><span class="va">sabie_rtmb_model</span><span class="op">$</span><span class="va">env</span><span class="op">$</span><span class="va">last.par.best</span><span class="op">)</span> <span class="co"># Get report</span></span>
 <span>  <span class="va">wts</span> <span class="op">&lt;-</span> <span class="fu">do_francis_reweighting</span><span class="op">(</span>data <span class="op">=</span> <span class="va">data</span>, rep <span class="op">=</span> <span class="va">rep</span>, age_labels <span class="op">=</span> <span class="fl">2</span><span class="op">:</span><span class="fl">31</span>,</span>
-<span>                                len_labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">41</span>, <span class="fl">99</span>, <span class="fl">2</span><span class="op">)</span>, year_labels <span class="op">=</span> <span class="fl">1960</span><span class="op">:</span><span class="fl">2021</span><span class="op">)</span></span>
+<span>                                len_labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">41</span>, <span class="fl">99</span>, <span class="fl">2</span><span class="op">)</span>, year_labels <span class="op">=</span> <span class="fl">1960</span><span class="op">:</span><span class="fl">2024</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span><span class="op">}</span> <span class="co"># }</span></span></code></pre></div>
     </div>

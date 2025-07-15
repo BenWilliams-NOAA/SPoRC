@@ -981,8 +981,14 @@ Setup_Mod_FishIdx_and_Comps <- function(input_list,
 #'   }
 #'
 #' These correlation-suppression flags are ignored when \code{cont_tv_sel} is set to any other value.
-#' @param Use_fish_q_prior Integer specifying whether to use fishery q prior or not (0 dont use) (1 use)
-#' @param fish_q_prior Fishery q priors in normal space, dimensioned by region, block,  fishery fleet, and 2 (mean, and sd in the 4 dimension of array)
+#' @param Use_fish_q_prior Integer (0 or 1). Flag to enable/disable survey catchability priors.
+#'   When set to 1, applies log-normal priors to survey selectivity parameters as specified
+#'   in \code{fish_q_prior}. When set to 0, no priors are applied.
+#' @param fish_q_prior Data frame containing prior specifications for survey catchability parameters.
+#'   Must include columns: \code{region} (region index), \code{fleet} (fleet index),
+#'   \code{block} (time block index), \code{mu} (prior mean on natural scale), and \code{sd} (prior standard deviation on log scale).
+#'   Each row specifies a log-normal prior N(log(mu), sd) for a given catchability parameter.
+#'   Only parameters with rows in this data frame will have priors applied.
 #' @param ... Additional arguments specifying starting values for fishery selectivity and catchability parameters (fishsel_pe_pars, ln_fishsel_devs, ln_fish_fixed_sel_pars, ln_fish_q)
 #' @param Use_fish_selex_prior Integer (0 or 1). Flag to enable/disable fishery selectivity priors.
 #'   When set to 1, applies log-normal priors to fishery selectivity parameters as specified
@@ -1020,12 +1026,22 @@ Setup_Mod_Fishsel_and_Q <- function(input_list,
   if(!is.null(fish_sel_devs_spec)) if(length(fish_sel_devs_spec) != input_list$data$n_fish_fleets) stop("fish_sel_devs_spec is not length n_fish_fleets")
   if(!is.null(corr_opt_semipar)) if(length(corr_opt_semipar) != input_list$data$n_fish_fleets) stop("corr_opt_semipar is not length n_fish_fleets")
   if(!Use_fish_q_prior %in% c(0,1)) stop("Values for Use_fish_q_prior are not valid. They are == 0 (don't use prior), or == 1 (use prior)")
+  if(!Use_fish_selex_prior %in% c(0,1)) stop("Values for Use_fish_selex_prior are not valid. They are == 0 (don't use prior), or == 1 (use prior)")
   collect_message("Fishery Catchability priors are: ", ifelse(Use_fish_q_prior == 0, "Not Used", "Used"))
+  collect_message("Fishery Selectivity priors are: ", ifelse(Use_fish_selex_prior == 0, "Not Used", "Used"))
   if(is.null(input_list$data$Selex_Type)) stop("Selectivity type (age or length-based) has not been specified yet! Make sure to first specify biological inputs with Setup_Mod_Biologicals.")
+
+  # Checking catchability priors
+  if(Use_fish_q_prior == 1) {
+    required_cols <- c("region", "fleet", "block", "mu", "sd")
+    missing_cols <- setdiff(required_cols, names(fish_q_prior))
+    if(length(missing_cols) > 0) {
+      stop("fish_q_prior is missing required columns: ", paste(missing_cols, collapse = ", "))
+    }
+  }
 
   # Checking selectivity priors
   if(Use_fish_selex_prior == 1) {
-    collect_message("Using priors for fishery selectivity fixed effects")
     required_cols <- c("region", "fleet", "block", "sex", "par", "mu", "sd")
     missing_cols <- setdiff(required_cols, names(fish_selex_prior))
     if(length(missing_cols) > 0) {
@@ -1513,10 +1529,6 @@ Setup_Mod_Fishsel_and_Q <- function(input_list,
   input_list$map$ln_fish_q <- factor(map_fish_q)
   input_list$map$ln_fishsel_devs <- factor(map_fishsel_devs)
   input_list$data$map_ln_fishsel_devs <- array(as.numeric(input_list$map$ln_fishsel_devs), dim = dim(input_list$par$ln_fishsel_devs))
-  input_list$data$map_fish_q <- map_fish_q
-
-  # Checking whether fishery q dimensions are correct
-  if(Use_fish_q_prior == 1) if(sum(dim(fish_q_prior) == c(dim(map_fish_q), 2)) != 4) stop("Fishery catchability dimensions are not correct. Should be n_regions, max n_blocks, n_fish_fleets, and 2 (where 2 represents the 2 prior parameters - the mean and sd). You can input an NA if not availiable for certain regions or fleets.")
 
   # Print all messages if verbose is TRUE
   if(input_list$verbose) for(msg in messages_list) message(msg)

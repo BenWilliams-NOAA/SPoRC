@@ -278,13 +278,12 @@ that tagged individuals experience age-and sex-specific natural
 mortality. For more options, users can inspect
 <code><a href="../reference/Setup_Mod_Tagging.html">?Setup_Mod_Tagging</a></code>.</p>
 <p>Next, we can specify whether tag reporting rate priors are used
-(<code>Use_TagRep_Prior = 1</code>) and the type of prior used
-(<code>TagRep_PriorType = 0</code>). Here, tag reporting priors are in
-fact used, and a symmetric beta prior is specified. Given that, the
-symmetric beta prior does not require an input for a mean value for tag
-reporting (<code>TagRep_mu = NA</code>), but does require an input for
-the standard deviation (<code>TagRep_sd = 5</code>), where larger values
-penalize the extremes more. We then specify the
+(<code>Use_TagRep_Prior = 1</code>) and the type of prior used. Here,
+tag reporting priors are in fact used, and a symmetric beta prior is
+specified. Given that, the symmetric beta prior does not require an
+input for a mean value for tag reporting (<code>mu = NA</code>), but
+does require an input for the standard deviation (<code>sd = 5</code>),
+where larger values penalize the extremes more. We then specify the
 <code>move_age_tag_pool</code> and <code>move_sex_tag_pool</code>
 arguments which indicate to the model how tagging data should be fit. In
 this case, we are fitting tag data by their respective age and
@@ -302,7 +301,16 @@ estimation of tag reporting rates, which are time-varying (estimated as
 argument) but are shared across regions
 (<code>TagRep_spec = "est_shared_r"</code>).</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># setting up tagging parameterization</span></span>
+<code class="sourceCode R"><span><span class="co"># setup tagging priors</span></span>
+<span><span class="va">tag_prior</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  region <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  block <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span><span class="op">)</span>,</span>
+<span>  mu <span class="op">=</span> <span class="cn">NA</span>, <span class="co"># no mean, since symmetric beta</span></span>
+<span>  sd <span class="op">=</span> <span class="fl">5</span>, <span class="co"># sd = 5</span></span>
+<span>  type <span class="op">=</span> <span class="fl">0</span> <span class="co"># symmetric beta</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># setting up tagging parameterization</span></span>
 <span><span class="va">input_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/Setup_Mod_Tagging.html">Setup_Mod_Tagging</a></span><span class="op">(</span>input_list <span class="op">=</span> <span class="va">input_list</span>,</span>
 <span>                                UseTagging <span class="op">=</span> <span class="fl">1</span>, <span class="co"># using tagging data</span></span>
 <span>                                max_tag_liberty <span class="op">=</span> <span class="fl">15</span>, <span class="co"># maximum number of years to track a cohort</span></span>
@@ -329,10 +337,7 @@ argument) but are shared across regions
 <span>                                tag_natmort <span class="op">=</span> <span class="st">"AgeSp_SexSp"</span>, <span class="co"># tagging natural mortality is</span></span>
 <span>                                <span class="co"># age and sex-specific</span></span>
 <span>                                Use_TagRep_Prior <span class="op">=</span> <span class="fl">1</span>, <span class="co"># tag reporting rate priors are used</span></span>
-<span>                                TagRep_PriorType <span class="op">=</span> <span class="fl">0</span>, <span class="co"># symmetric beta is used</span></span>
-<span>                                <span class="co"># for tag reporting prior</span></span>
-<span>                                TagRep_mu <span class="op">=</span> <span class="cn">NA</span>, <span class="co"># Tag reporting mean</span></span>
-<span>                                TagRep_sd <span class="op">=</span> <span class="fl">5</span>, <span class="co"># tag reporting sd controlling symmetric beta</span></span>
+<span>                                TagRep_Prior <span class="op">=</span> <span class="va">tag_prior</span>,</span>
 <span>                                move_age_tag_pool <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">6</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">7</span><span class="op">:</span><span class="fl">15</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">16</span><span class="op">:</span><span class="fl">30</span><span class="op">)</span><span class="op">)</span>, <span class="co"># whether or</span></span>
 <span>                                <span class="co"># not to pool tagging data when fitting (for computational cost)</span></span>
 <span>                                move_sex_tag_pool <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span>, <span class="co"># whether or not to pool</span></span>

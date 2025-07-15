@@ -39,7 +39,7 @@ get_francis_weights(
 \item{comp_type}{Matrix of composition structure types dimensioned by year and fleet}
 }
 \value{
-Value for calculated francis weight
+List of values for calculated francis weight, and a dataframe of observed and expected means
 }
 \description{
 Computes Francis weights, which is used internally by do_francis_reweighting

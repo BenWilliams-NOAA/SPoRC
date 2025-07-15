@@ -672,15 +672,20 @@ Setup_Mod_SrvIdx_and_Comps <- function(input_list,
 #'   }
 #'
 #' These correlation-suppression flags are ignored when \code{cont_tv_sel} is set to any other value.
-#' @param Use_srv_q_prior Integer specifying whether to use survey q prior or not (0 dont use) (1 use)
-#' @param srv_q_prior Survey q priors in normal space, dimensioned by region, block,  survey fleet, and 2 (mean, and sd in the 4 dimension of array)
+#' @param Use_srv_q_prior Integer (0 or 1). Flag to enable/disable survey catchability priors.
+#'   When set to 1, applies log-normal priors to survey selectivity parameters as specified
+#'   in \code{srv_q_prior}. When set to 0, no priors are applied.
+#' @param srv_q_prior Data frame containing prior specifications for survey catchability parameters.
+#'   Must include columns: \code{region} (region index), \code{fleet} (fleet index),
+#'   \code{block} (time block index), \code{mu} (prior mean on natural scale), and \code{sd} (prior standard deviation on log scale).
+#'   Each row specifies a log-normal prior N(log(mu), sd) for a given catchability parameter.
+#'   Only parameters with rows in this data frame will have priors applied.
 #' @param ... Additional arguments specifying starting values for survey selectivity and catchability parameters (srvsel_pe_pars, ln_srvsel_devs, ln_srv_fixed_sel_pars, ln_srv_q, srv_q_coeff)
 #' @param srv_q_formula A named list of formulas specifying environmental covariate relationships
 #'   for each region and survey fleet. Each element should be named using the convention
 #'   `"Region_<region>_Fleet_<fleet>"` and contain a formula object using covariate names present in
 #'   `srv_q_cov_dat`. The formula determines how environmental covariates influence survey catchability.
 #'   If `NULL`, no environmental covariate effects are included.
-#'
 #' @param srv_q_cov_dat A named list containing time series vectors (typically by year) of environmental
 #'   covariates used in the `srv_q_formula`. Each entry should be a numeric vector of length equal to the
 #'   number of years, and names must match the variable names used in the formulas. If `NULL`, survey
@@ -752,13 +757,23 @@ Setup_Mod_Srvsel_and_Q <- function(input_list,
   if(!is.null(srv_sel_devs_spec)) if(length(srv_sel_devs_spec) != input_list$data$n_srv_fleets) stop("srv_sel_devs_spec is not length n_srv_fleets")
   if(!is.null(corr_opt_semipar)) if(length(corr_opt_semipar) != input_list$data$n_srv_fleets) stop("corr_opt_semipar is not length n_srv_fleets")
   if(!Use_srv_q_prior %in% c(0,1)) stop("Values for Use_srv_q_prior are not valid. They are == 0 (don't use prior), or == 1 (use prior)")
+  if(!Use_srv_selex_prior %in% c(0,1)) stop("Values for Use_srv_selex_prior are not valid. They are == 0 (don't use prior), or == 1 (use prior)")
   collect_message("Survey Catchability priors are: ", ifelse(Use_srv_q_prior == 0, "Not Used", "Used"))
+  collect_message("Survey Selectivity priors are: ", ifelse(Use_srv_selex_prior == 0, "Not Used", "Used"))
   if(is.null(input_list$data$Selex_Type)) stop("Selectivity type (age or length-based) has not been specified yet! Make sure to first specify biological inputs with Setup_Mod_Biologicals.")
   if(!is.null(srv_q_cov_dat) && !is.null(srv_q_formula)) collect_message("Using covariates to predict survey catchability")
 
+  # Checking catchability priors
+  if(Use_srv_q_prior == 1) {
+    required_cols <- c("region", "fleet", "block", "mu", "sd")
+    missing_cols <- setdiff(required_cols, names(srv_q_prior))
+    if(length(missing_cols) > 0) {
+      stop("srv_q_prior is missing required columns: ", paste(missing_cols, collapse = ", "))
+    }
+  }
+
   # Checking selectivity priors
   if(Use_srv_selex_prior == 1) {
-    collect_message("Using priors for survey selectivity fixed effects")
     required_cols <- c("region", "fleet", "block", "sex", "par", "mu", "sd")
     missing_cols <- setdiff(required_cols, names(srv_selex_prior))
     if(length(missing_cols) > 0) {
@@ -1309,12 +1324,6 @@ Setup_Mod_Srvsel_and_Q <- function(input_list,
   input_list$map$ln_srv_q <- factor(map_srv_q)
   input_list$map$ln_srvsel_devs <- factor(map_srvsel_devs)
   input_list$data$map_ln_srvsel_devs <- array(as.numeric(input_list$map$ln_srvsel_devs), dim = dim(input_list$par$ln_srvsel_devs))
-  input_list$data$map_srv_q <- map_srv_q
-
-  map_srvsel_devs <<- map_srvsel_devs
-
-  # Checking whether survey q dimensions are correct
-  if(Use_srv_q_prior == 1) if(sum(dim(srv_q_prior) == c(dim(map_srv_q), 2)) != 4) stop("Survey catchability dimensions are not correct. Should be n_regions, max n_blocks, n_srv_fleets, and 2 (where 2 represents the 2 prior parameters - the mean and sd). You can input an NA if not availiable for certain regions or fleets")
 
   # Print all messages if verbose is TRUE
   if(input_list$verbose) for(msg in messages_list) message(msg)

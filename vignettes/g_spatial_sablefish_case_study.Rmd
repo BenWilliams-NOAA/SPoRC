@@ -143,11 +143,20 @@ Specification of tagging dynamics can be a bit cumbersome given the myriad of op
 
 Following the specification of our data inputs, we can then specify several model options. Here, can specify the likelihood type utilized for tagging data (`Tag_LikeType = "NegBin"`), which is specified as a negative binomial, with an overdispersion parameter estimated. We can also specify a tag mixing period (`mixing_period = 2`), which indicates to the model to not fit tag recapture data until `release_year + 1`, given that tagged individuals have not fully mixed. Additionally, the function also takes a time at tagging argument `t_tagging`, which is specified at a value of 0.5 to indicate that tagging happens midway through the year, and movement does not occur in the tag release year. Users can also specify how tagging fishing and natural mortality occurs. In this application, tagging fishing mortality / selectivity is specified as `tag_selex = "SexSp_AllFleet"`, which indicates that the selectivity curve utilized to fit to tag data is sex-specific is derived by a weighting fishery fleet-specific selectivity by fishing mortality. The option `tag_natmort = "AgeSp_SexSp"` specifies that tagged individuals experience age-and sex-specific natural mortality. For more options, users can inspect `?Setup_Mod_Tagging`.
 
-Next, we can specify whether tag reporting rate priors are used (`Use_TagRep_Prior = 1`) and the type of prior used (`TagRep_PriorType = 0`). Here, tag reporting priors are in fact used, and a symmetric beta prior is specified. Given that, the symmetric beta prior does not require an input for a mean value for tag reporting (`TagRep_mu = NA`), but does require an input for the standard deviation (`TagRep_sd = 5`), where larger values penalize the extremes more. We then specify the `move_age_tag_pool` and `move_sex_tag_pool` arguments which indicate to the model how tagging data should be fit. In this case, we are fitting tag data by their respective age and sex-blocks to reduce computational demand. If users wish to fit tag data by their individual ages and sexes, `move_age_tag_pool` would be specified as `list(1,2,3,4 ..., n_ages)` and `move_sex_tag_pool` would be `list(1,2)`. 
+Next, we can specify whether tag reporting rate priors are used (`Use_TagRep_Prior = 1`) and the type of prior used. Here, tag reporting priors are in fact used, and a symmetric beta prior is specified. Given that, the symmetric beta prior does not require an input for a mean value for tag reporting (`mu = NA`), but does require an input for the standard deviation (`sd = 5`), where larger values penalize the extremes more. We then specify the `move_age_tag_pool` and `move_sex_tag_pool` arguments which indicate to the model how tagging data should be fit. In this case, we are fitting tag data by their respective age and sex-blocks to reduce computational demand. If users wish to fit tag data by their individual ages and sexes, `move_age_tag_pool` would be specified as `list(1,2,3,4 ..., n_ages)` and `move_sex_tag_pool` would be `list(1,2)`. 
 
 Because initial tagging mortality and chronic tag shedding are often confounded with other mortality processes and difficult to estiamte, we will fix these parameters in this application (`Init_Tag_Mort_spec = "fix"` and `Tag_Shed_spec = "fix"`). Lastly, we will specify the estimation of tag reporting rates, which are time-varying (estimated as 2 blocks; see input supplied to the `Tag_Reporting_blocks` argument) but are shared across regions (`TagRep_spec = "est_shared_r"`). 
 
 ```{r Setup Tagging, message = FALSE,  eval = FALSE}
+# setup tagging priors
+tag_prior <- data.frame(
+  region = 1,
+  block = c(1,2),
+  mu = NA, # no mean, since symmetric beta
+  sd = 5, # sd = 5
+  type = 0 # symmetric beta
+)
+
 # setting up tagging parameterization
 input_list <- Setup_Mod_Tagging(input_list = input_list,
                                 UseTagging = 1, # using tagging data
@@ -175,10 +184,7 @@ input_list <- Setup_Mod_Tagging(input_list = input_list,
                                 tag_natmort = "AgeSp_SexSp", # tagging natural mortality is
                                 # age and sex-specific
                                 Use_TagRep_Prior = 1, # tag reporting rate priors are used
-                                TagRep_PriorType = 0, # symmetric beta is used
-                                # for tag reporting prior
-                                TagRep_mu = NA, # Tag reporting mean
-                                TagRep_sd = 5, # tag reporting sd controlling symmetric beta
+                                TagRep_Prior = tag_prior,
                                 move_age_tag_pool = list(c(1:6), c(7:15), c(16:30)), # whether or
                                 # not to pool tagging data when fitting (for computational cost)
                                 move_sex_tag_pool = list(c(1:2)), # whether or not to pool

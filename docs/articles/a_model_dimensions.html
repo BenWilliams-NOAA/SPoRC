@@ -139,19 +139,14 @@ priors, 1: Use Priors. Steepness priors are bounded between 0.2 and 1
 with a scaled beta penalty.</td>
 </tr>
 <tr class="odd">
-<td><code>h_mu</code></td>
-<td>Vector of n_regions specifying the mean of the steepness prior. Must
-be between 0.2 and 1</td>
-</tr>
-<tr class="even">
-<td><code>h_sd</code></td>
-<td>Vector of n_regions specifying the standard deviation of the
-steepness prior. Must be &gt; 0</td>
-</tr>
-<tr class="odd">
-<td><code>map_h_Pars</code></td>
-<td>Vector of n_regions specifying whether or not the steepness for a
-given region is mapped off.</td>
+<td><code>h_prior</code></td>
+<td>Data frame specifying prior distributions for steepness parameters.
+Must include columns: <code>region</code> (region index),
+<code>mu</code> (mean of the prior in normal space), and <code>sd</code>
+(standard deviation of the prior in normal space). For each row, a beta
+distribution is scaled to the interval [0.2, 1], and the corresponding
+<code>h_trans</code> value is transformed and penalized using the
+log-density from the scaled beta distribution.</td>
 </tr>
 <tr class="even">
 <td><code>do_rec_bias_ramp</code></td>
@@ -430,21 +425,16 @@ discounted</td>
 used. 0: Don’t use prior, 1: Use prior</td>
 </tr>
 <tr class="odd">
-<td><code>TagRep_PriorType</code></td>
-<td>Value specifying the type of prior to use for tag reporting rates.
-0: Symmetric beta prior that forces values away from the edges, 1:
-regular beta prior</td>
-</tr>
-<tr class="even">
-<td><code>TagRep_mu</code></td>
-<td>Value specifying the mean of the tag reporting prior. This is not
-required if TagRep_PriorType = 0, but is required if TagRep_PriorType =
-1</td>
-</tr>
-<tr class="odd">
-<td><code>TagRep_sd</code></td>
-<td>Value specifying the standard deviation of the tag reporting
-prior</td>
+<td><code>TagRep_Prior</code></td>
+<td>Data frame containing prior specifications for tag reporting
+parameters. Must include columns: <code>region</code> (region index),
+<code>block</code> (time block index), <code>mu</code> (numeric mean for
+tag reporting prior in normal space; use <code>NA</code> if symmetric
+beta is used), <code>sd</code> (numeric standard deviation for the prior
+in normal space), and <code>type</code> (0 = symmetric beta, 1 = regular
+beta). Each row specifies a beta prior for one tag reporting parameter.
+Only parameters with rows in this data frame will have priors
+applied.</td>
 </tr>
 <tr class="even">
 <td><code>tag_selex</code></td>
@@ -868,8 +858,12 @@ apply in that given period.</td>
 </tr>
 <tr class="even">
 <td><code>fish_q_prior</code></td>
-<td>Fishery catchability prior values by region, time blocks, fishery
-fleet, and 2 (mean, and sd in the 4 dimension of array)</td>
+<td>Data frame containing prior specifications for fishery catchability
+parameters. Must include columns: <code>region</code> (region index),
+<code>fleet</code> (fleet index), <code>block</code> (time block index),
+<code>mu</code> (prior mean on natural scale), and <code>sd</code>
+(prior standard deviation on log scale). Each row specifies a log-normal
+prior N(log(mu), sd) for one catchability parameter.</td>
 </tr>
 <tr class="odd">
 <td><code>map_ln_fishsel_devs</code></td>
@@ -965,8 +959,12 @@ apply in that given period.</td>
 </tr>
 <tr class="even">
 <td><code>srv_q_prior</code></td>
-<td>Survey catchability prior values by region, time blocks, survey
-fleet, and 2 (mean, and sd in the 4 dimension of array)</td>
+<td>Data frame containing prior specifications for survey catchability
+parameters. Must include columns: <code>region</code> (region index),
+<code>fleet</code> (fleet index), <code>block</code> (time block index),
+<code>mu</code> (prior mean on natural scale), and <code>sd</code>
+(prior standard deviation on log scale). Each row specifies a log-normal
+prior N(log(mu), sd) for one catchability parameter.</td>
 </tr>
 <tr class="odd">
 <td><code>map_ln_srvsel_devs</code></td>

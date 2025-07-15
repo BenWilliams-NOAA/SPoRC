@@ -87,8 +87,6 @@ Setup_Sim_Rec <- function(
 #' }
 #' @param rec_lag Integer specifying the recruitment lag duration relative to spawning stock biomass (SSB).
 #' @param Use_h_prior Integer flag (0 or 1) indicating whether to apply a prior on steepness \code{h}.
-#' @param h_mu Numeric vector (length \code{n_regions}) specifying the mean steepness prior values if used.
-#' @param h_sd Numeric vector (length \code{n_regions}) specifying the standard deviation for steepness priors if used.
 #' @param do_rec_bias_ramp Integer flag (0 or 1) indicating whether to apply a recruitment bias correction ramp.
 #' @param bias_year Numeric vector of length 4 defining the recruitment bias ramp periods:
 #'   \itemize{
@@ -151,6 +149,12 @@ Setup_Sim_Rec <- function(
 #'     \item \code{2}: Stochastic initial age structure for all ages
 #'   }
 #' @param max_bias_ramp_fct Numeric specifying the maximum bias correction to apply to the recruitment bias ramp (should be between 0 and 1)
+#' @param h_prior Data frame specifying beta prior distributions for the `h_trans` parameters.
+#'   Must include the following columns:
+#'   - `region`: Integer region index corresponding to the element in `h_trans` being penalized.
+#'   - `mu`: Mean of the prior in normal space (used to calculate the corresponding beta distribution).
+#'   - `sd`: Standard deviation of the prior in normal space.
+#'   For each row, a beta distribution is scaled to the interval [0.2, 1], and the corresponding element of `h_trans` is transformed to that scale and penalized using the log-density from the beta distribution.
 #'
 #' @export Setup_Mod_Rec
 Setup_Mod_Rec <- function(input_list,
@@ -158,8 +162,7 @@ Setup_Mod_Rec <- function(input_list,
                           rec_dd = NULL,
                           rec_lag = 1,
                           Use_h_prior = 0,
-                          h_mu = NA,
-                          h_sd = NA,
+                          h_prior = NULL,
                           do_rec_bias_ramp = 0,
                           bias_year = NA,
                           max_bias_ramp_fct = 1,
@@ -202,6 +205,16 @@ Setup_Mod_Rec <- function(input_list,
   collect_message("Recruitment Density Dependence is specified as: ", rec_dd)
 
   if(rec_model != 'mean_rec') collect_message("Recruitment and SSB lag is specified as: ", rec_lag)
+
+  # Checking h priors
+  if(Use_h_prior == 1) {
+    required_cols <- c("region", "mu", "sd")
+    missing_cols <- setdiff(required_cols, names(h_prior))
+    if(length(missing_cols) > 0) {
+      stop("h_prior is missing required columns: ", paste(missing_cols, collapse = ", "))
+    }
+  }
+
   if(rec_model == 'bh_rec') if(!Use_h_prior %in% c(0,1)) stop("Steepness priors are not specified as either: 0 (don't turn on), or 1 (turn on)")
   else collect_message("Steepness priors are: ", ifelse(Use_h_prior == 0, 'Not Used', 'Used'))
 
@@ -227,8 +240,7 @@ Setup_Mod_Rec <- function(input_list,
   input_list$data$rec_dd <- rec_dd_val
   input_list$data$rec_lag <- rec_lag
   input_list$data$Use_h_prior <- Use_h_prior
-  input_list$data$h_mu <- h_mu
-  input_list$data$h_sd <- h_sd
+  input_list$data$h_prior <- h_prior
   input_list$data$do_rec_bias_ramp <- do_rec_bias_ramp
   input_list$data$bias_year <- bias_year
   input_list$data$sigmaR_switch <- sigmaR_switch
@@ -355,8 +367,6 @@ Setup_Mod_Rec <- function(input_list,
     }
     collect_message("Steepness is estimated for all dimensions")
   }
-
-  input_list$data$map_h_Pars <- as.numeric(input_list$map$steepness_h) # specify which ones are mapped off so they are only penalized once in priors
 
   # R0 proportions
   if(input_list$data$n_regions == 1) input_list$map$Rec_prop <- factor(rep(NA, length(input_list$par$Rec_prop)))

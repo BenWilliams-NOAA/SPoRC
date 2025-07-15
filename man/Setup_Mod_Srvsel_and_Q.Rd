@@ -87,9 +87,15 @@ The models are applied by region and year as defined in the overall model array 
 
 For mathematical definitions and implementation details of each selectivity form, refer to the model equations vignette.}
 
-\item{Use_srv_q_prior}{Integer specifying whether to use survey q prior or not (0 dont use) (1 use)}
+\item{Use_srv_q_prior}{Integer (0 or 1). Flag to enable/disable survey catchability priors.
+When set to 1, applies log-normal priors to survey selectivity parameters as specified
+in \code{srv_q_prior}. When set to 0, no priors are applied.}
 
-\item{srv_q_prior}{Survey q priors in normal space, dimensioned by region, block,  survey fleet, and 2 (mean, and sd in the 4 dimension of array)}
+\item{srv_q_prior}{Data frame containing prior specifications for survey catchability parameters.
+Must include columns: \code{region} (region index), \code{fleet} (fleet index),
+\code{block} (time block index), \code{mu} (prior mean on natural scale), and \code{sd} (prior standard deviation on log scale).
+Each row specifies a log-normal prior N(log(mu), sd) for a given catchability parameter.
+Only parameters with rows in this data frame will have priors applied.}
 
 \item{srv_q_blocks}{Character vector specifying survey catchability (q) blocks for each fleet.
 Each element must follow the structure: \code{"Block_<block number>_Year_<start>-<end>_Fleet_<fleet number>"}

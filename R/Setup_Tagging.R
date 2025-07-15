@@ -94,19 +94,6 @@ Setup_Sim_Tagging <- function(
 #'   }
 #'   Example: \code{tag_natmort = "AgeSp_SexSp"}
 #' @param Use_TagRep_Prior Numeric (0 or 1) whether to use tag reporting rate prior
-#' @param TagRep_PriorType Numeric indicating prior type for tag reporting:
-#'   \itemize{
-#'     \item 0: Symmetric beta
-#'     \item 1: Regular beta
-#'   }
-#' @param TagRep_mu Numeric mean for tag reporting prior (normal space); \code{NA} if symmetric beta is used
-#' @param TagRep_sd Numeric standard deviation for tag reporting prior (normal space)
-#' @param move_age_tag_pool List or character specifying pooling of tagging data by age groups. Examples:
-#'   \itemize{
-#'     \item \code{list(c(1:6), c(7:15), c(16:30))} pools ages 1–6, 7–15, 16–30
-#'     \item \code{"all"} pools all ages together as one group (internally converted to \code{list(1:n_ages)})
-#'     \item \code{list(1, 2, 3, ..., n_ages)} fits each age separately
-#'   }
 #' @param move_sex_tag_pool List or character specifying pooling of tagging data by sex groups. Examples:
 #'   \itemize{
 #'     \item \code{list(1:2)} pools sexes together
@@ -128,6 +115,12 @@ Setup_Sim_Tagging <- function(
 #'     \item \code{"fix"} fixes all reporting rates (no estimation)
 #'   }
 #' @param ... Additional starting values for tagging parameters such as \code{ln_Init_Tag_Mort}, \code{ln_Tag_Shed}, \code{ln_tag_theta}, \code{Tag_Reporting_Pars}
+#' @param TagRep_Prior Data frame containing prior specifications for tag reporting parameters.
+#'   Must include columns: \code{region} (region index), \code{block} (time block index),
+#'   \code{mu} (Numeric mean for tag reporting prior (normal space); \code{NA} if symmetric beta is used),
+#'   \code{sd} (Numeric standard deviation for tag reporting prior (normal space)), and \code{type} (0 == symmetric beta, 1 == regular beta).
+#'   Each row specifies a beta prior for one tag reporting parameter.
+#'   Only parameters with rows in this data frame will have priors applied.
 #'
 #' @export Setup_Mod_Tagging
 Setup_Mod_Tagging <- function(input_list,
@@ -142,9 +135,7 @@ Setup_Mod_Tagging <- function(input_list,
                               tag_selex = NA,
                               tag_natmort = NA,
                               Use_TagRep_Prior = 0,
-                              TagRep_PriorType = NA,
-                              TagRep_mu = NA,
-                              TagRep_sd = NA,
+                              TagRep_Prior = NULL,
                               move_age_tag_pool = NA,
                               move_sex_tag_pool = NA,
                               Init_Tag_Mort_spec = NULL,
@@ -155,6 +146,16 @@ Setup_Mod_Tagging <- function(input_list,
                               ) {
 
   messages_list <<- character(0) # string to attach to for printing messages
+
+  # Checking tagging priors
+  if(Use_TagRep_Prior == 1) {
+    required_cols <- c("region", "block", "mu", "sd", 'type')
+    missing_cols <- setdiff(required_cols, names(TagRep_Prior))
+    if(length(missing_cols) > 0) {
+      stop("TagRep_Prior is missing required columns: ", paste(missing_cols, collapse = ", "))
+    }
+    collect_message("Tagging priors are used")
+  }
 
   # Setup tagging likelihood
   tag_like_map <- data.frame(type = c("Poisson", "NegBin", "Multinomial_Release", "Multinomial_Recapture", "Dirichlet-Multinomial_Release", "Dirichlet-Multinomial_Recapture"), num = c(0,1,2,3,4,5))
@@ -243,9 +244,7 @@ Setup_Mod_Tagging <- function(input_list,
   input_list$data$tag_selex <- tag_selex_vals
   input_list$data$tag_natmort <- tag_natmort_vals
   input_list$data$Use_TagRep_Prior <- Use_TagRep_Prior
-  input_list$data$TagRep_PriorType <- TagRep_PriorType
-  input_list$data$TagRep_mu <- TagRep_mu
-  input_list$data$TagRep_sd <- TagRep_sd
+  input_list$data$TagRep_Prior <- TagRep_Prior
   input_list$data$move_age_tag_pool <- move_age_tag_pool_vals
   input_list$data$move_sex_tag_pool <- move_sex_tag_pool_vals
   input_list$data$Tag_Reporting_blocks <- Tag_Reporting_blocks_mat

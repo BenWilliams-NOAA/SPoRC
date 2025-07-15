@@ -317,8 +317,11 @@ Survey selectivity is setup in a similar way. Here, we specify that the first su
   input_list$map$ln_srv_fixed_sel_pars <- factor(c(1, 2, 3, 4, 3, 4))
 
   # share ATS and AVO selex devs
-  map_srvsel_devs[,,,,3] <- map_srvsel_devs[,,,,2]
-  input_list$map$ln_srvsel_devs <- factor(map_srvsel_devs)
+  map_ln_srvsel_devs <- array(as.numeric(input_list$map$ln_srvsel_devs), dim = dim(input_list$par$ln_srvsel_devs))
+  map_ln_srvsel_devs[,,,,3] <- map_ln_srvsel_devs[,,,,2]
+  input_list$map$ln_srvsel_devs <- factor(map_ln_srvsel_devs)
+  input_list$data$map_ln_srvsel_devs <- map_ln_srvsel_devs
+
 ```
 
 # Setup Model Weighting
