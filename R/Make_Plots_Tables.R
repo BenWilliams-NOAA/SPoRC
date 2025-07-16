@@ -3,17 +3,19 @@
 #' @param rep List of n_models of `SPoRC` report lists
 #' @param sd_rep List of n_models of `SPoRC` sdreport lists
 #' @param model_names Vector of model names
+#' @param do_ci Boolean for whether confidence intervals are plotted
 #'
 #' @returns Plots of spawning biomass, dynamic b0, total biomass, recruitment, and fishing mortality time-series across models
 #' @export get_ts_plot
 #'
 #' @examples
 #' \dontrun{
-#'   get_ts_plot(list(rep1, rep2), list(sd_rep1, sd_rep2), c("Model1", "Model2"))
+#'   get_ts_plot(list(rep1, rep2), list(sd_rep1, sd_rep2), c("Model1", "Model2"), do_ci = TRUE)
 #' }
 get_ts_plot <- function(rep,
                         sd_rep,
-                        model_names
+                        model_names,
+                        do_ci = TRUE
                          ) {
 
   biom_rec_df <- data.frame() # empty dataframe to bind
@@ -78,7 +80,6 @@ get_ts_plot <- function(rep,
   comb_ts_plot <- ggplot2::ggplot(biom_rec_df,
                              ggplot2::aes(x = Year, y = value, ymin = lwr, ymax = upr, color = factor(Model), fill = factor(Model))) +
     ggplot2::geom_line(lwd = 0.9) +
-    ggplot2::geom_ribbon(alpha = 0.3, color = NA) +
     ggplot2::facet_grid(Type~Region, scales = 'free') +
     ggplot2::labs(x = 'Year', y = 'Value', color = 'Model', fill = 'Model') +
     ggplot2::coord_cartesian(ylim = c(0,NA)) +
@@ -97,7 +98,6 @@ get_ts_plot <- function(rep,
   rec_ts_plot <- ggplot2::ggplot(biom_rec_df %>% dplyr::filter(Type == 'Recruitment'),
                                  ggplot2::aes(x = Year, y = value, ymin = lwr, ymax = upr, color = factor(Model), fill = factor(Model))) +
     ggplot2::geom_line(lwd = 0.9) +
-    ggplot2::geom_ribbon(alpha = 0.3, color = NA) +
     ggplot2::facet_grid(Type~Region, scales = 'free') +
     ggplot2::labs(x = 'Year', y = 'Recruitment', color = 'Model', fill = 'Model') +
     ggplot2::coord_cartesian(ylim = c(0,NA)) +
@@ -107,7 +107,6 @@ get_ts_plot <- function(rep,
   ssb_ts_plot <- ggplot2::ggplot(biom_rec_df %>% dplyr::filter(Type == 'SSB'),
                                ggplot2::aes(x = Year, y = value, ymin = lwr, ymax = upr, color = factor(Model), fill = factor(Model))) +
     ggplot2::geom_line(lwd = 0.9) +
-    ggplot2::geom_ribbon(alpha = 0.3, color = NA) +
     ggplot2::facet_grid(Type~Region, scales = 'free') +
     ggplot2::labs(x = 'Year', y = 'Spawning Stock Biomass', color = 'Model', fill = 'Model') +
     ggplot2::coord_cartesian(ylim = c(0,NA)) +
@@ -117,7 +116,6 @@ get_ts_plot <- function(rep,
   total_biom_plot <- ggplot2::ggplot(biom_rec_df %>% dplyr::filter(Type == 'Total Biom'),
                       ggplot2::aes(x = Year, y = value, ymin = lwr, ymax = upr, color = factor(Model), fill = factor(Model))) +
     ggplot2::geom_line(lwd = 0.9) +
-    ggplot2::geom_ribbon(alpha = 0.3, color = NA) +
     ggplot2::facet_grid(Type~Region, scales = 'free') +
     ggplot2::labs(x = 'Year', y = 'Total Biomass', color = 'Model', fill = 'Model') +
     ggplot2::coord_cartesian(ylim = c(0,NA)) +
@@ -127,7 +125,6 @@ get_ts_plot <- function(rep,
   ssb0_plot <- ggplot2::ggplot(biom_rec_df %>% dplyr::filter(Type == 'Dynamic SSB0'),
                                ggplot2::aes(x = Year, y = value, ymin = lwr, ymax = upr, color = factor(Model), fill = factor(Model))) +
     ggplot2::geom_line(lwd = 0.9) +
-    ggplot2::geom_ribbon(alpha = 0.3, color = NA) +
     ggplot2::facet_grid(Type~Region, scales = 'free') +
     ggplot2::labs(x = 'Year', y = 'Unfished Spawning Stock Biomass', color = 'Model', fill = 'Model') +
     ggplot2::coord_cartesian(ylim = c(0,NA)) +
@@ -142,6 +139,15 @@ get_ts_plot <- function(rep,
     ggplot2::coord_cartesian(ylim = c(0,NA)) +
     theme_sablefish()
 
+  # if using confidence intervals
+  if(do_ci) {
+    comb_ts_plot <- comb_ts_plot + ggplot2::geom_ribbon(alpha = 0.3, color = NA)
+    rec_ts_plot <- rec_ts_plot + ggplot2::geom_ribbon(alpha = 0.3, color = NA)
+    ssb_ts_plot <- ssb_ts_plot + ggplot2::geom_ribbon(alpha = 0.3, color = NA)
+    total_biom_plot <- total_biom_plot + ggplot2::geom_ribbon(alpha = 0.3, color = NA)
+    ssb0_plot <- ssb0_plot + ggplot2::geom_ribbon(alpha = 0.3, color = NA)
+  }
+
   return(list(comb_ts_plot, f_ts_plot, rec_ts_plot, ssb_ts_plot, total_biom_plot, ssb0_plot, ssb_ssb0_plot))
 }
 
@@ -150,15 +156,16 @@ get_ts_plot <- function(rep,
 #' @param rep List of n_models of `SPoRC` report lists
 #' @param model_names Vector of model names
 #' @param Selex_Type Character vector specifying whether to output age or length-based selectivity (age, length)
+#' @param year_indx Year index for which selectivity year to plot (can be an integer or vector)
 #'
 #' @returns Plots of terminal year fishery and survey selectivity by fleet, region, and sex across models
 #' @export get_selex_plot
 #'
 #' @examples
 #' \dontrun{
-#' get_selex_plot(list(rep1, rep2), c("Model1", "Model2"))
+#' get_selex_plot(list(rep1, rep2), c("Model1", "Model2"), year_indx = c(1:30))
 #' }
-get_selex_plot <- function(rep, model_names, Selex_Type = 'age') {
+get_selex_plot <- function(rep, model_names, Selex_Type = 'age', year_indx = NULL) {
 
   fishsel_plot_df <- data.frame()
   srvsel_plot_df <- data.frame()
@@ -187,28 +194,31 @@ get_selex_plot <- function(rep, model_names, Selex_Type = 'age') {
     srvsel_plot_df  <- rbind(srvsel_plot_df, reshape_and_annotate(srv_sel,  model_names[i]))
   }
 
+  if(is.null(year_indx)) year_indx <- max(fishsel_plot_df$Year)
+
   # fishery selectivity plot
   fish_sel_plot <- ggplot2::ggplot(fishsel_plot_df %>%
-                                     dplyr::filter(Year == max(fishsel_plot_df$Year)),
-                                   ggplot2::aes(x = Bin, y = value, color = factor(Model))) +
-    ggplot2::geom_line(lwd = 1.3) +
+                                     dplyr::filter(Year %in% c(year_indx)),
+                                   ggplot2::aes(x = Bin, y = value, color = Year, group = Year, lty = factor(Model))) +
+    ggplot2::geom_line(lwd = 1.3, alpha = 0.8) +
     ggplot2::facet_grid(Sex ~ Region + Fleet) +
-    ggplot2::labs(x = 'Bin', y = 'Terminal Fishery selectivity', color = 'Model') +
+    ggplot2::scale_color_viridis_c() +
+    ggplot2::labs(x = 'Bin', y = 'Fishery selectivity', lty = 'Model', color = 'Year') +
     ggplot2::coord_cartesian(ylim = c(0, NA)) +
     theme_sablefish() +
     ggplot2::theme(legend.key.width = unit(2, "lines"))
 
   # survey selectivity plot
   srv_sel_plot <- ggplot2::ggplot(srvsel_plot_df %>%
-                                     dplyr::filter(Year == max(srvsel_plot_df$Year)),
-                                   ggplot2::aes(x = Bin, y = value, color = factor(Model))) +
-    ggplot2::geom_line(lwd = 1.3) +
+                                    dplyr::filter(Year %in% c(year_indx)),
+                                  ggplot2::aes(x = Bin, y = value, color = Year, group = Year, lty = factor(Model))) +
+    ggplot2::geom_line(lwd = 1.3, alpha = 0.8) +
     ggplot2::facet_grid(Sex ~ Region + Fleet) +
-    ggplot2::labs(x = 'Bin', y = 'Terminal Survey selectivity', color = 'Model') +
+    ggplot2::scale_color_viridis_c() +
+    ggplot2::labs(x = 'Bin', y = 'Survey selectivity', lty = 'Model', color = 'Year') +
     ggplot2::coord_cartesian(ylim = c(0, NA)) +
     theme_sablefish() +
     ggplot2::theme(legend.key.width = unit(2, "lines"))
-
 
   return(list(fish_sel_plot, srv_sel_plot))
 }

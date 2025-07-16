@@ -4,7 +4,7 @@
 \alias{get_selex_plot}
 \title{Get Fishery and Survey Selectivity Plots}
 \usage{
-get_selex_plot(rep, model_names, Selex_Type = "age")
+get_selex_plot(rep, model_names, Selex_Type = "age", year_indx = NULL)
 }
 \arguments{
 \item{rep}{List of n_models of `SPoRC` report lists}
@@ -12,6 +12,8 @@ get_selex_plot(rep, model_names, Selex_Type = "age")
 \item{model_names}{Vector of model names}
 
 \item{Selex_Type}{Character vector specifying whether to output age or length-based selectivity (age, length)}
+
+\item{year_indx}{Year index for which selectivity year to plot (can be an integer or vector)}
 }
 \value{
 Plots of terminal year fishery and survey selectivity by fleet, region, and sex across models

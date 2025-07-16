@@ -4,7 +4,7 @@
 \alias{get_ts_plot}
 \title{Get Time Series Plots}
 \usage{
-get_ts_plot(rep, sd_rep, model_names)
+get_ts_plot(rep, sd_rep, model_names, do_ci = TRUE)
 }
 \arguments{
 \item{rep}{List of n_models of `SPoRC` report lists}
@@ -12,6 +12,8 @@ get_ts_plot(rep, sd_rep, model_names)
 \item{sd_rep}{List of n_models of `SPoRC` sdreport lists}
 
 \item{model_names}{Vector of model names}
+
+\item{do_ci}{Boolean for whether confidence intervals are plotted}
 }
 \value{
 Plots of spawning biomass, dynamic b0, total biomass, recruitment, and fishing mortality time-series across models
