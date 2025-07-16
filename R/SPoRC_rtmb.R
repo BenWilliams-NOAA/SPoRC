@@ -955,7 +955,8 @@ SPoRC_rtmb = function(pars, data) {
       s = fish_selex_prior$sex[i]
       f = fish_selex_prior$fleet[i]
       # Compute penalty / prior here
-      sel_nLL = sel_nLL - sum(RTMB::dnorm(ln_fish_fixed_sel_pars[r,p,b,s,f], log(fish_selex_prior$mu[i]), fish_selex_prior$sd[i], TRUE))
+      if(likelihoods == 0) sel_nLL = sel_nLL + (ln_fish_fixed_sel_pars[r,p,b,s,f] - log(fish_selex_prior$mu[i]))^2 / (2 * (fish_selex_prior$sd[i])^2) # ADMB likelihood
+      if(likelihoods == 1) sel_nLL = sel_nLL - RTMB::dnorm(ln_fish_fixed_sel_pars[r,p,b,s,f], log(fish_selex_prior$mu[i]), fish_selex_prior$sd[i], TRUE)
     } # end i loop
   } # end if using selex priors
 
@@ -969,7 +970,8 @@ SPoRC_rtmb = function(pars, data) {
       s = srv_selex_prior$sex[i]
       sf = srv_selex_prior$fleet[i]
       # Compute penalty / prior here
-      sel_nLL = sel_nLL - sum(RTMB::dnorm(ln_srv_fixed_sel_pars[r,p,b,s,sf], log(srv_selex_prior$mu[i]), srv_selex_prior$sd[i], TRUE))
+      if(likelihoods == 0) sel_nLL = sel_nLL + (ln_srv_fixed_sel_pars[r,p,b,s,sf] - log(srv_selex_prior$mu[i]))^2 / (2 * (srv_selex_prior$sd[i])^2) # ADMB likelihood
+      if(likelihoods == 1) sel_nLL = sel_nLL - RTMB::dnorm(ln_srv_fixed_sel_pars[r,p,b,s,sf], log(srv_selex_prior$mu[i]), srv_selex_prior$sd[i], TRUE)
     } # end i loop
   } # end if using selex priors
 
