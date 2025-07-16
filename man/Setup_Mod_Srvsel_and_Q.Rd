@@ -125,6 +125,11 @@ Available options include:
   \item \code{"est_shared_r"}: Shares process error parameters across regions (sex-specific parameters are still estimated).
   \item \code{"est_shared_s"}: Shares process error parameters across sexes (region-specific parameters are still estimated).
   \item \code{"est_shared_r_s"}: Shares process error parameters across both regions and sexes, estimating a single set of parameters.
+  \item \code{"est_shared_f_x"}: Shares process error parameters with another fleet, where \code{x} is the fleet number to share with.
+    This option forces multiple fleets to have identical process error variance and correlation structures for their
+    time-varying selectivity. For example, \code{"est_shared_f_2"} means the current fleet will use the same
+    process error parameters as fleet 2. The reference fleet (fleet x) must use one of the other sharing options
+    and cannot itself be sharing with another fleet.
   \item \code{"fix"} or \code{"none"}: Does not estimate process error parameters; all are treated as fixed.
 }}
 
@@ -138,6 +143,13 @@ Available options include:
   \item \code{"est_shared_r"}: Shares parameters across regions (sex-specific parameters are still estimated).
   \item \code{"est_shared_s"}: Shares parameters across sexes (region-specific parameters are still estimated).
   \item \code{"est_shared_r_s"}: Shares parameters across both regions and sexes, estimating a single set of fixed-effect parameters.
+  \item \code{"est_shared_f_x"}: Shares fixed-effect selectivity parameters with another fleet, where \code{x} is the fleet number to share with.
+    This option forces multiple fleets to have identical selectivity curves by using the same underlying parameters
+    (e.g., same a50, k, amax values). For example, \code{"est_shared_f_2"} means the current fleet will use the same
+    fixed-effect selectivity parameters as fleet 2. The reference fleet (fleet x) must use one of the other sharing options
+    and cannot itself be sharing with another fleet.
+  \item \code{"fix"}: Fixes all selectivity parameters to their initial values (no estimation).
+  \item \code{"none"}: No selectivity parameters are estimated (equivalent to \code{"fix"}).
 }}
 
 \item{srv_q_spec}{Character string specifying the structure of survey catchability (\code{q}) estimation
@@ -158,6 +170,14 @@ Available options include:
   \item \code{"est_shared_r"}: Shares deviations across regions (sex-specific deviations are still estimated).
   \item \code{"est_shared_s"}: Shares deviations across sexes (region-specific deviations are still estimated).
   \item \code{"est_shared_r_s"}: Shares deviations across both regions and sexes, estimating a single deviation time series.
+  \item \code{"est_shared_f_x"}: Shares deviations with another fleet, where \code{x} is the fleet number to share with.
+    This option allows multiple fleets to use identical deviation parameters, reducing the number of parameters
+    to estimate. For example, \code{"est_shared_f_2"} means the current fleet will use the same deviation
+    parameters as fleet 2. The reference fleet (fleet x) must use one of the other sharing options
+    (\code{"est_all"}, \code{"est_shared_r"}, \code{"est_shared_s"}, or \code{"est_shared_r_s"})
+    and cannot itself be sharing with another fleet.
+  \item \code{"fix"}: Fixes all deviation parameters to zero (no time-variation).
+  \item \code{"none"}: No deviation parameters are estimated (equivalent to \code{"fix"}).
 }
 
 This argument is only used when a continuous time-varying selectivity form is specified (e.g., via \code{cont_tv_srv_sel}).}
@@ -196,22 +216,16 @@ number of years, and names must match the variable names used in the formulas. I
 catchability is assumed to be time-invariant (i.e., not influenced by environmental variables).}
 
 \item{Use_srv_selex_prior}{Integer (0 or 1). Flag to enable/disable survey selectivity priors.
-When set to 1, applies log-normal priors to fishery selectivity parameters as specified
+When set to 1, applies log-normal priors to survey selectivity parameters as specified
 in \code{srv_selex_prior}. When set to 0, no priors are applied.}
 
 \item{srv_selex_prior}{Data frame containing prior specifications for survey selectivity parameters.
-Must include columns: \code{region} (region index), \code{fleet} (fleet index),
-\code{block} (time block index), \code{sex} (sex index), \code{par} (parameter index),
-\code{mu} (prior mean on natural scale), and \code{sd} (prior standard deviation on log scale).
-Each row specifies a log-normal prior N(log(mu), sd) for one selectivity parameter.
-Only parameters with rows in this data frame will have priors applied.}
+  Must include columns: \code{region} (region index), \code{fleet} (fleet index),
+  \code{block} (time block index), \code{sex} (sex index), \code{par} (parameter index),
+  \code{mu} (prior mean on natural scale), and \code{sd} (prior standard deviation on log scale).
+  Each row specifies a log-normal prior N(log(mu), sd) for one selectivity parameter.
+  Only parameters with rows in this data frame will have priors applied.
 
-\item{...}{Additional arguments specifying starting values for survey selectivity and catchability parameters (srvsel_pe_pars, ln_srvsel_devs, ln_srv_fixed_sel_pars, ln_srv_q, srv_q_coeff)}
-}
-\description{
-Setup survey selectivity and catchability specifications
-}
-\details{
 If both `srv_q_formula` and `srv_q_cov_dat` are non-`NULL`, the model constructs time-varying design matrices
 for each region and fleet based on the provided formulas and environmental covariates. A coefficient array
 (`srv_q_coeff`) and a mapping array (`map_srv_q_coeff`) are created to estimate and track the associated
@@ -238,5 +252,10 @@ This avoids issues with list structure but does not affect the design matrix or 
   \item \code{"Region_2_Fleet_1"} = \code{~ 0 + env1_r2_f1 + env2_r2_f1} includes additive effects of
         two covariates.
   \item \code{"Region_3_Fleet_2"} = \code{~ NULL} disables environmental covariates for that fleet-region.
+}}
+
+\item{...}{Additional arguments specifying starting values for survey selectivity and catchability parameters (srvsel_pe_pars, ln_srvsel_devs, ln_srv_fixed_sel_pars, ln_srv_q, srv_q_coeff)}
 }
+\description{
+Setup survey selectivity and catchability specifications
 }

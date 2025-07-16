@@ -276,14 +276,14 @@ Fishery selectivity is specified to vary semi-parametrically for the pollock mod
     # fishery catchability blocks
     fish_q_blocks = c("none_Fleet_1"),
     # whether to estiamte all fixed effects for fishery selectivity
-    fish_fixed_sel_pars = c("est_all"),
+    fish_fixed_sel_pars_spec = c("est_all"),
     # whether to estiamte all fixed effects for fishery catchability
     fish_q_spec = c("est_all")
   )
 ```
 
 # Setting up Survey Selectivity and Catchability
-Survey selectivity is setup in a similar way. Here, we specify that the first survey fleet has `iid` parametric deviations on a selectivity form, while the second survey fleet has `2dar1` semi-parametric deviations. Selectivity for survey fleet 3 is not estimated as no age composition data are available. Therefore, selectivity from survey fleet 2 and 3 are shared. Again, we specify that selectivity deviations are estimated in a penalized likelihood framework with the argument `srvsel_pe_pars_spec = c("fix", "fix", "fix")` and specify to set `2dar1` correlations at 0, such that semi-parametric deviations collapse to an iid formulation (`corr_opt_semipar = c(NA, "corr_zero_y_a_c", "corr_zero_y_a_c")`).
+Survey selectivity is setup in a similar way. Here, we specify that the first survey fleet has `iid` parametric deviations on a selectivity form, while the second survey fleet has `2dar1` semi-parametric deviations. Selectivity for survey fleet 3 is not estimated as no age composition data are available. Therefore, selectivity from survey fleet 2 and 3 are shared (i.e., `est_shared_f_2`). Again, we specify that selectivity deviations are estimated in a penalized likelihood framework with the argument `srvsel_pe_pars_spec = c("fix", "fix", "fix")` and specify to set `2dar1` correlations at 0, such that semi-parametric deviations collapse to an iid formulation (`corr_opt_semipar = c(NA, "corr_zero_y_a_c", "corr_zero_y_a_c")`).
 
 ```{r, eval = F}
  # Setup survey selectivity and catchability
@@ -294,7 +294,7 @@ Survey selectivity is setup in a similar way. Here, we specify that the first su
     # survey selectivity, whether continuous time-varying
     cont_tv_srv_sel = c("iid_Fleet_1", "2dar1_Fleet_2", "2dar1_Fleet_3"),
     srvsel_pe_pars_spec = c("fix", "fix", "fix"), # penalize survey selex devs
-    srv_sel_devs_spec = c("est_all", "est_all", "none"), # estimating all srv selex devs
+    srv_sel_devs_spec = c("est_all", "est_all", "est_shared_f_2"), # estimating all srv selex devs but sharing fleet 3 and 2 together
     corr_opt_semipar = c(NA, "corr_zero_y_a_c", "corr_zero_y_a_c"), # setting corelations at 0, so 2dar1 collapses to simple iid semi-parametric devs
 
     # survey selectivity blocks
@@ -308,19 +308,10 @@ Survey selectivity is setup in a similar way. Here, we specify that the first su
     # survey catchability blocks
     srv_q_blocks = c("none_Fleet_1", "none_Fleet_2", "none_Fleet_3"),
     # whether to estiamte all fixed effects for survey selectivity
-    srv_fixed_sel_pars_spec = c("est_all", "est_all", "est_all"),
+    srv_fixed_sel_pars_spec = c("est_all", "est_all", "est_shared_f_2"), # sharing fleet 3 and 2 parameters together
     # whether to estiamte all fixed effects for survey catchability
     srv_q_spec = c("est_all", "est_all", "est_all")
   )
-
-  # note that AVO (fleet 3) does not have any comp data, and needs to share selectivity with ATS (fleet 2)
-  input_list$map$ln_srv_fixed_sel_pars <- factor(c(1, 2, 3, 4, 3, 4))
-
-  # share ATS and AVO selex devs
-  map_ln_srvsel_devs <- array(as.numeric(input_list$map$ln_srvsel_devs), dim = dim(input_list$par$ln_srvsel_devs))
-  map_ln_srvsel_devs[,,,,3] <- map_ln_srvsel_devs[,,,,2]
-  input_list$map$ln_srvsel_devs <- factor(map_ln_srvsel_devs)
-  input_list$data$map_ln_srvsel_devs <- map_ln_srvsel_devs
 
 ```
 

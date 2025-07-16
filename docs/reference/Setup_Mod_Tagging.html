@@ -139,6 +139,13 @@ Each row specifies a beta prior for one tag reporting parameter.
 Only parameters with rows in this data frame will have priors applied.</p></dd>
 
 
+<dt id="arg-move-age-tag-pool">move_age_tag_pool<a class="anchor" aria-label="anchor" href="#arg-move-age-tag-pool"></a></dt>
+<dd><p>List or character specifying pooling of tagging data by age groups. Examples:</p><ul><li><p><code>list(1:5, 6:11, 12:20)</code> pools these age groups together</p></li>
+<li><p><code>"all"</code> pools all ages together (internally converted to <code>list(1:n_ages)</code>)</p></li>
+<li><p><code>as.list(1:n_ages)</code> fits each sex separately</p></li>
+</ul></dd>
+
+
 <dt id="arg-move-sex-tag-pool">move_sex_tag_pool<a class="anchor" aria-label="anchor" href="#arg-move-sex-tag-pool"></a></dt>
 <dd><p>List or character specifying pooling of tagging data by sex groups. Examples:</p><ul><li><p><code>list(1:2)</code> pools sexes together</p></li>
 <li><p><code>"all"</code> pools all sexes together (internally converted to <code>list(1:n_sexes)</code>)</p></li>

@@ -1,0 +1,19 @@
+---
+title: "n_francis_reweighting"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{n_francis_reweighting}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(SPoRC)
+```

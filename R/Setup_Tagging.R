@@ -55,6 +55,124 @@ Setup_Sim_Tagging <- function(
   return(sim_list)
 }
 
+#' Helper function to setup initial tag mortality parameters
+#'
+#' @param input_list Input list
+#' @param Init_Tag_Mort_spec Character vector specifying initial tag mortality parameterization
+#' @keywords internal
+do_Init_Tag_Mort_mapping <- function(input_list, Init_Tag_Mort_spec) {
+  if(input_list$data$UseTagging == 0) input_list$map$ln_Init_Tag_Mort <- factor(NA) # initial tag mortality
+  if(input_list$data$UseTagging == 1) {
+    # Validate input
+    if(!Init_Tag_Mort_spec %in% c("fix", "est")) stop("Init_Tag_Mort_spec is incorrectly specified. Should be one of these: fix, est")
+    # Initial tag mortality
+    if(Init_Tag_Mort_spec == "fix") input_list$map$ln_Init_Tag_Mort <- factor(NA)
+    if(Init_Tag_Mort_spec == "est") input_list$map$ln_Init_Tag_Mort <- factor(1)
+    collect_message("Initial Tag Mortality is specified as: ", Init_Tag_Mort_spec)
+  }
+  return(input_list)
+}
+
+#' Helper function to set up tag shedding parameters
+#'
+#' @param input_list Input list
+#' @param Tag_Shed_spec Character specifying tag shedding parameterization
+#' @keywords internal
+do_Tag_Shed_mapping <- function(input_list, Tag_Shed_spec) {
+  if(input_list$data$UseTagging == 0) input_list$map$ln_Tag_Shed <- factor(NA) # chronic tag shedding
+  if(input_list$data$UseTagging == 1) {
+    # Validate input
+    if(!Tag_Shed_spec %in% c("fix", "est")) stop("Tag_Shed_spec is incorrectly specified. Should be one of these: fix, est")
+    # Tag Shedding
+    if(Tag_Shed_spec == "fix" || UseTagging == 0) input_list$map$ln_Tag_Shed <- factor(NA)
+    if(Tag_Shed_spec == "est") input_list$map$ln_Tag_Shed <- factor(1)
+    collect_message("Chronic Tag Shedding is specified as: ", Tag_Shed_spec)
+  }
+  return(input_list)
+}
+
+#' Helper function to set up tag overdispersion parameters
+#'
+#' @param input_list Input list
+#' @keywords internal
+do_tag_theta_mapping <- function(input_list) {
+  if(input_list$data$UseTagging == 0) input_list$map$ln_tag_theta <- factor(NA) # tag overdispersion
+  if(input_list$data$UseTagging == 1) {
+    # Tag Overdispersion
+    if(input_list$data$Tag_LikeType %in% c(0,2,3)) input_list$map$ln_tag_theta <- factor(NA)
+    if(input_list$data$Tag_LikeType %in% c(1,4,5)) input_list$map$ln_tag_theta <- factor(1)
+  }
+  return(input_list)
+}
+
+#' Helper function to set up tag reporting rate parameters
+#'
+#' @param input_list Input list
+#' @param TagRep_spec Charcacter specifying tag reporting parameterization
+#' @keywords internal
+do_Tag_Reporting_Pars_mapping <- function(input_list, TagRep_spec) {
+
+  # If not using tagging data
+  if(input_list$data$UseTagging == 0) {
+    input_list$map$Tag_Reporting_Pars <- factor(rep(NA, length(input_list$par$Tag_Reporting_Pars))) # tag reporting rates
+    input_list$data$map_Tag_Reporting_Pars = array(as.numeric(input_list$map$Tag_Reporting_Pars), dim = dim(input_list$par$Tag_Reporting_Pars))
+  }
+
+  if(input_list$data$UseTagging == 1) {
+
+    # Initialize arrays and counters
+    map_TagRep <- input_list$par$Tag_Reporting_Pars
+    map_TagRep[] <- NA
+    tagrep_counter <- 1
+
+    if(input_list$data$Tag_LikeType %in% c(0,1,2,4)) { # If this is a poisson, negative binomial, multinomial or dirichlet-multinomial release conditioned
+
+      # Validate inputs here
+      if(!is.null(TagRep_spec)) if(!TagRep_spec %in% c("est_all", "est_shared_r", "fix")) stop("Tag Reporting Specificaiton is not correctly specified. Needs to be fix, est_all, or est_shared_r")
+
+      # if we want to fix
+      if(TagRep_spec == 'fix') map_TagRep[] <- NA
+
+      for(r in 1:input_list$data$n_regions) {
+
+        # Get number of tag reporting rate blocks
+        tagrep_blocks_tmp <- unique(as.vector(input_list$data$Tag_Reporting_blocks[r,]))
+
+        for(b in 1:length(tagrep_blocks_tmp)) {
+
+          # Estimate for all regions
+          if(TagRep_spec == 'est_all') {
+            map_TagRep[r,b] <- tagrep_counter
+            tagrep_counter <- tagrep_counter + 1
+          }
+
+          # Estimate but share tag reporting across regions
+          if(TagRep_spec == 'est_shared_r' && r == 1) {
+            for(rr in 1:input_list$data$n_regions) {
+              # only assign if this value exists for this region
+              if(tagrep_blocks_tmp[b] %in% input_list$data$Tag_Reporting_blocks[rr,]) {
+                map_TagRep[rr, b] <- tagrep_counter
+              } # end if
+            } # end rr loop
+            tagrep_counter <- tagrep_counter + 1
+          }
+
+        } # end b loop
+      } # end r loop
+
+      collect_message("Tag Reporting is specified as: ", TagRep_spec)
+
+    } # end if
+
+    # input tag reporting rates into mapping list
+    input_list$map$Tag_Reporting_Pars <- factor(map_TagRep) # tag reporting rates
+    input_list$data$map_Tag_Reporting_Pars <- array(as.numeric(input_list$map$Tag_Reporting_Pars), dim = dim(input_list$par$Tag_Reporting_Pars))
+
+  }
+
+  return(input_list)
+}
+
 #' Setup tagging processes and parameters
 #'
 #' @param input_list List containing a data list, parameter list, and map list
@@ -94,6 +212,12 @@ Setup_Sim_Tagging <- function(
 #'   }
 #'   Example: \code{tag_natmort = "AgeSp_SexSp"}
 #' @param Use_TagRep_Prior Numeric (0 or 1) whether to use tag reporting rate prior
+#' @param move_age_tag_pool List or character specifying pooling of tagging data by age groups. Examples:
+#'   \itemize{
+#'     \item \code{list(1:5, 6:11, 12:20)} pools these age groups together
+#'     \item \code{"all"} pools all ages together (internally converted to \code{list(1:n_ages)})
+#'     \item \code{as.list(1:n_ages)} fits each sex separately
+#'   }
 #' @param move_sex_tag_pool List or character specifying pooling of tagging data by sex groups. Examples:
 #'   \itemize{
 #'     \item \code{list(1:2)} pools sexes together
@@ -146,6 +270,9 @@ Setup_Mod_Tagging <- function(input_list,
                               ) {
 
   messages_list <<- character(0) # string to attach to for printing messages
+  starting_values <- list(...)
+
+  # Input Validation --------------------------------------------------------
 
   # Checking tagging priors
   if(Use_TagRep_Prior == 1) {
@@ -157,8 +284,10 @@ Setup_Mod_Tagging <- function(input_list,
     collect_message("Tagging priors are used")
   }
 
-  # Setup tagging likelihood
-  tag_like_map <- data.frame(type = c("Poisson", "NegBin", "Multinomial_Release", "Multinomial_Recapture", "Dirichlet-Multinomial_Release", "Dirichlet-Multinomial_Recapture"), num = c(0,1,2,3,4,5))
+  # Checking tag likelihoods
+  tag_like_map <- data.frame(type = c("Poisson", "NegBin", "Multinomial_Release", "Multinomial_Recapture",
+                                      "Dirichlet-Multinomial_Release", "Dirichlet-Multinomial_Recapture"), num = c(0,1,2,3,4,5))
+
   if(is.na(Tag_LikeType)) Tag_LikeType_vals <- 999
   else {
     if(!Tag_LikeType %in% c(tag_like_map$type)) stop("Tag Likelihood not correctly specified. Should be one of these: Poisson, NegBin, Multinomial_Release, Multinomial_Recapture, Dirichlet-Multinomial_Release, Dirichlet-Multinomial_Recapture")
@@ -169,6 +298,7 @@ Setup_Mod_Tagging <- function(input_list,
   # Setup tagging selectivity
   tag_selex_map <- data.frame(type = c("Uniform_DomFleet", "SexAgg_DomFleet", "SexSp_DomFleet",
                                        "Uniform_AllFleet", "SexAgg_AllFleet", "SexSp_AllFleet"), num = c(0,1,2,3,4,5))
+
   if(is.na(Tag_LikeType)) tag_selex_vals <- 999
   else {
     if(!tag_selex %in% c(tag_selex_map$type)) stop("Tag Selectivity not correctly specified. Should be one of these: Uniform_DomFleet, SexAgg_DomFleet, SexSp_DomFleet, Uniform_AllFleet, SexAgg_AllFleet, SexSp_AllFleet")
@@ -176,8 +306,10 @@ Setup_Mod_Tagging <- function(input_list,
     collect_message("Tag Selectivity specified as: ", tag_selex)
   }
 
-  # setup tagging natural mortality
-  tag_natmort_map <- data.frame(type = c("AgeAgg_SexAgg", "AgeSp_SexAgg", "AgeAgg_SexSp", "AgeSp_SexSp"), num = c(0,1,2,3))
+  # Checking tagging natural moratlity
+  tag_natmort_map <- data.frame(type = c("AgeAgg_SexAgg", "AgeSp_SexAgg",
+                                         "AgeAgg_SexSp", "AgeSp_SexSp"), num = c(0,1,2,3))
+
   if(is.na(Tag_LikeType)) tag_natmort_vals <- 999
   else {
     if(!tag_natmort %in% c(tag_natmort_map$type)) stop("Tag Natural Mortality not correctly specified. Should be one of these: AgeAgg_SexAgg, AgeSp_SexAgg, AgeAgg_SexSp, AgeSp_SexSp")
@@ -185,6 +317,8 @@ Setup_Mod_Tagging <- function(input_list,
      collect_message("Tag Natural Mortality specified as: ", tag_natmort)
   }
 
+
+  # Tag Pooling Options -----------------------------------------------------
   # If movement is pooled either across sexes or ages
   if(is.character(move_age_tag_pool)){
     if(move_age_tag_pool == "all") move_age_tag_pool_vals = list(input_list$data$ages)
@@ -197,19 +331,24 @@ Setup_Mod_Tagging <- function(input_list,
   collect_message("Tagging data are fit to by pooling across ", length(move_age_tag_pool_vals), " age groups")
   collect_message("Tagging data are fit to by pooling across ", length(move_sex_tag_pool_vals), " sex groups")
 
-  # setup tag reporting rates
-  Tag_Reporting_blocks_mat = array(NA, dim = c(input_list$data$n_regions, length(input_list$data$years)))
+  # Tag Reporting Rates Options ---------------------------------------------
+  Tag_Reporting_blocks_mat <- array(NA, dim = c(input_list$data$n_regions, length(input_list$data$years)))
+
   if(!is.null(Tag_Reporting_blocks)) {
     for(i in 1:length(Tag_Reporting_blocks)) {
+
       # Extract out components from list
       tmp <- Tag_Reporting_blocks[i]
       tmp_vec <- unlist(strsplit(tmp, "_"))
+
       if(!tmp_vec[1] %in% c("none", "Block")) stop("Tag Reporting Blocks not correctly specified. This should be either none_Region_x or Block_x_Year_x-y_Region_x")
+
       # extract out fleets if constant
       if(tmp_vec[1] == "none") {
         region <- as.numeric(tmp_vec[3]) # get region index
         Tag_Reporting_blocks_mat[region,] <- 1 # input tag reporting time block
       }
+
       if(tmp_vec[1] == "Block") {
         block_val <- as.numeric(tmp_vec[2]) # get block value
         region <- as.numeric(tmp_vec[6]) # get region value
@@ -225,12 +364,15 @@ Setup_Mod_Tagging <- function(input_list,
 
         Tag_Reporting_blocks_mat[region,years] <- block_val # input tag reporting time block
       }
-    }
+
+    } # end i loop
   }
 
    for(r in 1:input_list$data$n_regions) collect_message("Tag Reporting estimated with ", length(unique(Tag_Reporting_blocks_mat[r,])), " block for region ", r)
 
-  # Input data list
+
+  # Populate Data List ------------------------------------------------------
+
   input_list$data$UseTagging <- UseTagging
   input_list$data$tag_release_indicator <- tag_release_indicator
   if(UseTagging == 0) input_list$data$n_tag_cohorts <- 0
@@ -249,8 +391,7 @@ Setup_Mod_Tagging <- function(input_list,
   input_list$data$move_sex_tag_pool <- move_sex_tag_pool_vals
   input_list$data$Tag_Reporting_blocks <- Tag_Reporting_blocks_mat
 
-  # Input parameter list
-  starting_values <- list(...)
+  # Populate Parameter List ------------------------------------------------------
 
   # Initial tag induced mortality
   if("ln_Init_Tag_Mort" %in% names(starting_values)) input_list$par$ln_Init_Tag_Mort <- starting_values$ln_Init_Tag_Mort
@@ -269,79 +410,14 @@ Setup_Mod_Tagging <- function(input_list,
   if("Tag_Reporting_Pars" %in% names(starting_values)) input_list$par$Tag_Reporting_Pars <- starting_values$Tag_Reporting_Pars
   else input_list$par$Tag_Reporting_Pars <- array(0, dim = c(input_list$data$n_regions, max_tagrep_blks)) # specified at 0.5 in inverse logit space
 
-  # Setup mapping list
-  # If not using tagging data
-  if(UseTagging == 0) {
-    input_list$map$ln_Init_Tag_Mort <- factor(NA) # initial tag mortality
-    input_list$map$ln_Tag_Shed <- factor(NA) # chronic tag shedding
-    input_list$map$ln_tag_theta <- factor(NA) # tag overdispersion
-    input_list$map$Tag_Reporting_Pars <- factor(rep(NA, length(input_list$par$Tag_Reporting_Pars))) # tag reporting rates
-    input_list$data$map_Tag_Reporting_Pars = array(as.numeric(input_list$map$Tag_Reporting_Pars), dim = dim(input_list$par$Tag_Reporting_Pars))
-  }
 
-  # if using tagging data
-  if(UseTagging == 1) {
+  # Mapping Options ---------------------------------------------------------
+  input_list <- do_Init_Tag_Mort_mapping(input_list, Init_Tag_Mort_spec)
+  input_list <- do_Tag_Shed_mapping(input_list, Tag_Shed_spec)
+  input_list <- do_tag_theta_mapping(input_list)
+  input_list <- do_Tag_Reporting_Pars_mapping(input_list, TagRep_spec)
 
-    if(!Init_Tag_Mort_spec %in% c("fix", "est")) stop("Init_Tag_Mort_spec is incorrectly specified. Should be one of these: fix, est")
-    if(!Tag_Shed_spec %in% c("fix", "est")) stop("Tag_Shed_spec is incorrectly specified. Should be one of these: fix, est")
-
-    collect_message("Initial Tag Mortality is specified as: ", Init_Tag_Mort_spec)
-    collect_message("Chronic Tag Shedding is specified as: ", Tag_Shed_spec)
-
-    # Initial tag mortality
-    if(Init_Tag_Mort_spec == "fix") input_list$map$ln_Init_Tag_Mort <- factor(NA)
-    if(Init_Tag_Mort_spec == "est") input_list$map$ln_Init_Tag_Mort <- factor(1)
-
-    # Tag Shedding
-    if(Tag_Shed_spec == "fix" || UseTagging == 0) input_list$map$ln_Tag_Shed <- factor(NA)
-    if(Tag_Shed_spec == "est") input_list$map$ln_Tag_Shed <- factor(1)
-
-    # Tag Overdispersion
-    if(input_list$data$Tag_LikeType %in% c(0,2,3)) input_list$map$ln_tag_theta <- factor(NA)
-    if(input_list$data$Tag_LikeType %in% c(1,4,5)) input_list$map$ln_tag_theta <- factor(1)
-
-    # Tag Reporting Rates
-    # Initialize arrays and counters
-    map_TagRep <- input_list$par$Tag_Reporting_Pars
-    map_TagRep[] <- NA
-    tagrep_counter <- 1
-
-    # If this is a poisson, negative binomial, multinomial or dirichlet-multinomial release conditioned
-    if(input_list$data$Tag_LikeType %in% c(0,1,2,4)) {
-      for(r in 1:input_list$data$n_regions) {
-        if(!is.null(TagRep_spec)) if(!TagRep_spec %in% c("est_all", "est_shared_r", "fix")) stop("Tag Reporting Specificaiton is not correctly specified. Needs to be fix, est_all, or est_shared_r")
-        # Get number of tag reporting rate blocks
-        tagrep_blocks_tmp <- unique(as.vector(input_list$data$Tag_Reporting_blocks[r,]))
-        for(b in 1:length(tagrep_blocks_tmp)) {
-          # Estimate for all regions
-          if(TagRep_spec == 'est_all') {
-            map_TagRep[r,b] <- tagrep_counter
-            tagrep_counter <- tagrep_counter + 1
-          }
-          # Estimate but share tag reporting across regions
-          if(TagRep_spec == 'est_shared_r' && r == 1) {
-            for(rr in 1:input_list$data$n_regions) {
-              # only assign if this value exists for this region
-              if(tagrep_blocks_tmp[b] %in% input_list$data$Tag_Reporting_blocks[rr,]) {
-                map_TagRep[rr, b] <- tagrep_counter
-              } # end if
-            } # end rr loop
-            tagrep_counter <- tagrep_counter + 1
-          }
-        } # end b loop
-      } # end r loop
-      # if we want to fix
-      if(TagRep_spec == 'fix') map_TagRep[] <- NA
-      collect_message("Tag Reporting is specified as: ", TagRep_spec)
-    } # end if
-
-    # input tag reporting rates into mapping list
-    input_list$map$Tag_Reporting_Pars <- factor(map_TagRep) # tag reporting rates
-    input_list$data$map_Tag_Reporting_Pars <- array(as.numeric(input_list$map$Tag_Reporting_Pars), dim = dim(input_list$par$Tag_Reporting_Pars))
-
-  } # end if for using tagging data
-
-  # Print all messages if verbose is TRUE
+  # Print Messages ----------------------------------------------------------
   if(input_list$verbose && UseTagging == 1) for(msg in messages_list) message(msg)
 
   return(input_list)

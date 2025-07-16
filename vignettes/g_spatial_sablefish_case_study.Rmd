@@ -207,7 +207,7 @@ input_list <- Setup_Mod_Tagging(input_list = input_list,
                                 ln_tag_theta = log(0.5),
                                 # starting value for tagging overdispersion
                                 Tag_Reporting_Pars = array(log(0.2 / (1-0.2)),
-                                                           dim = c(input_list$data$n_regions, 3))
+                                                           dim = c(input_list$data$n_regions, 2))
                                 # starting values for tag reporting pars
 
 )
@@ -371,7 +371,7 @@ input_list <- Setup_Mod_Fishsel_and_Q(input_list = input_list,
                                       # whether to estimate all fixed effects
                                       # for fishery selectivity and later modify
                                       # to fix and share parameters
-                                      fish_fixed_sel_pars =
+                                      fish_fixed_sel_pars_spec =
                                         c("est_all", "est_all"),
 
                                       # whether to estimate all fixed effects

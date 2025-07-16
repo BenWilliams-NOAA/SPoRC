@@ -57,6 +57,41 @@ Setup_Sim_Biologicals <- function(
 
 }
 
+#' Helper function to do natural mortality mapping
+#'
+#' @param input_list Input list
+#' @param M_spec Character vector specifying M options
+#' @keywords internal
+do_M_mapping <- function(input_list, M_spec) {
+
+  # fix sex-specific natural mortality offset if single sex
+  if(input_list$data$n_sexes == 1) input_list$map$M_offset <- factor(NA)
+
+  if(!is.null(M_spec)) {
+
+    # Validate options
+    if(!M_spec %in% c('est_ln_M_only', 'fix')) stop("M_spec needs to be specified as either est_ln_M_only (only for a single sex) or fix")
+
+    # Estimate only 1 single natural mortality
+    if(M_spec == 'est_ln_M_only') {
+      input_list$map$M_offset <- factor(NA)
+    }
+
+    # Fix natural mortality rates for base value (ln_M) and offset (M_offset)
+    if(M_spec == "fix") {
+      input_list$map$ln_M <- factor(NA)
+      input_list$map$M_offset <- factor(NA)
+    }
+
+    collect_message("Natural Mortality specified as: ", M_spec)
+
+  } else {
+    collect_message("Natural Mortality is estimated for both all dimensions")
+  }
+
+  return(input_list)
+}
+
 #' Setup biological inputs for estimation model
 #'
 #' @param input_list List containing data, parameter, and map lists for the model.
@@ -113,15 +148,37 @@ Setup_Mod_Biologicals <- function(input_list,
                                   ) {
 
   messages_list <<- character(0) # string to attach to for printing messages
+  starting_values <- list(...)
 
-  # Checking dimensions
+  # Input Validation --------------------------------------------------------
+
+  # Weight at age checking
   check_data_dimensions(WAA, n_regions = input_list$data$n_regions, n_years = length(input_list$data$years), n_ages = length(input_list$data$ages), n_sexes = input_list$data$n_sexes, what = 'WAA')
   if(!is.null(WAA_fish)) check_data_dimensions(WAA_fish, n_regions = input_list$data$n_regions, n_years = length(input_list$data$years), n_ages = length(input_list$data$ages), n_sexes = input_list$data$n_sexes, n_fish_fleets = input_list$data$n_fish_fleets, what = 'WAA_fish')
   if(!is.null(WAA_srv)) check_data_dimensions(WAA_srv, n_regions = input_list$data$n_regions, n_years = length(input_list$data$years), n_ages = length(input_list$data$ages), n_sexes = input_list$data$n_sexes, n_srv_fleets = input_list$data$n_srv_fleets, what = 'WAA_srv')
+
+  # Maturity at age checking
   check_data_dimensions(MatAA, n_regions = input_list$data$n_regions, n_years = length(input_list$data$years), n_ages = length(input_list$data$ages), n_sexes = input_list$data$n_sexes, what = 'MatAA')
+
+  # Length checking
+  if(!fit_lengths %in% c(0,1)) stop("Values for fit_lengths are not valid. They are == 0 (not used), or == 1 (used)")
+  collect_message("Length Composition data are: ", ifelse(fit_lengths == 0, "Not Used", "Used"))
+
+  # Size Age Transition checking
   if(fit_lengths == 1) check_data_dimensions(SizeAgeTrans, n_regions = input_list$data$n_regions, n_years = length(input_list$data$years), n_lens = length(input_list$data$lens), n_ages = length(input_list$data$ages), n_sexes = input_list$data$n_sexes, what = 'SizeAgeTrans')
-  if(!is.null(M_spec)) if(M_spec == 'fix') if(is.null(Fixed_natmort)) stop("Please provide a fixed natural mortality array dimensioned by n_regions, n_years, n_ages, and n_sexes!")
-  if(!is.null(M_spec)) if(M_spec == 'fix') check_data_dimensions(Fixed_natmort, n_regions = input_list$data$n_regions, n_years = length(input_list$data$years), n_ages = length(input_list$data$ages), n_sexes = input_list$data$n_sexes, what = 'Fixed_natmort')
+  if(fit_lengths == 1 & is.na(sum(SizeAgeTrans))) stop("Length composition are fit to, but the size-age transition matrix is NA")
+
+  # Natural Mortality checking
+  if(!is.null(M_spec)) {
+    if(M_spec == 'fix') {
+      if(is.null(Fixed_natmort)) stop("Please provide a fixed natural mortality array dimensioned by n_regions, n_years, n_ages, and n_sexes!")
+      check_data_dimensions(Fixed_natmort, n_regions = input_list$data$n_regions, n_years = length(input_list$data$years), n_ages = length(input_list$data$ages), n_sexes = input_list$data$n_sexes, what = 'Fixed_natmort')
+    }
+  }
+
+  # Natural Mortality prior checking
+  if(!Use_M_prior %in% c(0,1)) stop("Values for Use_M_prior are not valid. They are == 0 (don't use prior), or == 1 (use prior)")
+  collect_message("Natural Mortality priors are: ", ifelse(Use_M_prior == 0, "Not Used", "Used"))
 
   # Checking ageing error dimensions
   if(!is.null(AgeingError)) {
@@ -129,17 +186,23 @@ Setup_Mod_Biologicals <- function(input_list,
     if(length(dim(AgeingError)) == 3) check_data_dimensions(AgeingError, n_ages = length(input_list$data$ages), n_years = length(input_list$data$years), what = 'AgeingError_t') # user supplied ageing error is time-varying
   }
 
-  # Whether selectivity is age or length-based
+  # Selectivity Options -----------------------------------------------------
+
+  # Age based selectivity
   if(Selex_Type == 'age') {
     Selex_Type <- 0
     collect_message("Selectivity is aged-based.")
   } # if age based
 
+  # Length based selectivity
   if(Selex_Type == 'length') {
     if(fit_lengths == 0) stop("Length composition data are not fit, but selectivity is length-based. This is not allowed. Please change to a valid option (either fit lengths or use age-based selectivity).")
     Selex_Type <- 1
     collect_message("Selectivity is length-based")
   } # if length based
+
+
+  # Weight at Age Options ---------------------------------------------------
 
   # setup fishery and survey specific weight at age (if not specified - just uses the WAA (spawning) already supplied)
   if(is.null(WAA_fish)) { # if no fishery WAA provided, use spawning WAA supplied
@@ -155,13 +218,14 @@ Setup_Mod_Biologicals <- function(input_list,
     collect_message("WAA_srv was specified at NULL. Using the spawning WAA for WAA_srv")
   }
 
+  # Ageing Error Options ----------------------------------------------------
+
   # setup ageing error if not provided
   if(is.null(AgeingError)) {
     AgeingError <- diag(1, length(input_list$data$ages)) # if no inputs for ageing error, then create identity matrix
     AgeingError_t <- array(0, dim = c(length(input_list$data$years), dim(AgeingError)))
     for(i in 1:length(input_list$data$years)) AgeingError_t[i,,] <- AgeingError
     warning("No ageing error matrix was provided. A default identity matrix was used, which assumes that the number and structure of modelled age bins exactly match the observed age bins. If the observed age composition data includes fewer age bins than the model (e.g., observed ages 2-10 while modelled ages are 1-10), this default assumption will cause a dimensional mismatch and potentially misalign the modelled and observed compositions. To avoid this, please provide an ageing error matrix of dimension n_model_ages x n_obs_ages that correctly maps modelled ages to observed age bins. For example, if observed ages are 2-10, supply a matrix that drops the first model age by using a shifted identity matrix: diag(1, 10)[, 2:10]. This will ensure the age bins are correctly aligned for likelihood calculations.")
-
   }
 
   # setup ageing error if user-supplied is not year specific
@@ -177,6 +241,14 @@ Setup_Mod_Biologicals <- function(input_list,
     collect_message("Ageing Error is specified to be time-varying")
   }
 
+
+  # Natural Mortality Options -----------------------------------------------
+  # Input indicator for estimating or not estimating M
+  if(is.null(M_spec) || M_spec == "est_ln_M_only") input_list$data$use_fixed_natmort <- 0
+  else if(M_spec == "fix") input_list$data$use_fixed_natmort <- 1
+
+  # Populate Data List ------------------------------------------------------
+
   input_list$data$WAA <- WAA
   input_list$data$WAA_fish <- WAA_fish
   input_list$data$WAA_srv <- WAA_srv
@@ -190,42 +262,18 @@ Setup_Mod_Biologicals <- function(input_list,
   input_list$data$Selex_Type <- Selex_Type
   input_list$data$addtocomp <- addtocomp
 
-  # Input indicator for estimating or not estimating M
-  if(is.null(M_spec) || M_spec == "est_ln_M_only") input_list$data$use_fixed_natmort <- 0
-  else if(M_spec == "fix") input_list$data$use_fixed_natmort <- 1
+  # Populate Parameter List -------------------------------------------------
 
-  if(!fit_lengths %in% c(0,1)) stop("Values for fit_lengths are not valid. They are == 0 (not used), or == 1 (used)")
-  collect_message("Length Composition data are: ", ifelse(fit_lengths == 0, "Not Used", "Used"))
-
-  if(!Use_M_prior %in% c(0,1)) stop("Values for Use_M_prior are not valid. They are == 0 (don't use prior), or == 1 (use prior)")
-  collect_message("Natural Mortality priors are: ", ifelse(Use_M_prior == 0, "Not Used", "Used"))
-
-  if(fit_lengths == 1 & is.na(sum(SizeAgeTrans))) stop("Length composition are fit to, but the size-age transition matrix is NA")
-
-  # Set up parameter input list
-  starting_values <- list(...)
   if("ln_M" %in% names(starting_values)) input_list$par$ln_M <- starting_values$ln_M
   else input_list$par$ln_M <- log(0.5)
 
   if("M_offset" %in% names(starting_values)) input_list$par$M_offset <- starting_values$M_offset
   else input_list$par$M_offset <- 0
 
-  # Setup mapping list
-  if(input_list$data$n_sexes == 1) input_list$map$M_offset <- factor(NA) # fix sex-specific natural mortality offset if single sex
-  if(!is.null(M_spec)) {
-    # Estimate only 1 single natural mortality
-    if(M_spec == 'est_ln_M_only') input_list$map$M_offset <- factor(NA)
-    # Fix natural mortality rates for base value (ln_M) and offset (M_offset)
-    if(M_spec == "fix") {
-      input_list$map$ln_M <- factor(NA)
-      input_list$map$M_offset <- factor(NA)
-    }
+  # Mapping Options ---------------------------------------------------------
+  input_list <- do_M_mapping(input_list, M_spec) # natural mortality mapping
 
-    if(!M_spec %in% c('est_ln_M_only', 'fix')) stop("M_spec needs to be specified as either est_ln_M_only (only for a single sex) or fix")
-    else collect_message("Natural Mortality specified as: ", M_spec)
-  } else if(input_list$data$n_sexes == 2) collect_message("Natural Mortality is estiamted for both sexes") else collect_message("Natural Mortality is estiamted")
-
-  # Print all messages if verbose is TRUE
+  # Print Messages ----------------------------------------------------------
   if(input_list$verbose) for(msg in messages_list) message(msg)
 
   return(input_list)

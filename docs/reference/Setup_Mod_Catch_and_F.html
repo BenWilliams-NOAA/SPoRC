@@ -47,6 +47,7 @@
 <span>  est_all_regional_F <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  Catch_Constant <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  sigmaC_spec <span class="op">=</span> <span class="st">"fix"</span>,</span>
+<span>  sigmaC_agg_spec <span class="op">=</span> <span class="st">"fix"</span>,</span>
 <span>  sigmaF_spec <span class="op">=</span> <span class="st">"fix"</span>,</span>
 <span>  sigmaF_agg_spec <span class="op">=</span> <span class="st">"fix"</span>,</span>
 <span>  <span class="va">...</span></span>
@@ -99,6 +100,13 @@
 <li><p><code>"est_shared_r_f"</code>: Estimate <code>sigmaC</code> shared across regions and fleets.</p></li>
 <li><p><code>"fix"</code>: Fix <code>sigmaC</code> at the starting value.</p></li>
 <li><p><code>"est_all"</code>: Estimate separate <code>sigmaC</code> for each region and fleet.</p></li>
+</ul></dd>
+
+
+<dt id="arg-sigmac-agg-spec">sigmaC_agg_spec<a class="anchor" aria-label="anchor" href="#arg-sigmac-agg-spec"></a></dt>
+<dd><p>Character string specifying process error structure for aggregated catch observation error. Default fixes <code>sigmaC_agg</code> at the starting value (log-scale <code>sigmaC_agg</code>). Other options include:</p><ul><li><p><code>"est_shared_f"</code>: Estimate <code>sigmaC_agg</code> shared across fishery fleets.</p></li>
+<li><p><code>"fix"</code>: Fix at the starting value.</p></li>
+<li><p><code>"est_all"</code>: Estimate separate parameters for each fishery fleet.</p></li>
 </ul></dd>
 
 

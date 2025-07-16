@@ -77,6 +77,196 @@ Setup_Sim_Rec <- function(
 
 }
 
+#' Title Helper function to handle sigmaR mapping
+#'
+#' @param input_list Input list
+#' @param sigmaR_spec Character vector for specifying sigmaR mapping
+#'
+#' @returns Input list with mapping modified
+#' @keywords internal
+do_sigmaR_mapping <- function(input_list, sigmaR_spec) {
+
+  # Define valid sigmaR options
+  valid_options <- c("est_shared", "fix_early_est_late", "fix")
+
+  # Checking to see if valid options
+  if (!is.null(sigmaR_spec)) {
+    if (!sigmaR_spec %in% valid_options) {
+      stop("Invalid sigmaR_spec. Must be one of: ", paste(valid_options, collapse = ", "))
+    }
+
+    # Switch for defining sigmaR mapping
+    input_list$map$ln_sigmaR <- switch(
+      sigmaR_spec,
+      est_shared = factor(c(1, 1)),
+      fix_early_est_late = factor(c(NA, 1)),
+      fix = factor(c(NA, NA))
+    )
+
+    collect_message("Recruitment Variability is specified as: ", sigmaR_spec)
+  } else {
+    collect_message("Recruitment Variability is estimated for both early and late periods")
+  }
+  return(input_list)
+}
+
+#' Helper function to handle mapping for ln_InitDevs
+#'
+#' @param input_list Input list
+#' @param InitDevs_spec Character vector for specifying InitDevs mapping
+#' @param rec_dd Recruitment density dependence indicator (global vs. local)
+#' @keywords internal
+do_InitDevs_mapping <- function(input_list, InitDevs_spec, rec_dd) {
+
+  # Initial age deviations (equilibrium)
+  if(input_list$data$equil_init_age_strc == 0) {
+    input_list$par$ln_InitDevs <- array(0, dim = c(input_list$data$n_regions, length(input_list$data$ages) - 1)) # override starting values if previously specified
+    input_list$map$ln_InitDevs <- factor(rep(NA, length(input_list$par$ln_InitDevs))) # set mapping
+    collect_message("Initial Age Structure is specified to be in equilibrium. No initial age deviations are estimated.")
+  }
+
+  # Initial age deviations (stochastic for all ages, including plus group)
+  if(!is.null(InitDevs_spec)) {
+
+    # Validate options
+    if(rec_dd == 'global' && InitDevs_spec != "est_shared_r" && input_list$data$n_regions > 1) {
+      stop("Please specify a valid initial age deviations option for global recruitment density dependence (should be est_shared_r or leave as NULL)!")
+    }
+
+    if(!InitDevs_spec %in% c("est_shared_r", "fix")) stop("Please specify a valid initial deviations option. These include: fix, est_shared_r. Conversely, leave at NULL to estimate all initial deviations.")
+    else collect_message("Initial Deviations is stochastic and specified as: ", InitDevs_spec)
+
+    # set up mapping for initial age deviations
+    map_InitDevs <- input_list$par$ln_InitDevs
+
+    # Fix all initial deviations
+    if(InitDevs_spec == "fix") input_list$map$ln_InitDevs <- factor(rep(NA, prod(dim(map_InitDevs))))
+
+    # Share across regions and estimate
+    if(InitDevs_spec == "est_shared_r") {
+
+      # share parameters, but no stochastic deviations on plus group
+      if(input_list$data$equil_init_age_strc == 1) {
+        for(r in 1:input_list$data$n_regions) {
+          map_InitDevs[r,-dim(input_list$par$ln_InitDevs)[2]] <- 1:length(map_InitDevs[1,-dim(input_list$par$ln_InitDevs)[2]]) # share parameters across regions (but don't estimate plus group)
+          map_InitDevs[r,dim(input_list$par$ln_InitDevs)[2]] <- NA # NA for plus group
+          input_list$par$ln_InitDevs[r,dim(input_list$par$ln_InitDevs)[2]] <- 0 # reset plus group starting value to 0
+        } # end r loop
+        collect_message("Initial Age Deviations is stochastic for all ages, but the plus group follows equilibrium calculations.")
+      }
+
+      # share parameters across regions, with stochastic deviations on plus group
+      if(input_list$data$equil_init_age_strc == 2) {
+        for(r in 1:input_list$data$n_regions) {
+          map_InitDevs[r,] <- 1:length(map_InitDevs[1,])
+        }
+        collect_message("Initial age deviations are stochastic and estimated for all ages, including the plus group")
+      }
+      input_list$map$ln_InitDevs <- factor(map_InitDevs) # input into map
+    } # end if
+
+  } else { # If NULL, then estimating age deviations across all dimensions
+    map_InitDevs <- input_list$par$ln_InitDevs # set up mapping for initial age deviations
+
+    if(input_list$data$equil_init_age_strc == 1) { # estimating all deviations across all dimensions, except for plus group
+      map_InitDevs[,-dim(input_list$par$ln_InitDevs)[2]] <- 1:length(map_InitDevs[,-dim(input_list$par$ln_InitDevs)[2]]) # don't estimate plus group
+      map_InitDevs[,dim(input_list$par$ln_InitDevs)[2]] <- NA # NA for plus group
+      input_list$par$ln_InitDevs[,dim(input_list$par$ln_InitDevs)[2]] <- 0 # reset plus group starting value to 0
+      input_list$map$ln_InitDevs <- factor(map_InitDevs) # input into map
+      collect_message("Initial Age Deviations is stochastic for all ages, but the plus group follows equilibrium calculations.")
+    }
+
+    # Plus group and estimating deviations for all dimensions
+    if(input_list$data$equil_init_age_strc == 2) {
+      input_list$map_ln_InitDevs <- factor(1:length(map_InitDevs)) # input into map
+      collect_message("Initial Age Deviations is estimated for all dimensions. They are are stochastic and estimated for all ages, including the plus group")
+    }
+  }
+  return(input_list)
+}
+
+#' Helper function to handle RecDevs mapping
+#'
+#' @param input_list Input list
+#' @param RecDevs_spec Character vector for specifying RecDevs mapping
+#' @param rec_dd Recruitment density dependence indicator (global vs. local)
+#' @keywords internal
+do_RecDevs_mapping <- function(input_list, RecDevs_spec, rec_dd) {
+
+  map_RecDevs <- input_list$par$ln_RecDevs # set up mapping for recruitment deviations
+
+  # Recruitment deviations
+  if(!is.null(RecDevs_spec)) {
+
+    # Validate options
+    if(rec_dd == 'global' && RecDevs_spec != "est_shared_r" && input_list$data$n_regions > 1) stop("Please specify a valid recruitment deviations option for global recruitment density dependence (should be est_shared_r)!")
+    if(!RecDevs_spec %in% c("est_shared_r", "fix"))  stop("Please specify a valid recruitment deviations option. These include: fix, est_shared_r. Conversely, leave at NULL to estimate all recruitment deviations.")
+
+    # Share across regions and estimate
+    if(RecDevs_spec == "est_shared_r") {
+      for(r in 1:input_list$data$n_regions) map_RecDevs[r,] <- 1:length(map_RecDevs[1,]) # share parameters across regions
+      input_list$map$ln_RecDevs <- factor(map_RecDevs)
+    } # end if
+
+    # Fix all recruitment deviations
+    if(RecDevs_spec == "fix") input_list$map$ln_RecDevs <- factor(rep(NA, prod(dim(map_RecDevs))))
+
+    # print message
+    collect_message("Recruitment Deviations is specified as: ", RecDevs_spec)
+
+  } else { # if NULL, estimating all dimensions
+    input_list$map$ln_RecDevs <- factor(1:length(map_RecDevs)) # input into mapping
+    collect_message("Recruitment Deviations is estimated for all dimensions")
+  }
+  return(input_list)
+}
+
+#' Helper function to setup steepness mapping
+#'
+#' @param input_list Input list
+#' @param h_spec Character vector for specifying steepness mapping
+#' @param rec_dd Recruitment density dependence indicator (global vs. local)
+#' @keywords internal
+do_h_mapping <- function(input_list, h_spec, rec_dd) {
+
+  # Mean recruitment
+  if(input_list$data$rec_model == 0) {
+    input_list$map$steepness_h <- factor(rep(NA, length(input_list$par$steepness_h)))
+  } else if(!is.null(h_spec)) {
+
+    # Validate options
+    if(rec_dd == 'global' && !h_spec %in% c("est_shared_r", "fix") && input_list$data$n_regions > 1) stop("Please specify a valid steepness option for global recruitment density dependence (should be est_shared_r or fix)!")
+    if(!h_spec %in% c("est_shared_r", "fix"))  stop("Please specify a valid steepness option. These include: fix, est_shared_r. Conversely, leave at NULL to estimate all steepness values.")
+
+    # Share across regions and estimate
+    if(h_spec == "est_shared_r") input_list$map$steepness_h <- factor(rep(1, length(input_list$par$steepness_h)))
+
+    # Fix all steepness values
+    if(h_spec == "fix") input_list$map$steepness_h <- factor(rep(NA, length(input_list$par$steepness_h)))
+
+    collect_message("Steepness is specified as: ", h_spec) # output message
+  } else {
+    # if beverton holt and estimating all steepness parameters
+    if(input_list$data$rec_model == 1) {
+      # Validate options
+      if(rec_dd == 'global' && input_list$data$n_regions > 1) stop("Please specify a valid steepness option for global recruitment density dependence (should be est_shared_r)!")
+      input_list$map$steepness_h <- factor(c(1:input_list$data$n_regions)) # estimating all steepness parameters
+    }
+    collect_message("Steepness is estimated for all dimensions")
+  }
+  return(input_list)
+}
+
+#' Helper function to map recruitment proportions
+#'
+#' @param input_list Input list
+#' @keywords internal
+do_Rec_prop_mapping <- function(input_list) {
+  # map off parameters if single region
+  if(input_list$data$n_regions == 1) input_list$map$Rec_prop <- factor(rep(NA, length(input_list$par$Rec_prop)))
+  return(input_list)
+}
+
 #' Setup model objects for specifying recruitment module and associated processes
 #'
 #' @param input_list List containing data, parameters, and map lists used by the model.
@@ -180,60 +370,62 @@ Setup_Mod_Rec <- function(input_list,
                           ...
 ) {
 
-  messages_list <<- character(0) # string to attach to for printing messages
+  messages_list <<- character(0)
+  starting_values <- list(...)
 
-  # Specify recruitment options
-  if(rec_model == "mean_rec") {
-    rec_model_val <- 0
-    rec_dd_val <- 999
-  }
+  # Recruitment Model Type and Options --------------------------------------
 
-  if(rec_model == "bh_rec") {
-    rec_model_val <- 1
-    if(is.null(rec_dd)) {
-      rec_dd_val <- 1
-    } else {
-      if(rec_dd == 'local') rec_dd_val <- 0
-      if(rec_dd == 'global') rec_dd_val <- 1
-    }
-  }
-
-  if(!rec_model %in% c("mean_rec", "bh_rec")) stop("Please specify a valid recruitment form. These include: mean_rec or bh_rec")
+  # Recruitment model
+  rec_model_map <- list(mean_rec = 0, bh_rec = 1)
+  if (!rec_model %in% names(rec_model_map)) stop("Invalid recruitment model. Use 'mean_rec' or 'bh_rec'")
+  rec_model_val <- rec_model_map[[rec_model]]
   collect_message("Recruitment is specified as: ", rec_model)
 
-  if(!is.null(rec_dd)) if(!rec_dd %in% c("local", "global")) stop("Please specify a valid recruitment density dependence form. These include: local or global")
-  collect_message("Recruitment Density Dependence is specified as: ", rec_dd)
-
-  if(rec_model != 'mean_rec') collect_message("Recruitment and SSB lag is specified as: ", rec_lag)
-
-  # Checking h priors
-  if(Use_h_prior == 1) {
-    required_cols <- c("region", "mu", "sd")
-    missing_cols <- setdiff(required_cols, names(h_prior))
-    if(length(missing_cols) > 0) {
-      stop("h_prior is missing required columns: ", paste(missing_cols, collapse = ", "))
-    }
+  # Recruitment density dependence
+  if (!is.null(rec_dd)) {
+    rec_dd_map <- list(local = 0, global = 1)
+    if (!rec_dd %in% names(rec_dd_map)) stop("Invalid rec_dd. Use 'local' or 'global'")
+    rec_dd_val <- rec_dd_map[[rec_dd]]
+    collect_message("Recruitment Density Dependence is specified as: ", rec_dd)
+  } else {
+    rec_dd_val <- ifelse(rec_model == "mean_rec", 999, 1)
   }
 
-  if(rec_model == 'bh_rec') if(!Use_h_prior %in% c(0,1)) stop("Steepness priors are not specified as either: 0 (don't turn on), or 1 (turn on)")
-  else collect_message("Steepness priors are: ", ifelse(Use_h_prior == 0, 'Not Used', 'Used'))
+  # Recruitment lag
+  if (rec_model != "mean_rec") collect_message("Recruitment and SSB lag is specified as: ", rec_lag)
 
-  if(!do_rec_bias_ramp %in% c(0,1)) stop("Recruitment bias ramp options are either: 0 (don't turn on), or 1 (turn on)")
-  collect_message("Recruitment Bias Ramp is: ", ifelse(do_rec_bias_ramp == 0, "Off", 'On'))
+  # Steepness Settings ------------------------------------------------------
 
-  if(!init_age_strc %in% c(0,1)) stop("Initial Age Structure options are either: 0 (iterate), or 1 (geometric series solution)")
-  collect_message("Initial Age Structure is: ", ifelse(init_age_strc == 0, "Iterated", 'Geometric Series Solution'))
+  if (rec_model == "bh_rec") {
+    if (!Use_h_prior %in% c(0, 1)) stop("Use_h_prior must be 0 or 1")
+    if (Use_h_prior == 1) {
+      required_cols <- c("region", "mu", "sd")
+      missing_cols <- setdiff(required_cols, names(h_prior))
+      if (length(missing_cols) > 0) stop("h_prior is missing columns: ", paste(missing_cols, collapse = ", "))
+    }
+    collect_message("Steepness priors are: ", ifelse(Use_h_prior == 1, "Used", "Not Used"))
+  }
 
-  if(!is.numeric(sigmaR_switch)) stop("sigmaR_switch needs to be a numeric value. If you want to use a single sigmaR, please specify at 1")
-  if(sigmaR_switch > 1) collect_message("Sigma R switches from an early period value to a late period value at year: ", sigmaR_switch)
+  # Input Validation --------------------------------------------------------
 
-  if(dont_est_recdev_last == 0) collect_message("Recruitment deviations for every year is estiamted")
-  else collect_message("Recruitment deviations are not estimated for terminal year - ", dont_est_recdev_last, ". Recruitment during those periods are specified as the mean / deterministic recruitment")
+  # Helper function
+  check_in <- function(x, valid, name) {
+    if (!x %in% valid) stop(name, " must be one of: ", paste(valid, collapse = ", "))
+  }
 
+  # Validation
+  check_in(do_rec_bias_ramp, 0:1, "do_rec_bias_ramp")
+  check_in(init_age_strc, 0:1, "init_age_strc")
+  if(!is.numeric(sigmaR_switch)) stop("sigmaR_switch must be numeric")
   if(max_bias_ramp_fct > 1 || max_bias_ramp_fct < 0) stop("max_bias_ramp_fct must be between 0 and 1!")
 
-  # Set up parameter list
-  starting_values <- list(...) # get starting values if there are any
+  # print messages
+  collect_message("Recruitment Bias Ramp is: ", ifelse(do_rec_bias_ramp == 0, "Off", 'On'))
+  collect_message("Initial Age Structure is: ", ifelse(init_age_strc == 0, "Iterated", 'Geometric Series Solution'))
+  if(sigmaR_switch > 1) collect_message("Sigma R switches from an early period value to a late period value at year: ", sigmaR_switch)
+  collect_message("Recruitment deviations for ", ifelse(dont_est_recdev_last == 0, "every year are estimated", paste("terminal year not estimated -", dont_est_recdev_last)))
+
+  # Populate Data List ------------------------------------------------------
 
   # input variables into data list
   input_list$data$rec_model <- rec_model_val
@@ -250,6 +442,8 @@ Setup_Mod_Rec <- function(input_list,
   input_list$data$t_spawn <- t_spawn
   input_list$data$equil_init_age_strc <- equil_init_age_strc
   input_list$data$max_bias_ramp_fct <- max_bias_ramp_fct
+
+  # Populate Parameter List -------------------------------------------------
 
   # Global R0
   if("ln_global_R0" %in% names(starting_values)) input_list$par$ln_global_R0 <- starting_values$ln_global_R0
@@ -271,107 +465,19 @@ Setup_Mod_Rec <- function(input_list,
   if("ln_RecDevs" %in% names(starting_values)) input_list$par$ln_RecDevs <- starting_values$ln_RecDevs
   else input_list$par$ln_RecDevs <- array(0, dim = c(input_list$data$n_regions, length(input_list$data$years) - dont_est_recdev_last))
 
-  # Recruitment variability (early period 1st element, late period 2nd element)
+  # Recruitment variability
   if("ln_sigmaR" %in% names(starting_values)) input_list$par$ln_sigmaR <- starting_values$ln_sigmaR
-  else input_list$par$ln_sigmaR <- c(0,0)
+  else input_list$par$ln_sigmaR <- c(0,0)  # (early period 1st element, late period 2nd element)
 
-  # Setup mapping stuff
-  # Standard deviation for initial age deviations and recruitment deviations
-  if(!is.null(sigmaR_spec)) {
-    # Share early and late period sigmaR and estimate
-    if(sigmaR_spec == "est_shared") input_list$map$ln_sigmaR <- factor(c(1,1))
-    if(sigmaR_spec == "fix_early_est_late") input_list$map$ln_sigmaR <- factor(c(NA, 1))
-    # Fix both sigmaRs at starting values
-    if(sigmaR_spec == "fix") input_list$map$ln_sigmaR <- factor(c(NA, NA))
-    if(!sigmaR_spec %in% c("est_shared", "fix_early_est_late", "fix"))  stop("Please specify a valid recruitment variability option. These include: fix, fix_early_est_late, est_shared. Conversely, leave at NULL to estimate all recruitment variability parameters (early and late period).")
-    else collect_message("Recruitment Variability is specified as: ", sigmaR_spec)
-  } else collect_message("Recruitment Variability is estimated for both early and late periods")
+  # Mapping Options -----------------------------------------------------------
 
-  # Initial age deviations (stochastic for all ages, including plus group)
-  if(!is.null(InitDevs_spec)) {
-    map_InitDevs <- input_list$par$ln_InitDevs # set up mapping for initial age deviations
-    if(rec_dd == 'global' && InitDevs_spec != "est_shared_r" && input_list$data$n_regions > 1) stop("Please specify a valid initial age deviations option for global recruitment density dependence (should be est_shared_r or leave as NULL)!")
+  input_list <- do_sigmaR_mapping(input_list, sigmaR_spec) # sigmaR mapping
+  input_list <- do_InitDevs_mapping(input_list, InitDevs_spec, rec_dd) # InitDevs mapping
+  input_list <- do_RecDevs_mapping(input_list, RecDevs_spec, rec_dd) # RevDevs mapping
+  input_list <- do_h_mapping(input_list, h_spec, rec_dd) # steepness mapping
+  input_list <- do_Rec_prop_mapping(input_list) # Recruitment proportion mapping
 
-     # Share across regions and estimate
-    if(InitDevs_spec == "est_shared_r") {
-      if(input_list$data$equil_init_age_strc == 2) {
-        for(r in 1:input_list$data$n_regions) map_InitDevs[r,] <- 1:length(map_InitDevs[1,]) # share parameters across regions (and estimate plus group)
-        collect_message("Initial age deviations are stochastic and estimated for all ages, including the plus group")
-      }
-      if(input_list$data$equil_init_age_strc == 1) {
-        for(r in 1:input_list$data$n_regions) {
-          map_InitDevs[r,-dim(input_list$par$ln_InitDevs)[2]] <- 1:length(map_InitDevs[1,-dim(input_list$par$ln_InitDevs)[2]]) # share parameters across regions (but don't estimate plus group)
-          map_InitDevs[r,dim(input_list$par$ln_InitDevs)[2]] <- NA # NA for plus group
-          input_list$par$ln_InitDevs[r,dim(input_list$par$ln_InitDevs)[2]] <- 0 # reset plus group starting value to 0
-          collect_message("Initial Age Deviations is stochastic for all ages, but the plus group follows equilibrium calculations.")
-        } # end r loop
-      } # end case 1 (no stochastic deviations for plus group)
-      input_list$map$ln_InitDevs <- factor(map_InitDevs) # input into map
-    } # end if
-
-    # Fix all initial deviations
-    if(InitDevs_spec == "fix") input_list$map$ln_InitDevs <- factor(rep(NA, prod(dim(map_InitDevs))))
-
-    if(!InitDevs_spec %in% c("est_shared_r", "fix"))  stop("Please specify a valid initial deviations option. These include: fix, est_shared_r. Conversely, leave at NULL to estimate all initial deviations.")
-    else collect_message("Initial Deviations is stochastic and specified as: ", InitDevs_spec)
-
-  } else {
-    if(input_list$data$equil_init_age_strc == 2) collect_message("Initial Age Deviations is estimated for all dimensions. They are are stochastic and estimated for all ages, including the plus group")
-    if(input_list$data$equil_init_age_strc == 1) {
-      map_InitDevs <- input_list$par$ln_InitDevs # set up mapping for initial age deviations
-      map_InitDevs[,-dim(input_list$par$ln_InitDevs)[2]] <- 1:length(map_InitDevs[,-dim(input_list$par$ln_InitDevs)[2]]) # don't estimate plus group
-      map_InitDevs[,dim(input_list$par$ln_InitDevs)[2]] <- NA # NA for plus group
-      input_list$par$ln_InitDevs[,dim(input_list$par$ln_InitDevs)[2]] <- 0 # reset plus group starting value to 0
-      input_list$map$ln_InitDevs <- factor(map_InitDevs) # input into map
-      collect_message("Initial Age Deviations is stochastic for all ages, but the plus group follows equilibrium calculations.")
-    }
-  }
-
-  # Initial age deviations (equilibrium)
-  if(input_list$data$equil_init_age_strc == 0) {
-    input_list$par$ln_InitDevs <- array(0, dim = c(input_list$data$n_regions, length(input_list$data$ages) - 1)) # override starting values if previously specified
-    input_list$map$ln_InitDevs <- factor(rep(NA, length(input_list$par$ln_InitDevs))) # set mapping
-    collect_message("Initial Age Structure is specified to be in equilibrium. No initial age deviations are estimated.")
-  }
-
-  # Recruitment deviations
-  if(!is.null(RecDevs_spec)) {
-    map_RecDevs <- input_list$par$ln_RecDevs # set up mapping for recruitment deviations
-    if(rec_dd == 'global' && RecDevs_spec != "est_shared_r" && input_list$data$n_regions > 1) stop("Please specify a valid recruitment deviations option for global recruitment density dependence (should be est_shared_r)!")
-    # Share across regions and estimate
-    if(RecDevs_spec == "est_shared_r") {
-      for(r in 1:input_list$data$n_regions) map_RecDevs[r,] <- 1:length(map_RecDevs[1,]) # share parameters across regions
-      input_list$map$ln_RecDevs <- factor(map_RecDevs)
-    } # end if
-    # Fix all recruitment deviations
-    if(RecDevs_spec == "fix") input_list$map$ln_RecDevs <- factor(rep(NA, prod(dim(map_RecDevs))))
-    if(!RecDevs_spec %in% c("est_shared_r", "fix"))  stop("Please specify a valid recruitment deviations option. These include: fix, est_shared_r. Conversely, leave at NULL to estimate all recruitment deviations.")
-    else collect_message("Recruitment Deviations is specified as: ", RecDevs_spec)
-  } else collect_message("Recruitment Deviations is estimated for all dimensions")
-
-  # Steepness
-  if(input_list$data$rec_model == 0) {
-    input_list$map$steepness_h <- factor(rep(NA, length(input_list$par$steepness_h)))
-  } else if(!is.null(h_spec)) {
-    if(rec_dd == 'global' && !h_spec %in% c("est_shared_r", "fix") && input_list$data$n_regions > 1) stop("Please specify a valid steepness option for global recruitment density dependence (should be est_shared_r or fix)!")
-    # Share across regions and estimate
-    if(h_spec == "est_shared_r") input_list$map$steepness_h <- factor(rep(1, length(input_list$par$steepness_h)))
-    # Fix all steepness values
-    if(h_spec == "fix") input_list$map$steepness_h <- factor(rep(NA, length(input_list$par$steepness_h)))
-    if(!h_spec %in% c("est_shared_r", "fix"))  stop("Please specify a valid steepness option. These include: fix, est_shared_r. Conversely, leave at NULL to estimate all steepness values.")
-    else collect_message("Steepness is specified as: ", h_spec)
-  } else {
-    if(input_list$data$rec_model == 1) {
-      if(rec_dd == 'global' && input_list$data$n_regions > 1) stop("Please specify a valid steepness option for global recruitment density dependence (should be est_shared_r)!")
-      input_list$map$steepness_h <- factor(c(1:input_list$data$n_regions))
-    }
-    collect_message("Steepness is estimated for all dimensions")
-  }
-
-  # R0 proportions
-  if(input_list$data$n_regions == 1) input_list$map$Rec_prop <- factor(rep(NA, length(input_list$par$Rec_prop)))
-
-  # Print all messages if verbose is TRUE
+  # Print Messages ----------------------------------------------------------
   if(input_list$verbose) for(msg in messages_list) message(msg)
 
   return(input_list)

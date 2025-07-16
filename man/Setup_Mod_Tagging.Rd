@@ -84,6 +84,13 @@ Must include columns: \code{region} (region index), \code{block} (time block ind
 Each row specifies a beta prior for one tag reporting parameter.
 Only parameters with rows in this data frame will have priors applied.}
 
+\item{move_age_tag_pool}{List or character specifying pooling of tagging data by age groups. Examples:
+\itemize{
+  \item \code{list(1:5, 6:11, 12:20)} pools these age groups together
+  \item \code{"all"} pools all ages together (internally converted to \code{list(1:n_ages)})
+  \item \code{as.list(1:n_ages)} fits each sex separately
+}}
+
 \item{move_sex_tag_pool}{List or character specifying pooling of tagging data by sex groups. Examples:
 \itemize{
   \item \code{list(1:2)} pools sexes together

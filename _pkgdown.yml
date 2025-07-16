@@ -27,3 +27,7 @@ articles:
   - title: "Advanced"
     contents:
       - j_starting_mapping
+      - k_defining_priors
+      - l_plotting
+      - m_diagnostics
+      - n_francis_reweighting

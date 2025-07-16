@@ -539,12 +539,12 @@ SPoRC_rtmb = function(pars, data) {
         # ADMB likelihoods
         if(likelihoods == 0) {
           Catch_nLL[1,y,f] = UseCatch[1,y,f] * (log(ObsCatch[1,y,f] + Catch_Constant[f]) -
-                                                  log((PredCatch[,y,f] + Catch_Constant[f])))^2 # SSQ Catch
+                                                log((PredCatch[,y,f] + Catch_Constant[f])))^2 # SSQ Catch
         } # ADMB likelihoods
         if(likelihoods == 1) {
           Catch_nLL[1,y,f] = UseCatch[1,y,f] -1 * RTMB::dnorm(log(ObsCatch[1,y,f] + Catch_Constant[f]),
                                                               log(sum(PredCatch[,y,f]) + Catch_Constant[f]),
-                                                              exp(ln_sigmaC[1,f]), TRUE)
+                                                              exp(ln_sigmaC_agg[f]), TRUE)
         } # TMB likelihoods
       } # if some fishery catches are aggregated
 
@@ -555,7 +555,7 @@ SPoRC_rtmb = function(pars, data) {
           # ADMB likelihoods
           if(likelihoods == 0) {
             Catch_nLL[r,y,f] = UseCatch[r,y,f] * (log(ObsCatch[r,y,f] + Catch_Constant[f]) -
-                                                    log(PredCatch[r,y,f] + Catch_Constant[f]))^2 # SSQ Catch
+                                                  log(PredCatch[r,y,f] + Catch_Constant[f]))^2 # SSQ Catch
           } # ADMB likelihoods
           if(likelihoods == 1) {
             Catch_nLL[r,y,f] = UseCatch[r,y,f] -1 * RTMB::dnorm(log(ObsCatch[r,y,f] + Catch_Constant[f]),
@@ -578,12 +578,13 @@ SPoRC_rtmb = function(pars, data) {
         if(UseFishIdx[r,y,f] == 1) {
           if(likelihoods == 0) {
             FishIdx_nLL[r,y,f] = (log(ObsFishIdx[r,y,f] + 1e-4) - log(PredFishIdx[r,y,f] + 1e-4))^2 /
-              (2 * (ObsFishIdx_SE[r,y,f] / ObsFishIdx[r,y,f])^2) # lognormal Fishery index
+                                 (2 * (ObsFishIdx_SE[r,y,f] / ObsFishIdx[r,y,f])^2) # lognormal Fishery index
           }
 
           # TMB likelihoods
           if(likelihoods == 1) {
-            FishIdx_nLL[r,y,f] = -1 * RTMB::dnorm(log(ObsFishIdx[r,y,f] + 1e-10), log(PredFishIdx[r,y,f] + 1e-10),
+            FishIdx_nLL[r,y,f] = -1 * RTMB::dnorm(log(ObsFishIdx[r,y,f] + 1e-4),
+                                                  log(PredFishIdx[r,y,f] + 1e-4),
                                                   ObsFishIdx_SE[r,y,f], TRUE)
           }
         }
@@ -672,12 +673,13 @@ SPoRC_rtmb = function(pars, data) {
         if(UseSrvIdx[r,y,sf] == 1) {
           if(likelihoods == 0) {
             SrvIdx_nLL[r,y,sf] = (log(ObsSrvIdx[r,y,sf] + 1e-4) - log(PredSrvIdx[r,y,sf] + 1e-4))^2 /
-              (2 * (ObsSrvIdx_SE[r,y,sf] / ObsSrvIdx[r,y,sf])^2) # lognormal Survey index
+                                 (2 * (ObsSrvIdx_SE[r,y,sf] / ObsSrvIdx[r,y,sf])^2) # lognormal Survey index
           }
 
           # TMB likelihoods
           if(likelihoods == 1) {
-            SrvIdx_nLL[r,y,sf] = -1 * RTMB::dnorm(log(ObsSrvIdx[r,y,sf] + 1e-10), log(PredSrvIdx[r,y,sf] + 1e-10),
+            SrvIdx_nLL[r,y,sf] = -1 * RTMB::dnorm(log(ObsSrvIdx[r,y,sf] + 1e-4),
+                                                  log(PredSrvIdx[r,y,sf] + 1e-4),
                                                   ObsSrvIdx_SE[r,y,sf], TRUE)
           }
         }
@@ -878,12 +880,12 @@ SPoRC_rtmb = function(pars, data) {
 
           if(UseCatch[r,y,f] == 1) {
             if(likelihoods == 0) {
-              if(Catch_Type[y,f] == 0 && est_all_regional_F == 0) Fmort_nLL[1,y,f] = ln_F_devs_AggCatch[y,f]^2 # Use aggregated catch
+              if(Catch_Type[y,f] == 0 && est_all_regional_F == 0) Fmort_nLL[1,y,f] = (ln_F_devs_AggCatch[y,f] / exp(ln_sigmaF_agg[f]))^2 # Use aggregated catch
               else Fmort_nLL[r,y,f] = (ln_F_devs[r,y,f] / exp(ln_sigmaF[r,f]))^2 # SSQ ADMB
             } # ADMB
 
             if(likelihoods == 1) {
-              if(Catch_Type[y,f] == 0 && est_all_regional_F == 0) Fmort_nLL[1,y,f] = -RTMB::dnorm(ln_F_devs_AggCatch[y,f], 0, 1, TRUE) # Use aggregated catch
+              if(Catch_Type[y,f] == 0 && est_all_regional_F == 0) Fmort_nLL[1,y,f] = -RTMB::dnorm(ln_F_devs_AggCatch[y,f], 0, exp(ln_sigmaF_agg[f]), TRUE) # Use aggregated catch
               else Fmort_nLL[r,y,f] = -RTMB::dnorm(ln_F_devs[r,y,f], 0, exp(ln_sigmaF[r,f]), TRUE)
             } # TMB
           } # end if have catch
@@ -993,10 +995,12 @@ SPoRC_rtmb = function(pars, data) {
       if(equil_init_age_strc %in% c(1,2)) Init_Rec_nLL[r,] = -RTMB::dnorm(ln_InitDevs[r,], 0, exp(ln_sigmaR[1]), TRUE) # initial age structure penalty
       if(sigmaR_switch > 1) for(y in 1:(sigmaR_switch-1)) {
         Rec_nLL[r,y] = -RTMB::dnorm(ln_RecDevs[r,y], 0, exp(ln_sigmaR[1]), TRUE)
+        Rec_nLL[r,y] = Rec_nLL[r,y] - (1 - 0.5 * bias_ramp[y]) * ln_sigmaR[1] # early period with bias ramp correction
       } # first y loop
       # Note that this penalizes the terminal year rec devs, which is estimated in this case
       for(y in sigmaR_switch:n_est_rec_devs) {
         Rec_nLL[r,y] = -RTMB::dnorm(ln_RecDevs[r,y], 0, exp(ln_sigmaR[2]), TRUE)
+        Rec_nLL[r,y] = Rec_nLL[r,y] - (1 - 0.5 * bias_ramp[y]) * ln_sigmaR[2] # late period with bias ramp correction
       } # end second y loop
     } # end r loop
   }

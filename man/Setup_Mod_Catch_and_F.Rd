@@ -13,6 +13,7 @@ Setup_Mod_Catch_and_F(
   est_all_regional_F = 1,
   Catch_Constant = NULL,
   sigmaC_spec = "fix",
+  sigmaC_agg_spec = "fix",
   sigmaF_spec = "fix",
   sigmaF_agg_spec = "fix",
   ...
@@ -56,6 +57,13 @@ Setup_Mod_Catch_and_F(
   \item \code{"est_shared_r_f"}: Estimate \code{sigmaC} shared across regions and fleets.
   \item \code{"fix"}: Fix \code{sigmaC} at the starting value.
   \item \code{"est_all"}: Estimate separate \code{sigmaC} for each region and fleet.
+}}
+
+\item{sigmaC_agg_spec}{Character string specifying process error structure for aggregated catch observation error. Default fixes \code{sigmaC_agg} at the starting value (log-scale \code{sigmaC_agg}). Other options include:
+\itemize{
+  \item \code{"est_shared_f"}: Estimate \code{sigmaC_agg} shared across fishery fleets.
+  \item \code{"fix"}: Fix at the starting value.
+  \item \code{"est_all"}: Estimate separate parameters for each fishery fleet.
 }}
 
 \item{sigmaF_spec}{Character string specifying process error structure for fishing mortality. Default fixes \code{sigmaF} at \code{1} on the log scale (i.e., \code{ln_sigmaF = 0}). Other options include:

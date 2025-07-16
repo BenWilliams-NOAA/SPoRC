@@ -22,6 +22,7 @@ The following table describes all elements contained within `input_list$pars`, w
 | Parameter               | Dimension                                            | Component             | Description                                                              |
 |-------------------------|------------------------------------------------------|------------------------|-------------------------------------------------------------------------|
 | `ln_sigmaC`             | `n_regions, n_fish_fleets`                           | Fishery Removals       | SD for catch fit                                                        |
+| `ln_sigmaC_agg`         | `n_fish_fleets`                                      | Fishery Removals       | SD for aggregated catch fit                                             |
 | `ln_sigmaF`             | `n_regions, n_fish_fleets`                           | Fishery Removals       | SD for fishing mortality process error                                  |
 | `ln_sigmaF_agg`         | `n_fish_fleets`                                      | Fishery Removals       | SD for aggregated fishing mortality process error                       |
 | `ln_F_mean`             | `n_regions, n_fish_fleets`                           | Fishery Removals       | Log mean fishing mortality                                              |

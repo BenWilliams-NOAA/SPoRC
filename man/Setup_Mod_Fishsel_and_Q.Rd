@@ -123,6 +123,11 @@ Available options include:
   \item \code{"est_shared_r"}: Shares process error parameters across regions (sex-specific parameters are still estimated).
   \item \code{"est_shared_s"}: Shares process error parameters across sexes (region-specific parameters are still estimated).
   \item \code{"est_shared_r_s"}: Shares process error parameters across both regions and sexes, estimating a single set of parameters.
+  \item \code{"est_shared_f_x"}: Shares process error parameters with another fleet, where \code{x} is the fleet number to share with.
+    This option forces multiple fleets to have identical process error variance and correlation structures for their
+    time-varying selectivity. For example, \code{"est_shared_f_2"} means the current fleet will use the same
+    process error parameters as fleet 2. The reference fleet (fleet x) must use one of the other sharing options
+    and cannot itself be sharing with another fleet.
   \item \code{"fix"} or \code{"none"}: Does not estimate process error parameters; all are treated as fixed.
 }}
 
@@ -136,6 +141,13 @@ Available options include:
   \item \code{"est_shared_r"}: Shares parameters across regions (sex-specific parameters are still estimated).
   \item \code{"est_shared_s"}: Shares parameters across sexes (region-specific parameters are still estimated).
   \item \code{"est_shared_r_s"}: Shares parameters across both regions and sexes, estimating a single set of fixed-effect parameters.
+  \item \code{"est_shared_f_x"}: Shares fixed-effect selectivity parameters with another fleet, where \code{x} is the fleet number to share with.
+    This option forces multiple fleets to have identical selectivity curves by using the same underlying parameters
+    (e.g., same a50, k, amax values). For example, \code{"est_shared_f_2"} means the current fleet will use the same
+    fixed-effect selectivity parameters as fleet 2. The reference fleet (fleet x) must use one of the other sharing options
+    and cannot itself be sharing with another fleet.
+  \item \code{"fix"}: Fixes all selectivity parameters to their initial values (no estimation).
+  \item \code{"none"}: No selectivity parameters are estimated (equivalent to \code{"fix"}).
 }}
 
 \item{fish_q_spec}{Character string specifying the structure of fishery catchability (\code{q}) estimation
@@ -156,6 +168,14 @@ Available options include:
   \item \code{"est_shared_r"}: Shares deviations across regions (sex-specific deviations are still estimated).
   \item \code{"est_shared_s"}: Shares deviations across sexes (region-specific deviations are still estimated).
   \item \code{"est_shared_r_s"}: Shares deviations across both regions and sexes, estimating a single deviation time series.
+  \item \code{"est_shared_f_x"}: Shares deviations with another fleet, where \code{x} is the fleet number to share with.
+    This option allows multiple fleets to use identical deviation parameters, reducing the number of parameters
+    to estimate. For example, \code{"est_shared_f_2"} means the current fleet will use the same deviation
+    parameters as fleet 2. The reference fleet (fleet x) must use one of the other sharing options
+    (\code{"est_all"}, \code{"est_shared_r"}, \code{"est_shared_s"}, or \code{"est_shared_r_s"})
+    and cannot itself be sharing with another fleet.
+  \item \code{"fix"}: Fixes all deviation parameters to zero (no time-variation).
+  \item \code{"none"}: No deviation parameters are estimated (equivalent to \code{"fix"}).
 }
 
 This argument is only used when a continuous time-varying selectivity form is specified (e.g., via \code{cont_tv_fish_sel}).}

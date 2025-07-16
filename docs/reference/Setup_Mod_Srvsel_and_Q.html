@@ -145,6 +145,11 @@ otherwise, all process error parameters are treated as fixed.</p>
 <li><p><code>"est_shared_r"</code>: Shares process error parameters across regions (sex-specific parameters are still estimated).</p></li>
 <li><p><code>"est_shared_s"</code>: Shares process error parameters across sexes (region-specific parameters are still estimated).</p></li>
 <li><p><code>"est_shared_r_s"</code>: Shares process error parameters across both regions and sexes, estimating a single set of parameters.</p></li>
+<li><p><code>"est_shared_f_x"</code>: Shares process error parameters with another fleet, where <code>x</code> is the fleet number to share with.
+    This option forces multiple fleets to have identical process error variance and correlation structures for their
+    time-varying selectivity. For example, <code>"est_shared_f_2"</code> means the current fleet will use the same
+    process error parameters as fleet 2. The reference fleet (fleet x) must use one of the other sharing options
+    and cannot itself be sharing with another fleet.</p></li>
 <li><p><code>"fix"</code> or <code>"none"</code>: Does not estimate process error parameters; all are treated as fixed.</p></li>
 </ul></dd>
 
@@ -157,6 +162,13 @@ This controls whether selectivity parameters are estimated separately or shared 
 <li><p><code>"est_shared_r"</code>: Shares parameters across regions (sex-specific parameters are still estimated).</p></li>
 <li><p><code>"est_shared_s"</code>: Shares parameters across sexes (region-specific parameters are still estimated).</p></li>
 <li><p><code>"est_shared_r_s"</code>: Shares parameters across both regions and sexes, estimating a single set of fixed-effect parameters.</p></li>
+<li><p><code>"est_shared_f_x"</code>: Shares fixed-effect selectivity parameters with another fleet, where <code>x</code> is the fleet number to share with.
+    This option forces multiple fleets to have identical selectivity curves by using the same underlying parameters
+    (e.g., same a50, k, amax values). For example, <code>"est_shared_f_2"</code> means the current fleet will use the same
+    fixed-effect selectivity parameters as fleet 2. The reference fleet (fleet x) must use one of the other sharing options
+    and cannot itself be sharing with another fleet.</p></li>
+<li><p><code>"fix"</code>: Fixes all selectivity parameters to their initial values (no estimation).</p></li>
+<li><p><code>"none"</code>: No selectivity parameters are estimated (equivalent to <code>"fix"</code>).</p></li>
 </ul></dd>
 
 
@@ -175,6 +187,14 @@ in time-varying survey selectivity dimensioned by the number of survey fleets. T
 <li><p><code>"est_shared_r"</code>: Shares deviations across regions (sex-specific deviations are still estimated).</p></li>
 <li><p><code>"est_shared_s"</code>: Shares deviations across sexes (region-specific deviations are still estimated).</p></li>
 <li><p><code>"est_shared_r_s"</code>: Shares deviations across both regions and sexes, estimating a single deviation time series.</p></li>
+<li><p><code>"est_shared_f_x"</code>: Shares deviations with another fleet, where <code>x</code> is the fleet number to share with.
+    This option allows multiple fleets to use identical deviation parameters, reducing the number of parameters
+    to estimate. For example, <code>"est_shared_f_2"</code> means the current fleet will use the same deviation
+    parameters as fleet 2. The reference fleet (fleet x) must use one of the other sharing options
+    (<code>"est_all"</code>, <code>"est_shared_r"</code>, <code>"est_shared_s"</code>, or <code>"est_shared_r_s"</code>)
+    and cannot itself be sharing with another fleet.</p></li>
+<li><p><code>"fix"</code>: Fixes all deviation parameters to zero (no time-variation).</p></li>
+<li><p><code>"none"</code>: No deviation parameters are estimated (equivalent to <code>"fix"</code>).</p></li>
 </ul><p>This argument is only used when a continuous time-varying selectivity form is specified (e.g., via <code>cont_tv_srv_sel</code>).</p></dd>
 
 
@@ -213,26 +233,18 @@ catchability is assumed to be time-invariant (i.e., not influenced by environmen
 
 <dt id="arg-use-srv-selex-prior">Use_srv_selex_prior<a class="anchor" aria-label="anchor" href="#arg-use-srv-selex-prior"></a></dt>
 <dd><p>Integer (0 or 1). Flag to enable/disable survey selectivity priors.
-When set to 1, applies log-normal priors to fishery selectivity parameters as specified
+When set to 1, applies log-normal priors to survey selectivity parameters as specified
 in <code>srv_selex_prior</code>. When set to 0, no priors are applied.</p></dd>
 
 
 <dt id="arg-srv-selex-prior">srv_selex_prior<a class="anchor" aria-label="anchor" href="#arg-srv-selex-prior"></a></dt>
 <dd><p>Data frame containing prior specifications for survey selectivity parameters.
-Must include columns: <code>region</code> (region index), <code>fleet</code> (fleet index),
-<code>block</code> (time block index), <code>sex</code> (sex index), <code>par</code> (parameter index),
-<code>mu</code> (prior mean on natural scale), and <code>sd</code> (prior standard deviation on log scale).
-Each row specifies a log-normal prior N(log(mu), sd) for one selectivity parameter.
-Only parameters with rows in this data frame will have priors applied.</p></dd>
-
-
-<dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
-<dd><p>Additional arguments specifying starting values for survey selectivity and catchability parameters (srvsel_pe_pars, ln_srvsel_devs, ln_srv_fixed_sel_pars, ln_srv_q, srv_q_coeff)</p></dd>
-
-</dl></div>
-    <div class="section level2">
-    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>If both `srv_q_formula` and `srv_q_cov_dat` are non-`NULL`, the model constructs time-varying design matrices
+  Must include columns: <code>region</code> (region index), <code>fleet</code> (fleet index),
+  <code>block</code> (time block index), <code>sex</code> (sex index), <code>par</code> (parameter index),
+  <code>mu</code> (prior mean on natural scale), and <code>sd</code> (prior standard deviation on log scale).
+  Each row specifies a log-normal prior N(log(mu), sd) for one selectivity parameter.
+  Only parameters with rows in this data frame will have priors applied.</p>
+<p>If both `srv_q_formula` and `srv_q_cov_dat` are non-`NULL`, the model constructs time-varying design matrices
 for each region and fleet based on the provided formulas and environmental covariates. A coefficient array
 (`srv_q_coeff`) and a mapping array (`map_srv_q_coeff`) are created to estimate and track the associated
 regression coefficients. The design matrix is stored in `srv_q_env`, a 4D array indexed by
@@ -249,7 +261,13 @@ This avoids issues with list structure but does not affect the design matrix or 
 <li><p><code>"Region_2_Fleet_1"</code> = <code>~ 0 + env1_r2_f1 + env2_r2_f1</code> includes additive effects of
         two covariates.</p></li>
 <li><p><code>"Region_3_Fleet_2"</code> = <code>~ NULL</code> disables environmental covariates for that fleet-region.</p></li>
-</ul></div>
+</ul></dd>
+
+
+<dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
+<dd><p>Additional arguments specifying starting values for survey selectivity and catchability parameters (srvsel_pe_pars, ln_srvsel_devs, ln_srv_fixed_sel_pars, ln_srv_q, srv_q_coeff)</p></dd>
+
+</dl></div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>

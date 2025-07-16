@@ -143,6 +143,11 @@ otherwise, all process error parameters are treated as fixed.</p>
 <li><p><code>"est_shared_r"</code>: Shares process error parameters across regions (sex-specific parameters are still estimated).</p></li>
 <li><p><code>"est_shared_s"</code>: Shares process error parameters across sexes (region-specific parameters are still estimated).</p></li>
 <li><p><code>"est_shared_r_s"</code>: Shares process error parameters across both regions and sexes, estimating a single set of parameters.</p></li>
+<li><p><code>"est_shared_f_x"</code>: Shares process error parameters with another fleet, where <code>x</code> is the fleet number to share with.
+    This option forces multiple fleets to have identical process error variance and correlation structures for their
+    time-varying selectivity. For example, <code>"est_shared_f_2"</code> means the current fleet will use the same
+    process error parameters as fleet 2. The reference fleet (fleet x) must use one of the other sharing options
+    and cannot itself be sharing with another fleet.</p></li>
 <li><p><code>"fix"</code> or <code>"none"</code>: Does not estimate process error parameters; all are treated as fixed.</p></li>
 </ul></dd>
 
@@ -155,6 +160,13 @@ This controls whether selectivity parameters are estimated separately or shared 
 <li><p><code>"est_shared_r"</code>: Shares parameters across regions (sex-specific parameters are still estimated).</p></li>
 <li><p><code>"est_shared_s"</code>: Shares parameters across sexes (region-specific parameters are still estimated).</p></li>
 <li><p><code>"est_shared_r_s"</code>: Shares parameters across both regions and sexes, estimating a single set of fixed-effect parameters.</p></li>
+<li><p><code>"est_shared_f_x"</code>: Shares fixed-effect selectivity parameters with another fleet, where <code>x</code> is the fleet number to share with.
+    This option forces multiple fleets to have identical selectivity curves by using the same underlying parameters
+    (e.g., same a50, k, amax values). For example, <code>"est_shared_f_2"</code> means the current fleet will use the same
+    fixed-effect selectivity parameters as fleet 2. The reference fleet (fleet x) must use one of the other sharing options
+    and cannot itself be sharing with another fleet.</p></li>
+<li><p><code>"fix"</code>: Fixes all selectivity parameters to their initial values (no estimation).</p></li>
+<li><p><code>"none"</code>: No selectivity parameters are estimated (equivalent to <code>"fix"</code>).</p></li>
 </ul></dd>
 
 
@@ -173,6 +185,14 @@ in time-varying fishery selectivity dimensioned by the number of fishery fleets.
 <li><p><code>"est_shared_r"</code>: Shares deviations across regions (sex-specific deviations are still estimated).</p></li>
 <li><p><code>"est_shared_s"</code>: Shares deviations across sexes (region-specific deviations are still estimated).</p></li>
 <li><p><code>"est_shared_r_s"</code>: Shares deviations across both regions and sexes, estimating a single deviation time series.</p></li>
+<li><p><code>"est_shared_f_x"</code>: Shares deviations with another fleet, where <code>x</code> is the fleet number to share with.
+    This option allows multiple fleets to use identical deviation parameters, reducing the number of parameters
+    to estimate. For example, <code>"est_shared_f_2"</code> means the current fleet will use the same deviation
+    parameters as fleet 2. The reference fleet (fleet x) must use one of the other sharing options
+    (<code>"est_all"</code>, <code>"est_shared_r"</code>, <code>"est_shared_s"</code>, or <code>"est_shared_r_s"</code>)
+    and cannot itself be sharing with another fleet.</p></li>
+<li><p><code>"fix"</code>: Fixes all deviation parameters to zero (no time-variation).</p></li>
+<li><p><code>"none"</code>: No deviation parameters are estimated (equivalent to <code>"fix"</code>).</p></li>
 </ul><p>This argument is only used when a continuous time-varying selectivity form is specified (e.g., via <code>cont_tv_fish_sel</code>).</p></dd>
 
 
