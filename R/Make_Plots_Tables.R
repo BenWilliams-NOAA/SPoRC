@@ -197,25 +197,29 @@ get_selex_plot <- function(rep, model_names, Selex_Type = 'age', year_indx = NUL
   if(is.null(year_indx)) year_indx <- max(fishsel_plot_df$Year)
 
   # fishery selectivity plot
-  fish_sel_plot <- ggplot2::ggplot(fishsel_plot_df %>%
-                                     dplyr::filter(Year %in% c(year_indx)),
-                                   ggplot2::aes(x = Bin, y = value, color = Year, group = Year, lty = factor(Model))) +
-    ggplot2::geom_line(lwd = 1.3, alpha = 0.8) +
+  fish_sel_plot <- ggplot2::ggplot(
+    fishsel_plot_df %>%
+      dplyr::filter(Year %in% c(year_indx)),
+    ggplot2::aes(x = Bin, y = value, group = interaction(Year, Model), color = Year)
+  ) +
+    ggplot2::geom_line(aes(linetype = factor(Model)), linewidth = 1.3, alpha = 0.8) +
     ggplot2::facet_grid(Sex ~ Region + Fleet) +
     ggplot2::scale_color_viridis_c() +
-    ggplot2::labs(x = 'Bin', y = 'Fishery selectivity', lty = 'Model', color = 'Year') +
+    ggplot2::labs(x = 'Bin', y = 'Fishery selectivity', linetype = 'Model', color = 'Year') +
     ggplot2::coord_cartesian(ylim = c(0, NA)) +
     theme_sablefish() +
     ggplot2::theme(legend.key.width = unit(2, "lines"))
 
   # survey selectivity plot
-  srv_sel_plot <- ggplot2::ggplot(srvsel_plot_df %>%
-                                    dplyr::filter(Year %in% c(year_indx)),
-                                  ggplot2::aes(x = Bin, y = value, color = Year, group = Year, lty = factor(Model))) +
-    ggplot2::geom_line(lwd = 1.3, alpha = 0.8) +
+  srv_sel_plot <- ggplot2::ggplot(
+    srvsel_plot_df %>%
+      dplyr::filter(Year %in% c(year_indx)),
+    ggplot2::aes(x = Bin, y = value, group = interaction(Year, Model), color = Year)
+  ) +
+    ggplot2::geom_line(aes(linetype = factor(Model)), linewidth = 1.3, alpha = 0.8) +
     ggplot2::facet_grid(Sex ~ Region + Fleet) +
     ggplot2::scale_color_viridis_c() +
-    ggplot2::labs(x = 'Bin', y = 'Survey selectivity', lty = 'Model', color = 'Year') +
+    ggplot2::labs(x = 'Bin', y = 'Survey selectivity', linetype = 'Model', color = 'Year') +
     ggplot2::coord_cartesian(ylim = c(0, NA)) +
     theme_sablefish() +
     ggplot2::theme(legend.key.width = unit(2, "lines"))
