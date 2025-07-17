@@ -1,5 +1,5 @@
 ---
-title: "n_francis_reweighting"
+title: "Francis Reweighting"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{n_francis_reweighting}

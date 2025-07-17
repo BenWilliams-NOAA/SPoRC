@@ -64,7 +64,7 @@ Setup_Mod_Biologicals(
 
 \item{M_spec}{Character string specifying natural mortality estimation approach. Defaults to \code{NULL}, which estimates mortality for each sex independently. Other options:
 \itemize{
-  \item \code{"est_shared_s"}: Estimate a single natural mortality rate shared across sexes (if \code{n_sexes == 2}).
+  \item \code{"est_ln_M_only"}: Estimate a single natural mortality rate shared across sexes (if \code{n_sexes == 2}).
   \item \code{"fix"}: Fix all natural mortality parameters using the provided array.
 }}
 

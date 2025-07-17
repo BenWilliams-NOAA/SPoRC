@@ -23,6 +23,6 @@ Get Fishery and Survey Selectivity Plots
 }
 \examples{
 \dontrun{
-get_selex_plot(list(rep1, rep2), c("Model1", "Model2"))
+get_selex_plot(list(rep1, rep2), c("Model1", "Model2"), year_indx = c(1:30))
 }
 }

@@ -1,5 +1,5 @@
 ---
-title: "m_diagnostics"
+title: "Model Diagnostics"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{m_diagnostics}

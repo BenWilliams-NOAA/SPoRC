@@ -115,7 +115,7 @@ do_M_mapping <- function(input_list, M_spec) {
 #' @param SizeAgeTrans Numeric array of size-at-age transition probabilities, dimensioned \code{[n_regions, n_years, n_lens, n_ages, n_sexes]}.
 #' @param M_spec Character string specifying natural mortality estimation approach. Defaults to \code{NULL}, which estimates mortality for each sex independently. Other options:
 #' \itemize{
-#'   \item \code{"est_shared_s"}: Estimate a single natural mortality rate shared across sexes (if \code{n_sexes == 2}).
+#'   \item \code{"est_ln_M_only"}: Estimate a single natural mortality rate shared across sexes (if \code{n_sexes == 2}).
 #'   \item \code{"fix"}: Fix all natural mortality parameters using the provided array.
 #' }
 #' @param Fixed_natmort Numeric array of fixed natural mortality values, dimensioned \code{[n_regions, n_years, n_ages, n_sexes]}. Required if \code{M_spec = "fix"}.

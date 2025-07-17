@@ -23,6 +23,6 @@ Get Time Series Plots
 }
 \examples{
 \dontrun{
-  get_ts_plot(list(rep1, rep2), list(sd_rep1, sd_rep2), c("Model1", "Model2"))
+  get_ts_plot(list(rep1, rep2), list(sd_rep1, sd_rep2), c("Model1", "Model2"), do_ci = TRUE)
 }
 }

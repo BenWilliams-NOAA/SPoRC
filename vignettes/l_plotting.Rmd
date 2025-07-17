@@ -1,5 +1,5 @@
 ---
-title: "l_plotting"
+title: "Plotting"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{l_plotting}
