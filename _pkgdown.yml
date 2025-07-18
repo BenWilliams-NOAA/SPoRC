@@ -6,6 +6,10 @@ destination: docs
 url: https://chengmatt.github.io/SPoRC
 
 articles:
+  - title: "Getting Started"
+    contents:
+      - o_get_started
+      
   - title: "Model Descriptions"
     contents:
       - a_model_dimensions

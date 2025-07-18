@@ -452,7 +452,7 @@ Setup_Mod_Catch_and_F <- function(input_list,
 
   # Log mean fishing mortality for aggregated catch
   if("ln_F_mean_AggCatch" %in% names(starting_values)) input_list$par$ln_F_mean_AggCatch <- starting_values$ln_F_mean_AggCatch
-  else input_list$par$ln_F_mean_AggCatch <- rep(0, dim(input_list$data$Catch_Type[rowSums(input_list$data$Catch_Type) == 0, , drop = FALSE])[2])
+  else input_list$par$ln_F_mean_AggCatch <- rep(log(0.1), dim(input_list$data$Catch_Type[rowSums(input_list$data$Catch_Type) == 0, , drop = FALSE])[2])
 
   # Log fishing deviations for aggregated catch
   if("ln_F_devs_AggCatch" %in% names(starting_values)) input_list$par$ln_F_devs_AggCatch <- starting_values$ln_F_devs_AggCatch
@@ -1055,7 +1055,7 @@ Setup_Mod_FishIdx_and_Comps <- function(input_list,
 
   # logistic normal correlation parameters for fishery age comps
   if("FishAge_corr_pars" %in% names(starting_values)) input_list$par$FishAge_corr_pars <- starting_values$FishAge_corr_pars
-  else input_list$par$FishAge_corr_pars <- array(0.01, dim = c(input_list$data$n_regions, input_list$data$n_sexes, input_list$data$n_fish_fleets, 3))
+  else input_list$par$FishAge_corr_pars <- array(0.01, dim = c(input_list$data$n_regions, input_list$data$n_sexes, input_list$data$n_fish_fleets, 2))
 
   # aggregated
   if("ln_FishAge_theta_agg" %in% names(starting_values)) input_list$par$ln_FishAge_theta_agg <- starting_values$ln_FishAge_theta_agg
@@ -1071,7 +1071,7 @@ Setup_Mod_FishIdx_and_Comps <- function(input_list,
 
   # logistic normal correlation parameters for fishery length comps
   if("FishLen_corr_pars" %in% names(starting_values)) input_list$par$FishLen_corr_pars <- starting_values$FishLen_corr_pars
-  else input_list$par$FishLen_corr_pars <- array(0.01, dim = c(input_list$data$n_regions, input_list$data$n_sexes, input_list$data$n_fish_fleets, 3))
+  else input_list$par$FishLen_corr_pars <- array(0.01, dim = c(input_list$data$n_regions, input_list$data$n_sexes, input_list$data$n_fish_fleets, 2))
 
   # aggregated
   if("ln_FishLen_theta_agg" %in% names(starting_values)) input_list$par$ln_FishLen_theta_agg <- starting_values$ln_FishLen_theta_agg

@@ -62,248 +62,530 @@
 <code>input_list$pars</code>, which are generated using the
 <code>SPoRC::Setup_x</code> functions. Note that when
 <code>n_sexes &gt; 1</code>, the first dimension will always be females
+and the second dimension will always be males. # SPoRC Parameters
+Reference</p>
+<p>The following table describes all elements contained within
+<code>input_list$pars</code>, which are generated using the
+<code>SPoRC::Setup_x</code> functions. Note that when
+<code>n_sexes &gt; 1</code>, the first dimension will always be females
 and the second dimension will always be males.</p>
+<div class="section level2">
+<h2 id="fishery-removals">Fishery Removals<a class="anchor" aria-label="anchor" href="#fishery-removals"></a>
+</h2>
 <table class="table">
 <colgroup>
-<col width="14%">
-<col width="30%">
-<col width="13%">
-<col width="41%">
+<col width="25%">
+<col width="25%">
+<col width="29%">
+<col width="20%">
 </colgroup>
 <thead><tr class="header">
 <th>Parameter</th>
 <th>Dimension</th>
-<th>Component</th>
 <th>Description</th>
+<th>Default</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
 <td><code>ln_sigmaC</code></td>
 <td><code>n_regions, n_fish_fleets</code></td>
-<td>Fishery Removals</td>
 <td>SD for catch fit</td>
+<td>0.01</td>
 </tr>
 <tr class="even">
 <td><code>ln_sigmaC_agg</code></td>
 <td><code>n_fish_fleets</code></td>
-<td>Fishery Removals</td>
 <td>SD for aggregated catch fit</td>
+<td>0.01</td>
 </tr>
 <tr class="odd">
 <td><code>ln_sigmaF</code></td>
 <td><code>n_regions, n_fish_fleets</code></td>
-<td>Fishery Removals</td>
 <td>SD for fishing mortality process error</td>
+<td>0</td>
 </tr>
 <tr class="even">
 <td><code>ln_sigmaF_agg</code></td>
 <td><code>n_fish_fleets</code></td>
-<td>Fishery Removals</td>
 <td>SD for aggregated fishing mortality process error</td>
+<td>0</td>
 </tr>
 <tr class="odd">
 <td><code>ln_F_mean</code></td>
 <td><code>n_regions, n_fish_fleets</code></td>
-<td>Fishery Removals</td>
 <td>Log mean fishing mortality</td>
+<td>0.1</td>
 </tr>
 <tr class="even">
 <td><code>ln_F_devs</code></td>
 <td><code>n_regions, n_years, n_fish_fleets</code></td>
-<td>Fishery Removals</td>
 <td>Log deviations in fishing mortality</td>
+<td>0</td>
 </tr>
 <tr class="odd">
 <td><code>ln_F_devs_AggCatch</code></td>
 <td><code>n_Catch_Type_years, n_fish_fleets</code></td>
-<td>Fishery Removals</td>
 <td>Region-aggregated log fishing mortality deviations</td>
+<td>0</td>
 </tr>
 <tr class="even">
 <td><code>ln_F_mean_AggCatch</code></td>
 <td><code>n_fish_fleets</code></td>
-<td>Fishery Removals</td>
 <td>Region-aggregated log mean fishing mortality</td>
+<td>0.1</td>
 </tr>
+</tbody>
+</table>
+</div>
+<div class="section level2">
+<h2 id="fishery-selectivity">Fishery Selectivity<a class="anchor" aria-label="anchor" href="#fishery-selectivity"></a>
+</h2>
+<table class="table">
+<colgroup>
+<col width="25%">
+<col width="25%">
+<col width="29%">
+<col width="20%">
+</colgroup>
+<thead><tr class="header">
+<th>Parameter</th>
+<th>Dimension</th>
+<th>Description</th>
+<th>Default</th>
+</tr></thead>
+<tbody>
 <tr class="odd">
 <td><code>fishsel_pe_pars</code></td>
 <td><code>n_regions, 4, n_sexes, n_fish_fleets</code></td>
-<td>Fishery Selectivity</td>
 <td>Time-varying selectivity process error parameters</td>
+<td>0</td>
 </tr>
 <tr class="even">
 <td><code>ln_fishsel_devs</code></td>
 <td><code>n_regions, n_years, n_bins, n_sexes, n_fish_fleets</code></td>
-<td>Fishery Selectivity</td>
 <td>Log selectivity deviations (<code>n_bins</code> depends on whether
 selectivity is age or length-based)</td>
+<td>0</td>
 </tr>
 <tr class="odd">
 <td><code>ln_fish_fixed_sel_pars</code></td>
 <td><code>n_regions, max_fish_pars, max_fishsel_blks, n_sexes, n_fish_fleets</code></td>
-<td>Fishery Selectivity</td>
 <td>Log selectivity function parameters</td>
+<td>0</td>
 </tr>
-<tr class="even">
+</tbody>
+</table>
+</div>
+<div class="section level2">
+<h2 id="fishery-index">Fishery Index<a class="anchor" aria-label="anchor" href="#fishery-index"></a>
+</h2>
+<table class="table">
+<colgroup>
+<col width="25%">
+<col width="25%">
+<col width="29%">
+<col width="20%">
+</colgroup>
+<thead><tr class="header">
+<th>Parameter</th>
+<th>Dimension</th>
+<th>Description</th>
+<th>Default</th>
+</tr></thead>
+<tbody><tr class="odd">
 <td><code>ln_fish_q</code></td>
 <td><code>n_regions, max_fishq_blks, n_fish_fleets</code></td>
-<td>Fishery Index</td>
 <td>Log fishery catchability</td>
-</tr>
+<td>0</td>
+</tr></tbody>
+</table>
+</div>
+<div class="section level2">
+<h2 id="survey-selectivity">Survey Selectivity<a class="anchor" aria-label="anchor" href="#survey-selectivity"></a>
+</h2>
+<table class="table">
+<colgroup>
+<col width="25%">
+<col width="25%">
+<col width="29%">
+<col width="20%">
+</colgroup>
+<thead><tr class="header">
+<th>Parameter</th>
+<th>Dimension</th>
+<th>Description</th>
+<th>Default</th>
+</tr></thead>
+<tbody>
 <tr class="odd">
 <td><code>srvsel_pe_pars</code></td>
 <td><code>n_regions, 4, n_sexes, n_srv_fleets</code></td>
-<td>Survey Selectivity</td>
 <td>Time-varying selectivity process error parameters</td>
+<td>0</td>
 </tr>
 <tr class="even">
 <td><code>ln_srvsel_devs</code></td>
 <td><code>n_regions, n_years, n_bins, n_sexes, n_srv_fleets</code></td>
-<td>Survey Selectivity</td>
 <td>Log selectivity deviations (<code>n_bins</code> depends on whether
 selectivity is age or length-based)</td>
+<td>0</td>
 </tr>
 <tr class="odd">
 <td><code>ln_srv_fixed_sel_pars</code></td>
 <td><code>n_regions, max_srv_pars, max_srv_blks, n_sexes, n_srv_fleets</code></td>
-<td>Survey Selectivity</td>
 <td>Log survey selectivity function parameters</td>
+<td>0</td>
 </tr>
-<tr class="even">
+</tbody>
+</table>
+</div>
+<div class="section level2">
+<h2 id="survey-index">Survey Index<a class="anchor" aria-label="anchor" href="#survey-index"></a>
+</h2>
+<table class="table">
+<colgroup>
+<col width="25%">
+<col width="25%">
+<col width="29%">
+<col width="20%">
+</colgroup>
+<thead><tr class="header">
+<th>Parameter</th>
+<th>Dimension</th>
+<th>Description</th>
+<th>Default</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
 <td><code>ln_srv_q</code></td>
 <td><code>n_regions, max_srvq_blks, n_fish_fleets</code></td>
-<td>Survey Index</td>
 <td>Log survey catchability</td>
+<td>0</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>srv_q_coeff</code></td>
 <td><code>n_regions, n_srv_fleets, n_covariates</code></td>
-<td>Survey Index</td>
 <td>Regression coefficients for survey catchability based on
 covariates</td>
+<td>0</td>
 </tr>
-<tr class="even">
+</tbody>
+</table>
+</div>
+<div class="section level2">
+<h2 id="natural-mortality">Natural Mortality<a class="anchor" aria-label="anchor" href="#natural-mortality"></a>
+</h2>
+<table class="table">
+<thead><tr class="header">
+<th>Parameter</th>
+<th>Dimension</th>
+<th>Description</th>
+<th>Default</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
 <td><code>ln_M</code></td>
 <td><code>1</code></td>
-<td>Natural Mortality</td>
 <td>Log natural mortality</td>
+<td>0</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>M_offset</code></td>
 <td><code>1</code></td>
-<td>Natural Mortality</td>
 <td>Offset for M</td>
+<td>0.5</td>
 </tr>
-<tr class="even">
+</tbody>
+</table>
+</div>
+<div class="section level2">
+<h2 id="recruitment">Recruitment<a class="anchor" aria-label="anchor" href="#recruitment"></a>
+</h2>
+<table class="table">
+<colgroup>
+<col width="25%">
+<col width="25%">
+<col width="29%">
+<col width="20%">
+</colgroup>
+<thead><tr class="header">
+<th>Parameter</th>
+<th>Dimension</th>
+<th>Description</th>
+<th>Default</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
 <td><code>ln_global_R0</code></td>
 <td><code>1</code></td>
-<td>Recruitment</td>
 <td>Log virgin/mean recruitment</td>
+<td>15</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>R0_prop</code></td>
 <td><code>n_regions – 1</code></td>
-<td>Recruitment</td>
 <td>Proportions for R0</td>
+<td>0</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>steepness_h</code></td>
 <td><code>n_regions</code></td>
-<td>Recruitment</td>
 <td>Steepness parameters (bounded logit space)</td>
+<td>0</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>ln_InitDevs</code></td>
 <td><code>n_regions, n_ages - 2</code></td>
-<td>Recruitment</td>
 <td>Log initial age deviations</td>
+<td>0</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>ln_RecDevs</code></td>
 <td><code>n_regions, n_recdev_years</code></td>
-<td>Recruitment</td>
 <td>Log recruitment deviations</td>
+<td>0</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>ln_sigmaR</code></td>
 <td><code>2</code></td>
-<td>Recruitment</td>
 <td>SD for initial and recruitment deviations</td>
+<td>0</td>
 </tr>
-<tr class="even">
+</tbody>
+</table>
+</div>
+<div class="section level2">
+<h2 id="fishery-compositions">Fishery Compositions<a class="anchor" aria-label="anchor" href="#fishery-compositions"></a>
+</h2>
+<table class="table">
+<colgroup>
+<col width="25%">
+<col width="25%">
+<col width="29%">
+<col width="20%">
+</colgroup>
+<thead><tr class="header">
+<th>Parameter</th>
+<th>Dimension</th>
+<th>Description</th>
+<th>Default</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
 <td><code>ln_FishAge_theta</code></td>
 <td><code>n_regions, n_fish_fleets, n_sexes</code></td>
-<td>Fishery Compositions</td>
 <td>Log overdispersion (fishery age comp)</td>
+<td>0</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>ln_FishLen_theta</code></td>
 <td><code>n_regions, n_fish_fleets, n_sexes</code></td>
-<td>Fishery Compositions</td>
 <td>Log overdispersion (fishery length comp)</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<td><code>ln_FishAge_theta_agg</code></td>
+<td><code>n_fish_fleets</code></td>
+<td>Log overdispersion for aggregated compositions (fishery age
+comp)</td>
+<td>0</td>
 </tr>
 <tr class="even">
+<td><code>ln_FishLen_theta_agg</code></td>
+<td><code>n_fish_fleets</code></td>
+<td>Log overdispersion for aggregated compositions (fishery length
+comp)</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<td><code>FishAge_corr_pars</code></td>
+<td><code>n_regions, n_sexes, n_fish_fleets, 2</code></td>
+<td>Correlation parameters for logistic-normal distribution (fishery age
+comps)</td>
+<td>0.01</td>
+</tr>
+<tr class="even">
+<td><code>FishAge_corr_pars_agg</code></td>
+<td><code>n_fish_fleets</code></td>
+<td>Aggregated correlation parameter (fishery age comps,
+logistic-normal)</td>
+<td>0.01</td>
+</tr>
+<tr class="odd">
+<td><code>FishLen_corr_pars</code></td>
+<td><code>n_regions, n_sexes, n_fish_fleets, 2</code></td>
+<td>Correlation parameters for logistic-normal distribution (fishery
+length comps)</td>
+<td>0.01</td>
+</tr>
+<tr class="even">
+<td><code>FishLen_corr_pars_agg</code></td>
+<td><code>n_fish_fleets</code></td>
+<td>Aggregated correlation parameter (fishery length comps,
+logistic-normal)</td>
+<td>0.01</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section level2">
+<h2 id="survey-compositions">Survey Compositions<a class="anchor" aria-label="anchor" href="#survey-compositions"></a>
+</h2>
+<table class="table">
+<colgroup>
+<col width="25%">
+<col width="25%">
+<col width="29%">
+<col width="20%">
+</colgroup>
+<thead><tr class="header">
+<th>Parameter</th>
+<th>Dimension</th>
+<th>Description</th>
+<th>Default</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
 <td><code>ln_SrvAge_theta</code></td>
 <td><code>n_regions, n_srv_fleets, n_sexes</code></td>
-<td>Survey Compositions</td>
 <td>Log overdispersion (survey age comp)</td>
+<td>0</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>ln_SrvLen_theta</code></td>
 <td><code>n_regions, n_srv_fleets, n_sexes</code></td>
-<td>Survey Compositions</td>
 <td>Log overdispersion (survey length comp)</td>
-</tr>
-<tr class="even">
-<td><code>move_pars</code></td>
-<td><code>n_regions, n_regions – 1, n_years, n_ages, n_sexes</code></td>
-<td>Movement</td>
-<td>Movement logit parameters</td>
+<td>0</td>
 </tr>
 <tr class="odd">
-<td><code>logit_move_devs</code></td>
-<td>
-<code>n_regions</code>, <code>n_regions – 1</code>,
-<code>n_years</code>, <code>n_ages</code>, <code>n_sexes</code>
-</td>
-<td>Movement</td>
-<td>Logit movement deviations</td>
+<td><code>ln_SrvAge_theta_agg</code></td>
+<td><code>n_srv_fleets</code></td>
+<td>Log overdispersion for aggregated compositions (survey age
+comp)</td>
+<td>0</td>
 </tr>
 <tr class="even">
-<td><code>move_pe_pars</code></td>
-<td>
-<code>n_regions</code>, <code>n_ages</code>,
-<code>n_sexes</code>
-</td>
-<td>Movement</td>
-<td>Log process error parameters</td>
+<td><code>ln_SrvLen_theta_agg</code></td>
+<td><code>n_srv_fleets</code></td>
+<td>Log overdispersion for aggregated compositions (survey length
+comp)</td>
+<td>0</td>
 </tr>
+<tr class="odd">
+<td><code>SrvAge_corr_pars</code></td>
+<td><code>n_regions, n_sexes, n_srv_fleets, 2</code></td>
+<td>Correlation parameters for logistic-normal distribution (survey age
+comps)</td>
+<td>0.01</td>
+</tr>
+<tr class="even">
+<td><code>SrvAge_corr_pars_agg</code></td>
+<td><code>n_srv_fleets</code></td>
+<td>Aggregated correlation parameter (survey age comps,
+logistic-normal)</td>
+<td>0.01</td>
+</tr>
+<tr class="odd">
+<td><code>SrvLen_corr_pars</code></td>
+<td><code>n_regions, n_sexes, n_srv_fleets, 2</code></td>
+<td>Correlation parameters for logistic-normal distribution (survey
+length comps)</td>
+<td>0.01</td>
+</tr>
+<tr class="even">
+<td><code>SrvLen_corr_pars_agg</code></td>
+<td><code>n_srv_fleets</code></td>
+<td>Aggregated correlation parameter (survey length comps,
+logistic-normal)</td>
+<td>0.01</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section level2">
+<h2 id="movement">Movement<a class="anchor" aria-label="anchor" href="#movement"></a>
+</h2>
+<table class="table">
+<colgroup>
+<col width="25%">
+<col width="25%">
+<col width="29%">
+<col width="20%">
+</colgroup>
+<thead><tr class="header">
+<th>Parameter</th>
+<th>Dimension</th>
+<th>Description</th>
+<th>Default</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>move_pars</code></td>
+<td><code>n_regions, n_regions – 1, n_years, n_ages, n_sexes</code></td>
+<td>Movement logit parameters</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<td><code>logit_move_devs</code></td>
+<td><code>n_regions, n_regions – 1, n_years, n_ages, n_sexes</code></td>
+<td>Logit movement deviations</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<td><code>move_pe_pars</code></td>
+<td><code>n_regions, n_ages, n_sexes</code></td>
+<td>Log process error parameters</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section level2">
+<h2 id="tagging">Tagging<a class="anchor" aria-label="anchor" href="#tagging"></a>
+</h2>
+<table class="table">
+<colgroup>
+<col width="25%">
+<col width="25%">
+<col width="29%">
+<col width="20%">
+</colgroup>
+<thead><tr class="header">
+<th>Parameter</th>
+<th>Dimension</th>
+<th>Description</th>
+<th>Default</th>
+</tr></thead>
+<tbody>
 <tr class="odd">
 <td><code>ln_Init_Tag_Mort</code></td>
 <td><code>1</code></td>
-<td>Tagging</td>
 <td>Log tag mortality</td>
+<td>1e-50</td>
 </tr>
 <tr class="even">
 <td><code>ln_Tag_Shed</code></td>
 <td><code>1</code></td>
-<td>Tagging</td>
 <td>Log chronic tag shedding</td>
+<td>1e-50</td>
 </tr>
 <tr class="odd">
 <td><code>Tag_Reporting_Pars</code></td>
 <td><code>n_regions, n_years</code></td>
-<td>Tagging</td>
 <td>Logit tag reporting rate parameters</td>
+<td>0</td>
 </tr>
 <tr class="even">
 <td><code>ln_tag_theta</code></td>
 <td><code>1</code></td>
-<td>Tagging</td>
 <td>Log overdispersion for tagging</td>
+<td>0</td>
 </tr>
 </tbody>
-</table></main>
+</table>
+</div>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+    </nav></aside>
 </div>
 
 

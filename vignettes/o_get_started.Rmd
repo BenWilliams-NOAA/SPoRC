@@ -1,0 +1,54 @@
+---
+title: "Running a Simple Assessment (The Basics)"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{o_get_started}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# Load data and packages
+```{r setup}
+library(SPoRC)
+```
+
+# Setup mdoel
+
+# Fit model
+
+# Plot model
+
+## Data Fitted
+
+## Biological processes
+
+## Time Series
+
+## Selectivity
+
+# Model diagnostics
+
+## Convergence
+
+## Catch fits
+
+## Index fits
+
+## Composition fits
+
+## Retrospectives
+
+## Likelihood Profiles
+
+## Jitter Analysis
+
+## MCMC
+
+# Reference Points and Projections
