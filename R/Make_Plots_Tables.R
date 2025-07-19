@@ -432,15 +432,17 @@ get_data_fitted_plot <- function(data,
 #'
 #' @param rep List of n_models of `SPoRC` report lists
 #' @param model_names Vector of model names
+#' @param data List of data from `SPoRC`
 #'
 #' @returns Plot and tables of negative log likelihood values across models
 #' @export get_nLL_plot
 #'
 #' @examples
 #' \dontrun{
-#' get_nLL_plot(list(rep1, rep2), c("Model1", "Model2"))
+#' get_nLL_plot(list(data1, data2), list(rep1, rep2), c("Model1", "Model2"))
 #' }
-get_nLL_plot <- function(rep,
+get_nLL_plot <- function(data,
+                         rep,
                          model_names
                          ) {
 
@@ -455,17 +457,17 @@ get_nLL_plot <- function(rep,
       value = c(rep[[i]]$jnLL,
                 rep[[i]]$h_nLL,
                 rep[[i]]$M_nLL,
-                sum(rep[[i]]$Rec_nLL),
+                sum(data[[i]]$Wt_Rec *rep[[i]]$Rec_nLL),
                 rep[[i]]$sel_nLL,
-                sum(rep[[i]]$Tag_nLL),
-                sum(rep[[i]]$Catch_nLL),
-                sum(rep[[i]]$Fmort_nLL),
+                sum(data[[i]]$Wt_Tagging * rep[[i]]$Tag_nLL),
+                sum(data[[i]]$Wt_Catch * rep[[i]]$Catch_nLL),
+                sum(data[[i]]$Wt_F * rep[[i]]$Fmort_nLL),
                 rep[[i]]$srv_q_nLL,
                 rep[[i]]$fish_q_nLL,
-                sum(rep[[i]]$SrvIdx_nLL),
+                sum(data[[i]]$Wt_SrvIdx * rep[[i]]$SrvIdx_nLL),
                 rep[[i]]$TagRep_nLL,
-                sum(rep[[i]]$FishIdx_nLL),
-                sum(rep[[i]]$Init_Rec_nLL),
+                sum(data[[i]]$Wt_FishIdx * rep[[i]]$FishIdx_nLL),
+                sum(data[[i]]$Wt_Rec * rep[[i]]$Init_Rec_nLL),
                 rep[[i]]$Movement_nLL,
                 sum(rep[[i]]$SrvAgeComps_nLL),
                 sum(rep[[i]]$FishAgeComps_nLL),
