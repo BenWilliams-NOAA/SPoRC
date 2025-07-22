@@ -35,6 +35,13 @@ truncate_yr <- function(j,
 
 # Fishery -----------------------------------------------------------------
 
+  # Catch, Fishery Index, and Compositions
+  retro_data$ObsCatch <- data$ObsCatch[,1:(length(data$years) - j),,drop = FALSE]
+  retro_data$ObsFishIdx <- data$ObsFishIdx[,1:(length(data$years) - j),,drop = FALSE]
+  retro_data$ObsFishIdx_SE <- data$ObsFishIdx_SE[,1:(length(data$years) - j),,drop = FALSE]
+  retro_data$ObsFishAgeComps <- data$ObsFishAgeComps[,1:(length(data$years) - j),,,,drop = FALSE]
+  retro_data$ObsFishLenComps <- data$ObsFishLenComps[,1:(length(data$years) - j),,,,drop = FALSE]
+
   # Fishery mortality devs
   retro_parameters$ln_F_devs <- parameters$ln_F_devs[,1:(length(data$years) - j),,drop = FALSE] # modify F dev parameters
   retro_mapping$ln_F_devs <- factor(array(mapping$ln_F_devs, dim = dim(parameters$ln_F_devs))[,1:(length(data$years) - j),,drop = FALSE]) # modify map
@@ -57,6 +64,12 @@ truncate_yr <- function(j,
   retro_mapping$ln_fish_fixed_sel_pars <- factor(array(mapping$ln_fish_fixed_sel_pars, dim = dim(parameters$ln_fish_fixed_sel_pars))[,,1:max(retro_data$fish_sel_blocks),,,drop = FALSE])
 
 # Survey ------------------------------------------------------------------
+
+  # Survey index and compositions
+  retro_data$ObsSrvIdx <- data$ObsSrvIdx[,1:(length(data$years) - j),,drop = FALSE]
+  retro_data$ObsSrvIdx_SE <- data$ObsSrvIdx_SE[,1:(length(data$years) - j),,drop = FALSE]
+  retro_data$ObsSrvAgeComps <- data$ObsSrvAgeComps[,1:(length(data$years) - j),,,,drop = FALSE]
+  retro_data$ObsSrvLenComps <- data$ObsSrvLenComps[,1:(length(data$years) - j),,,,drop = FALSE]
 
   # Survey selectivity deviations
   retro_parameters$ln_srvsel_devs <- parameters$ln_srvsel_devs[,1:(length(data$years) - j),,,,drop = FALSE] # Survey selectivity deviations
@@ -116,6 +129,7 @@ truncate_yr <- function(j,
   retro_data$FishLenComps_Type <- data$FishLenComps_Type[1:(length(data$years) - j),,drop = FALSE]
   retro_data$SrvLenComps_Type <- data$SrvLenComps_Type[1:(length(data$years) - j),,drop = FALSE]
   retro_data$SrvAgeComps_Type <- data$SrvAgeComps_Type[1:(length(data$years) - j),,drop = FALSE]
+  if(length(dim(data$Wt_Catch)) == 3) retro_data$Wt_Catch <- data$Wt_Catch[,1:(length(data$years) - j),,drop = FALSE] # Catch is dim = 3, b/c can accept scalar or array
 
   # data use indicators
   retro_data$UseFishAgeComps <- data$UseFishAgeComps[,1:(length(data$years) - j),,drop = FALSE]
@@ -186,7 +200,7 @@ do_retrospective <- function(n_retro,
                              random = NULL,
                              do_par,
                              n_cores,
-                             do_francis,
+                             do_francis = FALSE,
                              n_francis_iter = NULL
                              ) {
 
