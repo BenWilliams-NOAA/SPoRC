@@ -954,7 +954,7 @@ plot_all_basic <- function(data,
   print(get_data_fitted_plot(data = data, model_names = model_names))
   print(get_ts_plot(rep = rep, sd_rep = sd_rep, model_names = model_names))
   print(get_selex_plot(rep = rep, model_names = model_names))
-  print(get_nLL_plot(rep = rep, model_names = model_names))
+  print(get_nLL_plot(data = data, rep = rep, model_names = model_names))
   dev.off()
 
 }

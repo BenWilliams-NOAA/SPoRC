@@ -180,37 +180,37 @@ post_optim_sanity_checks <- function(sd_rep,
     passed_post_sanity_checks <- F
   }
 
-  # check if standard errors are finite
+  # check if standard errors are finite (if finite, then check other stuff)
   if(!all(is.finite(sqrt(diag(sd_rep$cov.fixed))))) {
     message("Found non finite elements in standard errors of parameters, model is not converged!")
     passed_post_sanity_checks <- F
+  } else {
+    # check if standard errors are big
+    if(max(sqrt(diag(sd_rep$cov.fixed))) > se_tol) {
+      message("Parameter: ", names(diag(sd_rep$cov.fixed))[which.max(sqrt(diag(sd_rep$cov.fixed)))], " has a standard error = ",
+              max(sqrt(diag(sd_rep$cov.fixed))), " which was greated than tolerance ", se_tol, ". This indicates potential non-convergence according to the tolerance. \n")
+      passed_post_sanity_checks <- F
+    }
+
+    # check if correlations are big
+    corr_mat <- cov2cor(sd_rep$cov.fixed)
+    diag(corr_mat) <- "Same" # set diagonal to "Same" to remove from max calculations
+
+    # reshape to dataframe
+    corr_df <- reshape2::melt(corr_mat) %>%
+      dplyr::filter(value != 'Same') %>%
+      dplyr::mutate(value = as.numeric(value))
+
+    if(max(abs(corr_df$value)) > corr_tol) {
+      message("Parameter pairs: ", corr_df$Var1[which.max(abs(corr_df$value))], " and ", corr_df$Var2[which.max(abs(corr_df$value))], " have a correlation of ", max(abs(corr_df$value)), ". This indicates potential non-convergence according to the tolerance.")
+      passed_post_sanity_checks <- F
+    }
   }
 
-  # check if standard errors are big
-  if(max(sqrt(diag(sd_rep$cov.fixed))) > se_tol) {
-    message("Parameter: ", names(diag(sd_rep$cov.fixed))[which.max(sqrt(diag(sd_rep$cov.fixed)))], " has a standard error = ",
-            max(sqrt(diag(sd_rep$cov.fixed))), " which was greated than tolerance ", se_tol, ". This indicates potential non-convergence according to the tolerance. \n")
-    passed_post_sanity_checks <- F
-  }
-
-  # check if correlations are big
-  corr_mat <- cov2cor(sd_rep$cov.fixed)
-  diag(corr_mat) <- "Same" # set diagonal to "Same" to remove from max calculations
-
-  # reshape to dataframe
-  corr_df <- reshape2::melt(corr_mat) %>%
-    dplyr::filter(value != 'Same') %>%
-    dplyr::mutate(value = as.numeric(value))
-
-  if(max(abs(corr_df$value)) > corr_tol) {
-    message("Parameter pairs: ", corr_df$Var1[which.max(abs(corr_df$value))], " and ", corr_df$Var2[which.max(abs(corr_df$value))], " have a correlation of ", max(abs(corr_df$value)), ". This indicates potential non-convergence according to the tolerance.")
-    passed_post_sanity_checks <- F
-  }
-
-  cat("\n\n");
   if(passed_post_sanity_checks) {
     message("Successfully passed post-optim-sanity checks\n")
-    return(TRUE)
   }
+
+  return(passed_post_sanity_checks)
 
 }
