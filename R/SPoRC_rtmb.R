@@ -109,7 +109,6 @@ SPoRC_rtmb = function(pars, data) {
   Fmort_nLL = array(0, dim = dim(ln_F_devs)) # Fishing Mortality Deviation penalty
   Rec_nLL = array(0, dim = dim(ln_RecDevs)) # Recruitment penalty
   Init_Rec_nLL = array(0, dim = dim(ln_InitDevs)) # Initial Recruitment penalty
-  bias_ramp = rep(0, n_yrs) # bias ramp from Methot and Taylor 2011
   sel_nLL = 0 # Penalty for selectivity deviations
   fish_q_nLL = 0 # Prior/penalty for fishery q
   srv_q_nLL = 0 # Prior/penalty for survey q
@@ -266,11 +265,13 @@ SPoRC_rtmb = function(pars, data) {
 
   # Bias ramp set up
   if (do_rec_bias_ramp == 0) {
-    bias_ramp = rep(1, n_yrs) # don't do bias ramp, set values to 1
+    bias_ramp = rep(1, n_est_rec_devs) # don't do bias ramp, set values to 1
   } else if (do_rec_bias_ramp == 1) {
 
+    bias_ramp = rep(0, n_est_rec_devs) # set up bias ramp values
+
     # setup bias ramp year ranges
-    years = 1:n_yrs # years for indexing
+    years = 1:n_est_rec_devs # years for indexing
     range1 = which(years >= bias_year[1] & years < bias_year[2])  # ascending limb
     range2 = which(years >= bias_year[2] & years < bias_year[3])  # full bias correction
     range3 = which(years >= bias_year[3] & years < bias_year[4])  # descending limb
@@ -987,8 +988,8 @@ SPoRC_rtmb = function(pars, data) {
         Rec_nLL[r,y] = (ln_RecDevs[r,y]/exp(ln_sigmaR[2]))^2 + bias_ramp[y]*ln_sigmaR[2] # late period
       } # end second y loop
     } # end r loop
-    Rec_nLL = 0.5 * sum(Rec_nLL)  # multiply by 0.5 and sum
-    Init_Rec_nLL = 0.5 * sum(Init_Rec_nLL) # multiply by 0.5 and sum
+    Rec_nLL = 0.5 * Rec_nLL  # multiply by 0.5 and sum
+    Init_Rec_nLL = 0.5 * Init_Rec_nLL # multiply by 0.5 and sum
   }
 
   if(likelihoods == 1) {
@@ -997,12 +998,12 @@ SPoRC_rtmb = function(pars, data) {
       if(equil_init_age_strc %in% c(1,2)) Init_Rec_nLL[r,] = -RTMB::dnorm(ln_InitDevs[r,], 0, exp(ln_sigmaR[1]), TRUE) # initial age structure penalty
       if(sigmaR_switch > 1) for(y in 1:(sigmaR_switch-1)) {
         Rec_nLL[r,y] = -RTMB::dnorm(ln_RecDevs[r,y], 0, exp(ln_sigmaR[1]), TRUE)
-        Rec_nLL[r,y] = Rec_nLL[r,y] - (1 - 0.5 * bias_ramp[y]) * ln_sigmaR[1] # early period with bias ramp correction
+        if(do_rec_bias_ramp == 1) Rec_nLL[r,y] = Rec_nLL[r,y] - (1 - 0.5 * bias_ramp[y]) * ln_sigmaR[1] # early period with bias ramp correction
       } # first y loop
       # Note that this penalizes the terminal year rec devs, which is estimated in this case
       for(y in sigmaR_switch:n_est_rec_devs) {
         Rec_nLL[r,y] = -RTMB::dnorm(ln_RecDevs[r,y], 0, exp(ln_sigmaR[2]), TRUE)
-        Rec_nLL[r,y] = Rec_nLL[r,y] - (1 - 0.5 * bias_ramp[y]) * ln_sigmaR[2] # late period with bias ramp correction
+        if(do_rec_bias_ramp == 1) Rec_nLL[r,y] = Rec_nLL[r,y] - (1 - 0.5 * bias_ramp[y]) * ln_sigmaR[2] # late period with bias ramp correction
       } # end second y loop
     } # end r loop
   }
