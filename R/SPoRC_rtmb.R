@@ -386,12 +386,27 @@ SPoRC_rtmb = function(pars, data) {
       # Recruits don't move
       if(do_recruits_move == 0) {
         # Apply movement after ageing processes - start movement at age 2
-        for(a in 2:n_ages) for(s in 1:n_sexes) NAA[,y,a,s] = t(NAA[,y,a,s]) %*% Movement[,,y,a,s]
-        for(r in 1:n_regions) NAA[r,y,1,] = Rec[r,y] * sexratio
+        for(a in 2:n_ages) {
+          for(s in 1:n_sexes) {
+            NAA[,y,a,s] = t(NAA[,y,a,s]) %*% Movement[,,y,a,s] # Fished
+            NAA0[,y,a,s] = t(NAA0[,y,a,s]) %*% Movement[,,y,a,s] # Unfished
+          } # end s loop
+        } # end a loop
+        for(r in 1:n_regions) {
+          NAA[r,y,1,] = Rec[r,y] * sexratio # Fished
+          NAA0[r,y,1,] = Rec[r,y] * sexratio # Unfished
+        } # end r loop
       } # end if recruits don't move
 
       # Recruits move here
-      if(do_recruits_move == 1) for(a in 1:n_ages) for(s in 1:n_sexes) NAA[,y,a,s] = t(NAA[,y,a,s]) %*% Movement[,,y,a,s]
+      if(do_recruits_move == 1) {
+        for(a in 1:n_ages) {
+          for(s in 1:n_sexes) {
+            NAA[,y,a,s] = t(NAA[,y,a,s]) %*% Movement[,,y,a,s] # Fished
+            NAA0[,y,a,s] = t(NAA0[,y,a,s]) %*% Movement[,,y,a,s] # Unfished
+          } # end s loop
+        } # end a loop
+      } # end if
     } # only compute if spatial
 
     ### Mortality and Ageing ------------------------------------------------------
