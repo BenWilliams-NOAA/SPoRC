@@ -116,6 +116,7 @@ SPoRC_rtmb = function(pars, data) {
   h_nLL = 0 # Prior for steepness
   Movement_nLL = 0 # Penalty for movement rates
   TagRep_nLL = 0 # penalty for tag reporting rate
+  Rec_prop_nLL = # penalty / prior for recruitment proportions
   jnLL = 0 # Joint negative log likelihood
 
   # Model Process Equations -------------------------------------------------
@@ -1093,6 +1094,11 @@ SPoRC_rtmb = function(pars, data) {
   } # end if using movement prior
 
 
+  ### Recruitment Proportions (Prior) -----------------------------------------
+  if(Use_Rec_prop_Prior == 1) {
+    Rec_prop_nLL = -ddirichlet(x = Rec_trans_prop, alpha = Rec_prop_prior, log = TRUE) # dirichlet prior
+  }
+
   ### Tag Reporting Rate (Prior) --------------------------------------------
   if(Use_TagRep_Prior == 1) {
     for(i in 1:nrow(TagRep_Prior)) {
@@ -1130,7 +1136,8 @@ SPoRC_rtmb = function(pars, data) {
          Movement_nLL + # movement Prior
          TagRep_nLL + # tag reporting rate Prior
          fish_q_nLL + # fishery q prior
-         srv_q_nLL  # survey q prior
+         srv_q_nLL +  # survey q prior
+         Rec_prop_nLL # recruitment proportion prior
 
   # Report Section ----------------------------------------------------------
   # Biological Processes
@@ -1194,6 +1201,7 @@ SPoRC_rtmb = function(pars, data) {
   RTMB::REPORT(srv_q_nLL)
   RTMB::REPORT(Movement_nLL)
   RTMB::REPORT(TagRep_nLL)
+  RTMB::REPORT(Rec_prop_nLL)
   RTMB::REPORT(jnLL)
 
   # Report for derived quantities

@@ -214,3 +214,16 @@ post_optim_sanity_checks <- function(sd_rep,
   return(passed_post_sanity_checks)
 
 }
+
+#' Helper function for extracting elements from TMB report
+#'
+#' @param obj TMB report object
+#' @param name Name of object to be extracted
+#' @keywords internal
+safe_extract <- function(obj, name) {
+  if (name %in% names(obj) && !is.null(obj[[name]])) {
+    return(obj[[name]])
+  } else {
+    return(0)
+  }
+}

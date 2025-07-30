@@ -345,6 +345,9 @@ do_Rec_prop_mapping <- function(input_list) {
 #'   - `mu`: Mean of the prior in normal space (used to calculate the corresponding beta distribution).
 #'   - `sd`: Standard deviation of the prior in normal space.
 #'   For each row, a beta distribution is scaled to the interval [0.2, 1], and the corresponding element of `h_trans` is transformed to that scale and penalized using the log-density from the beta distribution.
+#' @param Use_Rec_prop_Prior Integer flag (0 or 1) indicating whether to apply a prior on recruitment proportions.
+#' @param Rec_prop_prior Scalar or array specifying prior values for recruitment proportion parameters.
+#'   If scalar, a constant uniform prior is applied across all dimensions.
 #'
 #' @export Setup_Mod_Rec
 Setup_Mod_Rec <- function(input_list,
@@ -353,6 +356,8 @@ Setup_Mod_Rec <- function(input_list,
                           rec_lag = 1,
                           Use_h_prior = 0,
                           h_prior = NULL,
+                          Use_Rec_prop_Prior = 0,
+                          Rec_prop_prior = NULL,
                           do_rec_bias_ramp = 0,
                           bias_year = NA,
                           max_bias_ramp_fct = 1,
@@ -393,6 +398,11 @@ Setup_Mod_Rec <- function(input_list,
 
   # Recruitment lag
   if (rec_model != "mean_rec") collect_message("Recruitment and SSB lag is specified as: ", rec_lag)
+
+  # Recruitment proportion prior
+  if(!Use_Rec_prop_Prior %in% c(0,1)) stop("Use_Rec_prop_Prior must be 0 or 1")
+  if(Use_Rec_prop_Prior == 1 && input_list$data$n_regions == 1) stop("Priors should not be applied to recruitment proportions when n_regions = 1.")
+  collect_message("Recruitment proportion priors are: ", ifelse(Use_Rec_prop_Prior == 1, "Used", "Not Used"))
 
   # Steepness Settings ------------------------------------------------------
 
@@ -442,6 +452,9 @@ Setup_Mod_Rec <- function(input_list,
   input_list$data$t_spawn <- t_spawn
   input_list$data$equil_init_age_strc <- equil_init_age_strc
   input_list$data$max_bias_ramp_fct <- max_bias_ramp_fct
+  input_list$data$Use_Rec_prop_Prior <- Use_Rec_prop_Prior
+  Rec_prior_vals = ifelse(is.null(Rec_prop_prior), rep(1, input_list$data$n_regions), Rec_prop_prior)
+  input_list$data$Rec_prop_prior <- array(Rec_prior_vals, dim = c(input_list$data$n_regions))
 
   # Populate Parameter List -------------------------------------------------
 

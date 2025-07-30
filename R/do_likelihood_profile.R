@@ -40,6 +40,7 @@ do_likelihood_profile <- function(data,
   rec_nLL <- matrix(NA, nrow = length(vals), ncol = 1, dimnames = list(vals, NULL))
   sel_nLL <- matrix(NA, nrow = length(vals), ncol = 1, dimnames = list(vals, NULL))
   M_nLL <- matrix(NA, nrow = length(vals), ncol = 1, dimnames = list(vals, NULL))
+  Rec_prop_nLL <- matrix(NA, nrow = length(vals), ncol = 1, dimnames = list(vals, NULL))
   h_nLL <- matrix(NA, nrow = length(vals), ncol = 1, dimnames = list(vals, NULL))
   Movement_nLL <- matrix(NA, nrow = length(vals), ncol = 1, dimnames = list(vals, NULL))
   TagRep_nLL <- matrix(NA, nrow = length(vals), ncol = 1, dimnames = list(vals, NULL))
@@ -78,7 +79,7 @@ do_likelihood_profile <- function(data,
     # make adfun
     SPoRC_rtmb_model <- RTMB::MakeADFun(cmb(SPoRC_rtmb, data), parameters = parameters, map = mapping, random = random, silent = TRUE)
 
-    # Within your loop
+    # Within loop
     tryCatch({
       SPoRC_optim <- stats::nlminb(SPoRC_rtmb_model$par, SPoRC_rtmb_model$fn, SPoRC_rtmb_model$gr,
                                    control = list(iter.max = 1e6, eval.max = 1e6, rel.tol = 1e-15))
@@ -91,10 +92,11 @@ do_likelihood_profile <- function(data,
       rec_nLL[j,1] <- sum(report$Init_Rec_nLL, report$Rec_nLL)
       M_nLL[j,1] <- report$M_nLL
       sel_nLL[j,1] <- report$sel_nLL
+      Rec_prop_nLL[j,1] <- report$Rec_prop_nLL
       Movement_nLL[j,1] <- report$Movement_nLL
       h_nLL[j,1] <- report$h_nLL
       TagRep_nLL[j,1] <- report$TagRep_nLL
-      Fmort_nLL[j,1] <- sum(report$Fmor_nLL)
+      Fmort_nLL[j,1] <- sum(report$Fmort_nLL)
       Tag_nLL <- rbind(Tag_nLL, reshape2::melt(report$Tag_nLL) %>% dplyr::mutate(prof_val = vals[j]))
       Catch_nLL <- rbind(Catch_nLL, reshape2::melt(report$Catch_nLL) %>% dplyr::mutate(prof_val = vals[j]))
       FishAge_nLL <- rbind(FishAge_nLL, reshape2::melt(report$FishAgeComps_nLL) %>% dplyr::mutate(prof_val = vals[j]))
@@ -125,6 +127,10 @@ do_likelihood_profile <- function(data,
     dplyr::select(-Var2) %>%
     dplyr::rename(prof_val = Var1) %>%
     dplyr::mutate(type = 'M Prior')
+  Rec_prop_nLL_df <- reshape2::melt(Rec_prop_nLL) %>%
+    dplyr::select(-Var2) %>%
+    dplyr::rename(prof_val = Var1) %>%
+    dplyr::mutate(type = 'Recruitment Prop Prior')
   sel_nLL_df <- reshape2::melt(sel_nLL) %>%
     dplyr::select(-Var2) %>%
     dplyr::rename(prof_val = Var1) %>%
@@ -168,7 +174,7 @@ do_likelihood_profile <- function(data,
     dplyr::mutate(type = 'Tagging')
 
   # Get likelihoods aggregated across all dimensions
-  agg_nLL <- rbind(jnLL_df, rec_nLL_df, M_nLL_df, Movement_nLL_df, h_nLL_df,
+  agg_nLL <- rbind(jnLL_df, rec_nLL_df, M_nLL_df, Rec_prop_nLL_df, Movement_nLL_df, h_nLL_df,
                    TagRep_nLL_df,Fmort_nLL_df, sel_nLL_df,
                    Catch_nLL_df %>% dplyr::group_by(prof_val, type) %>%
                      dplyr::summarize(value = sum(value)),
@@ -192,6 +198,7 @@ do_likelihood_profile <- function(data,
                        rec_nLL_df = rec_nLL_df,
                        M_nLL_df = M_nLL_df,
                        sel_nLL_df = sel_nLL_df,
+                       Rec_prop_nLL_df = Rec_prop_nLL_df,
                        Movement_nLL_df = Movement_nLL_df,
                        h_nLL_df = h_nLL_df,
                        TagRep_nLL_df = TagRep_nLL_df,
