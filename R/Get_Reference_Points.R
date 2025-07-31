@@ -274,6 +274,7 @@ single_region_BH_Fmsy <- function(pars,
 
   # Get Bmsy
   Bmsy = SB_F * Req
+  B0 = SB0 * Req
 
   # compute objective function to get Fmsy
   obj_fun = -Yield
@@ -285,6 +286,7 @@ single_region_BH_Fmsy <- function(pars,
   RTMB::REPORT(Fmsy)
   RTMB::REPORT(Yield)
   RTMB::REPORT(Bmsy)
+  RTMB::REPORT(B0)
   RTMB::REPORT(Req)
 
   return(obj_fun)
@@ -401,6 +403,7 @@ global_BH_Fmsy <- function(pars,
 
   # Get Bmsy
   Bmsy = SB_F * Req
+  B0 = SB0 * Req
 
   # compute objective function to get Fmsy
   obj_fun = -Yield
@@ -413,6 +416,7 @@ global_BH_Fmsy <- function(pars,
   RTMB::REPORT(Yield)
   RTMB::REPORT(Yield_r)
   RTMB::REPORT(Bmsy)
+  RTMB::REPORT(B0)
   RTMB::REPORT(Req)
   RTMB::REPORT(SPR)
 
@@ -470,6 +474,7 @@ Get_Reference_Points <- function(data,
 
   f_ref_pt <- vector() # set up storage
   b_ref_pt <- vector() # set up storage
+  virgin_b_ref_pt <- vector() # set up storage
 
   # determine years to average over demogrphaics
   n_yrs <- length(data$years)
@@ -518,7 +523,7 @@ Get_Reference_Points <- function(data,
       # Output reference points
       f_ref_pt[1] <- obj$rep$F_x
       b_ref_pt[1] <- obj$rep$SB_F_x * sex_ratio_f * mean(rep$Rec[1,calc_rec_st_yr:(n_years - rec_age)])
-
+      virgin_b_ref_pt[1] <- obj$rep$SB0 * sex_ratio_f * mean(rep$Rec[1,calc_rec_st_yr:(n_years - rec_age)])
     } # end SPR reference points
 
     if(what == 'BH_MSY') {
@@ -538,6 +543,7 @@ Get_Reference_Points <- function(data,
       # Output reference points
       f_ref_pt[1] <- obj$rep$Fmsy
       b_ref_pt[1] <- obj$rep$Bmsy * sex_ratio_f
+      virgin_b_ref_pt[1] <- obj$rep$B0 * sex_ratio_f
     }
   }
 
@@ -586,6 +592,7 @@ Get_Reference_Points <- function(data,
         # Output reference points
         f_ref_pt[r] <- tmp_obj$rep$F_x
         b_ref_pt[r] <- tmp_obj$rep$SB_F_x * sex_ratio_f * mean(rep$Rec[r,calc_rec_st_yr:(n_years - rec_age)])
+        virgin_b_ref_pt[r] <- tmp_obj$rep$SB0 * sex_ratio_f * mean(rep$Rec[r,calc_rec_st_yr:(n_years - rec_age)])
 
       } # end r loop
     } # end independent_SPR
@@ -629,6 +636,7 @@ Get_Reference_Points <- function(data,
         # Output reference points
         f_ref_pt[r] <- tmp_obj$rep$Fmsy
         b_ref_pt[r] <- tmp_obj$rep$Bmsy * sex_ratio_f
+        virgin_b_ref_pt[r] <- tmp_obj$rep$B0 * sex_ratio_f
 
       } # end r loop
     } # end independent_SPR
@@ -681,6 +689,7 @@ Get_Reference_Points <- function(data,
       # output reference points
       f_ref_pt <- rep(obj$rep$F_x, n_regions)
       b_ref_pt <- obj$rep$SB_F_x * sex_ratio_f * rowMeans(rep$Rec[,calc_rec_st_yr:(n_years - rec_age)])
+      virgin_b_ref_pt <- obj$rep$SB0 * sex_ratio_f * rowMeans(rep$Rec[,calc_rec_st_yr:(n_years - rec_age)])
 
     } # end global SPR
 
@@ -733,12 +742,14 @@ Get_Reference_Points <- function(data,
       # Output reference points
       f_ref_pt <- rep(obj$rep$Fmsy, n_regions)
       b_ref_pt <- obj$rep$Bmsy * sex_ratio_f * rep$Rec_trans_prop
+      virgin_b_ref_pt <- obj$rep$B0 * sex_ratio_f * rep$Rec_trans_prop
     }
 
   } # end multi region
 
   return(list(f_ref_pt = f_ref_pt,
-              b_ref_pt = b_ref_pt))
+              b_ref_pt = b_ref_pt,
+              virgin_b_ref_pt = virgin_b_ref_pt))
 }
 
 
