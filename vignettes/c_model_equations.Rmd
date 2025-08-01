@@ -651,6 +651,17 @@ P(h_r) = \frac{\Gamma(a)\Gamma(b)}{\Gamma(a+b)}h^{a-1}_r(1-h_r)^{b-1}
 
 where $h^{\text{PriorMu}}_r$ represents the prior mean steepness value in a given region (bounded between 0.2 and 1) and $h^{\text{PriorSD}}_r$ is the standard deviation for those priors. $a$ and $b$ are the shape parameters for a beta distribution. 
 
+
+#### Recruitment Proportions
+In the context of a spatial model, recruitment proportion parameters are estimated to apportion the global recruitment to different regions. However, in some cases, this parameter can approach zero for a given region, which could be unrealistic depending on the species. Dirichlet priors can therefore be implemented to help constrain estimation to ensure this doe not occur:
+
+
+\[
+P(\zeta_r) = \frac{\Gamma(\sum_{j=1}^{n_r} \alpha_r)}{\prod_{j=1}^{n_r}\Gamma(\alpha_r)} \prod_{j=1}^{n_r}\zeta_r^{\alpha_r-1}
+\]
+
+where $\zeta_r$ are the recruitment proportion parameters estimated, while the $\alpha_r$ values represent concentration parameters of the Dirichlet distribution. 
+
 #### Movement
 
 Priors on movement parameters can also be invoked, where these priors are imposed on the rows of the movement matrix itself (as opposed to the multinomial logit parameters). Here a Dirichlet prior can be invoked:

@@ -11,6 +11,8 @@ Setup_Mod_Rec(
   rec_lag = 1,
   Use_h_prior = 0,
   h_prior = NULL,
+  Use_Rec_prop_Prior = 0,
+  Rec_prop_prior = NULL,
   do_rec_bias_ramp = 0,
   bias_year = NA,
   max_bias_ramp_fct = 1,
@@ -50,6 +52,11 @@ Must include the following columns:
 - `mu`: Mean of the prior in normal space (used to calculate the corresponding beta distribution).
 - `sd`: Standard deviation of the prior in normal space.
 For each row, a beta distribution is scaled to the interval [0.2, 1], and the corresponding element of `h_trans` is transformed to that scale and penalized using the log-density from the beta distribution.}
+
+\item{Use_Rec_prop_Prior}{Integer flag (0 or 1) indicating whether to apply a prior on recruitment proportions.}
+
+\item{Rec_prop_prior}{Scalar or array specifying prior values for recruitment proportion parameters.
+If scalar, a constant uniform prior is applied across all dimensions.}
 
 \item{do_rec_bias_ramp}{Integer flag (0 or 1) indicating whether to apply a recruitment bias correction ramp.}
 

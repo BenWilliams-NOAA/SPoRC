@@ -12,7 +12,7 @@ do_retrospective(
   random = NULL,
   do_par,
   n_cores,
-  do_francis,
+  do_francis = FALSE,
   n_francis_iter = NULL
 )
 }

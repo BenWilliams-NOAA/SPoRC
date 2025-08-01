@@ -22,8 +22,9 @@ In `SPoRC`, priors can be placed on several parameters. These include:
 2. Natural Mortality,
 3. Catchability,
 4. Selectivity,
-5.  Movement, and
-6. Tag Reporting Rates
+5.  Movement, 
+6. Tag Reporting Rates, and
+7. Recruitment Proportions
 
 In the following, we will demonstrate how priors can be specified for each of these parameters. For further mathematical details on the formulation of these priors, refer to the vignette describing model equations. 
 
@@ -182,7 +183,7 @@ input_list <- Setup_Mod_Srvsel_and_Q(input_list = input_list,
 ```
 
 # Movement
-Defining priors for movement and tag reporting rates (see section below) is best illustrated with setting up a spatial model. Here, we will load in data from the multi-region sablefish case study to demonstrate defining priors for these processes.
+Defining priors for movement, tag reporting rates, and recruitment proportions (see section below) is best illustrated with setting up a spatial model. Here, we will load in data from the multi-region sablefish case study to demonstrate defining priors for these processes.
 
 ```{r}
 data(mlt_rg_sable_data) # load in data
@@ -284,6 +285,22 @@ input_list <- Setup_Mod_Tagging(input_list = input_list,
 )
 ```
 
+
+# Recruitment Proportions
+In the context of a spatial model, Dirichlet priors can also be placed on recruitment proportions. This process is relatively straightforward and uses the `Setup_Mod_Rec` functions to do so. In particular, users will need to define whether the prior is being used by setting `Use_Rec_prop_Prior = 1`. Following that, a scalar or vector of (`n_regions`) can be defined for `Rec_prop_prior`. In the case where `Rec_prop_prior` is a scalar, a uniform Dirichlet prior will be applied. If a vector of different values for each region are provided, then the Dirichlet prior will be applied according to those concentration parameters. 
+
+```{r}
+# Setup recruitment stuff (using defaults for other stuff)
+input_list <- Setup_Mod_Rec(input_list = input_list, # input data list from above
+                            do_rec_bias_ramp = 0,
+                            sexratio = c(0.5, 0.5), # fix sex ratio at 0.5
+
+                            # Model options
+                            rec_model = "mean_rec", # recruitment model
+                            Use_Rec_prop_Prior = 1, # using recruitment proportion prior
+                            Rec_prop_prior = 5 # prior value for recruitment proportions
+)
+```
 
 
 

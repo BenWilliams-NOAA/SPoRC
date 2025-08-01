@@ -227,3 +227,67 @@ safe_extract <- function(obj, name) {
     return(0)
   }
 }
+
+#' Helper function for extracting parameter information and names from TMB
+#'
+#' @param parameters Parameter list from setting up TMB object
+#' @param mapping Mapping list from setting up TMB object
+#' @param sd_rep SD Report from TMB obj
+#'
+#' @returns A list of dataframes for estimated and non-estimated parameter values.
+#' @export get_par_est_info
+get_par_est_info <- function(parameters, mapping, sd_rep) {
+
+  # get parameter names
+  par_names <- reshape2::melt(parameters) %>%
+    dplyr::rename_with(~str_replace(., "^Var(\\d+)$", "Dim\\1")) %>%
+    dplyr::rename(Init_Val = value, Par = L1) %>%
+    dplyr::group_by(Par) %>%
+    # unique parameters based on dimensions of parameter list
+    dplyr::mutate(Par_Num = paste(Par, row_number(), sep = "_"))
+
+  # get mapping names
+  map_names <- reshape2::melt(mapping) %>%
+    dplyr::rename(map = value, Par = L1) %>%
+    dplyr::group_by(Par) %>%
+    dplyr::mutate(Par_Num = paste(Par, row_number(), sep = "_"),
+                  map = as.character(map), # make character
+                  map = ifelse(is.na(map), 'NE', map) # denote NAs as NE (for not estimated instead)
+    )
+
+  # join parameter names and mapping names
+  par_map_names <- par_names %>%
+    dplyr::left_join(map_names, by = c("Par", "Par_Num")) %>%
+    dplyr::group_by(Par) %>%
+    # make sure to turn NAs (they are estimated, but just were not in the mapping list)
+    dplyr::mutate(map = ifelse(is.na(map), as.character(row_number()), map))
+
+  # Make sure mapping numbers are sequential to match up with the sdreport
+  par_map_names <- par_map_names %>%
+    # filter(str_detect(Par, "ln_F_mean")) %>%
+    dplyr::group_by(Par) %>%
+    dplyr::mutate(map = ifelse(map != 'NE', as.character(cumsum(map != 'NE')), 'NE'),
+                  Par_Num_map = paste(Par, map, sep = "_")) # now, make a variable that is consistent with numbering in sdreport
+
+  # now, get estimater parameter names and values
+  est_names <- data.frame(Par = names(sd_rep$par.fixed),
+                          Est_Val = sd_rep$par.fixed,
+                          SE_Val = sqrt(diag(sd_rep$cov.fixed)),
+                          Abs_Grad_Val = abs(as.vector(sd_rep$gradient.fixed))) %>%
+    dplyr::group_by(Par) %>%
+    dplyr::mutate(Par_Num_map = paste(Par, row_number(), sep = '_'))
+
+  # join to get estimated parameters, along with initial starting values
+  estimated_pars <- est_names %>%
+    dplyr::left_join(par_map_names, by = c("Par", "Par_Num_map")) %>%
+    dplyr::select(-c(Par_Num))
+
+  # also get non-estimated parameters
+  non_estimated_pars <- par_map_names %>%
+    dplyr::filter(map == 'NE')
+
+  return(
+    list(est_pars = estimated_pars,
+         non_est_pars = non_estimated_pars)
+  )
+}

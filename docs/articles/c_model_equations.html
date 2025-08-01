@@ -1128,6 +1128,25 @@ and
 are the shape parameters for a beta distribution.</p>
 </div>
 <div class="section level4">
+<h4 id="recruitment-proportions">Recruitment Proportions<a class="anchor" aria-label="anchor" href="#recruitment-proportions"></a>
+</h4>
+<p>In the context of a spatial model, recruitment proportion parameters
+are estimated to apportion the global recruitment to different regions.
+However, in some cases, this parameter can approach zero for a given
+region, which could be unrealistic depending on the species. Dirichlet
+priors can therefore be implemented to help constrain estimation to
+ensure this doe not occur:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>ζ</mi><mi>r</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mfrac><mrow><mi>Γ</mi><mrow><mo stretchy="true" form="prefix">(</mo><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>n</mi><mi>r</mi></msub></munderover><msub><mi>α</mi><mi>r</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mrow><munderover><mo>∏</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>n</mi><mi>r</mi></msub></munderover><mi>Γ</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>α</mi><mi>r</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow></mfrac><munderover><mo>∏</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>n</mi><mi>r</mi></msub></munderover><msubsup><mi>ζ</mi><mi>r</mi><mrow><msub><mi>α</mi><mi>r</mi></msub><mo>−</mo><mn>1</mn></mrow></msubsup></mrow><annotation encoding="application/x-tex">
+P(\zeta_r) = \frac{\Gamma(\sum_{j=1}^{n_r} \alpha_r)}{\prod_{j=1}^{n_r}\Gamma(\alpha_r)} \prod_{j=1}^{n_r}\zeta_r^{\alpha_r-1}
+</annotation></semantics></math></p>
+<p>where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ζ</mi><mi>r</mi></msub><annotation encoding="application/x-tex">\zeta_r</annotation></semantics></math>
+are the recruitment proportion parameters estimated, while the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mi>r</mi></msub><annotation encoding="application/x-tex">\alpha_r</annotation></semantics></math>
+values represent concentration parameters of the Dirichlet
+distribution.</p>
+</div>
+<div class="section level4">
 <h4 id="movement">Movement<a class="anchor" aria-label="anchor" href="#movement"></a>
 </h4>
 <p>Priors on movement parameters can also be invoked, where these priors

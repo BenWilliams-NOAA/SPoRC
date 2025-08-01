@@ -46,6 +46,8 @@ Name | Description
 `rec_model` | Value specifying the recruitment model. 0 == Mean Recruitment, 1 == Beverton-Holt with steepness parameterization
 `rec_dd` | Value specifying the recruitment density dependence (only used when there is a stock recruitment relationship) 0 == local density, 1 == global density, 999 == no density dependent stock recruitment form is used
 `t_spawn` | Fraction of year in which spawning occurs
+`Use_Rec_prop_Prior` | Value specifying whether recruitment proportion priors are used. 0: Don't use priors, 1: Use Priors. Recruitment proportion priors are applied using a Dirichlet distribution.
+`Rec_prop_prior`     | Prior values defined for recruitment proportions if used (i.e., the Dirichlet concentration parameters) dimensioned by `n_regions`
 
 ## Data Inputs for Defining Biological Processes
 Name | Description

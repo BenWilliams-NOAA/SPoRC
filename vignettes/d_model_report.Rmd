@@ -63,6 +63,7 @@ The following tables describes all elements contained within `obj$rep`, which is
 | `srv_q_nLL`        | Negative log-likelihood for survey catchability                             |
 | `Movement_nLL`     | Negative log-likelihood for movement                                        |
 | `TagRep_nLL`       | Negative log-likelihood for tag reporting                                   |
+| `Rec_prop_nLL`     | Negative log-likelihood for recruitment proportions                                 |
 | `jnLL`             | Joint negative log-likelihood                                               |
 | `Total_Biom`       | Total biomass: `n_regions × n_years`                                        |
 | `SSB`              | Spawning stock biomass: `n_regions × n_years`                               |

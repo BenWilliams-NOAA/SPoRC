@@ -106,7 +106,7 @@ do_likelihood_profile <- function(data,
       FishIdx_nLL <- rbind(FishIdx_nLL, reshape2::melt(report$FishIdx_nLL) %>% dplyr::mutate(prof_val = vals[j]))
       SrvIdx_nLL <- rbind(SrvIdx_nLL, reshape2::melt(report$SrvIdx_nLL) %>% dplyr::mutate(prof_val = vals[j]))
 
-      print(paste("Likelihood profile is at:", j / length(vals) * 100))
+      print(paste("Likelihood profile is at:", round(j / length(vals) * 100, 2), "%"))
 
     }, error = function(e) {
       message("Failed to optimize: ", e$message)
