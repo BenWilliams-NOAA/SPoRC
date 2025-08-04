@@ -89,22 +89,22 @@ do_likelihood_profile <- function(data,
 
       # Store values and save
       jnLL[j,1] <- report$jnLL
-      rec_nLL[j,1] <- sum(report$Init_Rec_nLL, report$Rec_nLL)
+      rec_nLL[j,1] <- sum(data$Wt_Rec * report$Init_Rec_nLL, data$Wt_Rec * report$Rec_nLL)
       M_nLL[j,1] <- report$M_nLL
       sel_nLL[j,1] <- report$sel_nLL
       Rec_prop_nLL[j,1] <- report$Rec_prop_nLL
       Movement_nLL[j,1] <- report$Movement_nLL
       h_nLL[j,1] <- report$h_nLL
       TagRep_nLL[j,1] <- report$TagRep_nLL
-      Fmort_nLL[j,1] <- sum(report$Fmort_nLL)
-      Tag_nLL <- rbind(Tag_nLL, reshape2::melt(report$Tag_nLL) %>% dplyr::mutate(prof_val = vals[j]))
-      Catch_nLL <- rbind(Catch_nLL, reshape2::melt(report$Catch_nLL) %>% dplyr::mutate(prof_val = vals[j]))
+      Fmort_nLL[j,1] <- sum(data$Wt_F * report$Fmort_nLL)
+      Tag_nLL <- rbind(Tag_nLL, reshape2::melt(data$Wt_Tagging * report$Tag_nLL) %>% dplyr::mutate(prof_val = vals[j]))
+      Catch_nLL <- rbind(Catch_nLL, reshape2::melt(data$Wt_Catch * report$Catch_nLL) %>% dplyr::mutate(prof_val = vals[j]))
       FishAge_nLL <- rbind(FishAge_nLL, reshape2::melt(report$FishAgeComps_nLL) %>% dplyr::mutate(prof_val = vals[j]))
       SrvAge_nLL <- rbind(SrvAge_nLL, reshape2::melt(report$SrvAgeComps_nLL) %>% dplyr::mutate(prof_val = vals[j]))
       SrvLen_nLL <- rbind(SrvLen_nLL, reshape2::melt(report$SrvLenComps_nLL) %>% dplyr::mutate(prof_val = vals[j]))
       FishLen_nLL <- rbind(FishLen_nLL, reshape2::melt(report$FishLenComps_nLL) %>% dplyr::mutate(prof_val = vals[j]))
-      FishIdx_nLL <- rbind(FishIdx_nLL, reshape2::melt(report$FishIdx_nLL) %>% dplyr::mutate(prof_val = vals[j]))
-      SrvIdx_nLL <- rbind(SrvIdx_nLL, reshape2::melt(report$SrvIdx_nLL) %>% dplyr::mutate(prof_val = vals[j]))
+      FishIdx_nLL <- rbind(FishIdx_nLL, reshape2::melt(data$Wt_FishIdx * report$FishIdx_nLL) %>% dplyr::mutate(prof_val = vals[j]))
+      SrvIdx_nLL <- rbind(SrvIdx_nLL, reshape2::melt(data$Wt_SrvIdx * report$SrvIdx_nLL) %>% dplyr::mutate(prof_val = vals[j]))
 
       print(paste("Likelihood profile is at:", round(j / length(vals) * 100, 2), "%"))
 

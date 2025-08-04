@@ -195,6 +195,13 @@ do_SrvAge_corr_pars_mapping <- function(input_list) {
 
   for(f in 1:input_list$data$n_srv_fleets) {
 
+    # No overdispersion parameters estimated
+    if(input_list$data$SrvAgeComps_LikeType[f] == 0 || sum(input_list$data$UseSrvAgeComps[,,f]) == 0) {
+      map_SrvAge_corr_pars[,,f,] <- NA
+      map_SrvAge_corr_pars_agg[f] <- NA
+      next # skip if none
+    }
+
     # get unique survey comp types
     srvage_comp_type <- unique(input_list$data$SrvAgeComps_Type[,f])
 
@@ -240,12 +247,6 @@ do_SrvAge_corr_pars_mapping <- function(input_list) {
       } # end s loop
     } # end r loop
 
-    # No overdispersion parameters estimated
-    if(input_list$data$SrvAgeComps_LikeType[f] == 0 || sum(input_list$data$UseSrvAgeComps[,,f]) == 0) {
-      map_SrvAge_corr_pars[,,f,] <- NA
-      map_SrvAge_corr_pars_agg[f] <- NA
-    }
-
   } # end f loop
 
   # Input into mapping list
@@ -272,6 +273,13 @@ do_SrvLen_corr_pars_mapping <- function(input_list) {
   map_SrvLen_corr_pars_agg[] <- NA
 
   for(f in 1:input_list$data$n_srv_fleets) {
+
+    # No overdispersion parameters estimated
+    if(input_list$data$SrvLenComps_LikeType[f] == 0 || sum(input_list$data$UseSrvLenComps[,,f]) == 0) {
+      map_SrvLen_corr_pars[,,f,] <- NA
+      map_SrvLen_corr_pars_agg[f] <- NA
+      next # skip if none should be estimated
+    }
 
     # get unique survey comp types
     srvlen_comp_type <- unique(input_list$data$SrvLenComps_Type[,f])
@@ -317,12 +325,6 @@ do_SrvLen_corr_pars_mapping <- function(input_list) {
         }
       } # end s loop
     } # end r loop
-
-    # No overdispersion parameters estimated
-    if(input_list$data$SrvLenComps_LikeType[f] == 0 || sum(input_list$data$UseSrvLenComps[,,f]) == 0) {
-      map_SrvLen_corr_pars[,,f,] <- NA
-      map_SrvLen_corr_pars_agg[f] <- NA
-    }
 
   } # end f loop
 

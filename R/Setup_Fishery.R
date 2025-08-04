@@ -610,6 +610,13 @@ do_FishAge_corr_pars_mapping <- function(input_list) {
 
   for(f in 1:input_list$data$n_fish_fleets) {
 
+    # No overdispersion parameters estimated
+    if(input_list$data$FishAgeComps_LikeType[f] == 0 || sum(input_list$data$UseFishAgeComps[,,f]) == 0) {
+      map_FishAge_corr_pars[,,f,] <- NA
+      map_FishAge_corr_pars_agg[f] <- NA
+      next # skip if none
+    }
+
     # get unique fishery comp types
     fishage_comp_type <- unique(input_list$data$FishAgeComps_Type[,f])
 
@@ -655,12 +662,6 @@ do_FishAge_corr_pars_mapping <- function(input_list) {
       } # end s loop
     } # end r loop
 
-    # No overdispersion parameters estimated
-    if(input_list$data$FishAgeComps_LikeType[f] == 0 || sum(input_list$data$UseFishAgeComps[,,f]) == 0) {
-      map_FishAge_corr_pars[,,f,] <- NA
-      map_FishAge_corr_pars_agg[f] <- NA
-    }
-
   } # end f loop
 
   # Input into mapping list
@@ -687,6 +688,13 @@ do_FishLen_corr_pars_mapping <- function(input_list) {
   map_FishLen_corr_pars_agg[] <- NA
 
   for(f in 1:input_list$data$n_fish_fleets) {
+
+    # No overdispersion parameters estimated
+    if(input_list$data$FishLenComps_LikeType[f] == 0 || sum(input_list$data$UseFishLenComps[,,f]) == 0) {
+      map_FishLen_corr_pars[,,f,] <- NA
+      map_FishLen_corr_pars_agg[f] <- NA
+      next # skip if none
+    }
 
     # get unique fishery comp types
     fishlen_comp_type <- unique(input_list$data$FishLenComps_Type[,f])
@@ -732,12 +740,6 @@ do_FishLen_corr_pars_mapping <- function(input_list) {
         }
       } # end s loop
     } # end r loop
-
-    # No overdispersion parameters estimated
-    if(input_list$data$FishLenComps_LikeType[f] == 0 || sum(input_list$data$UseFishLenComps[,,f]) == 0) {
-      map_FishLen_corr_pars[,,f,] <- NA
-      map_FishLen_corr_pars_agg[f] <- NA
-    }
 
   } # end f loop
 
