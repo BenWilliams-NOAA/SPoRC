@@ -128,8 +128,8 @@ Get_sel_PE_loglik <- function(PE_model,
       for (y in min_yr:n_yrs) {
         if (n_bins >= 3) {
           for (b in 2:(n_bins - 1)) {
-            bin_curvature = log(sel_vals[1,y,b+1,s,1]) - 2 * log(sel_vals[1,y,b,s,1]) + log(sel_vals[1,y,b-1,s,1])
-            ll = ll - bin_curvature^2
+            bin_penalty = log(sel_vals[1,y,b+1,s,1]) - 2 * log(sel_vals[1,y,b,s,1]) + log(sel_vals[1,y,b-1,s,1])
+            ll = ll - bin_penalty^2
           } # end b loop
         } # end if
       } # end y loop
@@ -140,8 +140,8 @@ Get_sel_PE_loglik <- function(PE_model,
       for(b in 1:n_bins) {
         if(n_yrs >= 3) {
           for(y in (min_yr+1):(n_yrs - 1)) {
-            year_curvature = log(sel_vals[1,y+1,b,s,1]) - 2 * log(sel_vals[1,y,b,s,1]) + log(sel_vals[1,y-1,b,s,1])
-            ll = ll - year_curvature^2
+            year_penalty = log(sel_vals[1,y+1,b,s,1]) - 2 * log(sel_vals[1,y,b,s,1]) + log(sel_vals[1,y-1,b,s,1])
+            ll = ll - year_penalty^2
           } # end y loop
         } # end if n_yrs >= 3
       } # end a loop
@@ -178,7 +178,7 @@ Get_move_PE_loglik <- function(PE_model,
 
   ll = 0 # initialize likelihood
 
-  # Get dimensions for curvature penalty
+  # Get dimensions for penalty penalty
   n_regions_from = dim(map_move_devs)[1]
   n_regions_to = dim(map_move_devs)[2]
   n_yrs = dim(map_move_devs)[3]

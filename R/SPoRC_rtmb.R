@@ -145,6 +145,23 @@ SPoRC_rtmb = function(pars, data) {
     } # end y loop
   } # end r loop
 
+
+  ## Natural Mortality Parameters (Set up) -----------------------------------
+  if(use_fixed_natmort == 0) {
+    for(r in 1:n_regions) {
+      for(y in 1:n_yrs) {
+        for(a in 1:n_ages) {
+          for(s in 1:n_sexes) {
+            idx = M_blocks[r,y,a,s] # Get indexing from blocking structure on base natural mortality
+            natmort[r,y,a,s] = exp(ln_M[idx]) # input into natural mortality array
+          } # end s loop
+        } # end a loop
+      } # end y loop
+    } # end r loop
+  } # if using fixed natural mortality
+
+  if(use_fixed_natmort == 1) natmort = Fixed_natmort # Using fixed natural mortality
+
   ## Fishery Selectivity -----------------------------------------------------
   if(Selex_Type == 0) selex_bins = ages # if age-based selectivity
   if(Selex_Type == 1) selex_bins = lens # if length-based selectivity
@@ -230,15 +247,6 @@ SPoRC_rtmb = function(pars, data) {
         }
         FAA[r,y,,,f] = Fmort[r,y,f] * fish_sel[r,y,,,f,drop = FALSE] # Fishing mortality at age
       } # f loop
-
-      # Population Mortality and Survival
-      # estimating natural mortality (base parameter, with a sex offset)
-      if(use_fixed_natmort == 0) {
-        natmort[r,y,,1] = exp(ln_M) # get natural mortality (females or single-sex)
-        if(n_sexes == 2) natmort[r,y,,2] = exp(ln_M) + M_offset # natural mortality with offset (males)
-      }
-
-      if(use_fixed_natmort == 1) natmort[r,y,,] = Fixed_natmort[r,y,,] # Using fixed natural mortality
 
       ZAA[r,y,,] = apply(FAA[r,y,,,,drop = FALSE], 3:4, sum) + natmort[r,y,,] # Total Mortality at age
       SAA_mid[r,y,,] = exp(-0.5 * ZAA[r,y,,]) # Survival at age at midpoint of year
@@ -1050,10 +1058,18 @@ SPoRC_rtmb = function(pars, data) {
     } # end i loop
   } # end if using survey catchability prior
 
-  ### Natural Mortality (Prior) -----------------------------------------------
+  ## Natural Mortality (Prior) -----------------------------------------------
   if(Use_M_prior == 1) {
-    if(likelihoods == 0) M_nLL = (ln_M - log(M_prior[1]))^2 / (2 * (M_prior[2])^2) # ADMB likelihood
-    if(likelihoods == 1) M_nLL = -RTMB::dnorm(ln_M, log(M_prior[1]), M_prior[2], TRUE) # TMB likelihood
+    for(i in 1:nrow(M_prior)) {
+      # Extract indices
+      r = M_prior$regionblk[i]
+      b = M_prior$yearblk[i]
+      a = M_prior$ageblk[i]
+      s = M_prior$sexblk[i]
+      # Compute prior
+      if(likelihoods == 0) M_nLL = M_nLL + (ln_M[r,b,a,s] - log(M_prior$mu[i]))^2 / (2 * (M_prior$sd[i])^2) # ADMB likelihood
+      if(likelihoods == 1) M_nLL = M_nLL + -RTMB::dnorm(ln_M[r,b,a,s], log(M_prior$mu[i]), M_prior$sd[i], TRUE) # TMB likelihood
+    }
   } # end if using natural mortality prior
 
   ### Steepness (Prior) -----------------------------------------------

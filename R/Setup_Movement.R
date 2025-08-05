@@ -252,7 +252,7 @@ do_cont_vary_move_mapping <- function(input_list, cont_vary_movement, Movement_c
 #'   If a vector, a constant prior is applied across all dimensions.
 #' @param Movement_ageblk_spec Either:
 #'   \itemize{
-#'     \item Character string \code{"constant"} for age-invariant movement, or
+#'     \item Character string \code{"constant"} for age-invariant movement (default), or
 #'     \item A list of numeric vectors specifying age blocks sharing parameters.
 #'   }
 #'   For example, \code{list(c(1:6), c(7:10), c(11:n_ages))} defines three age blocks where:
@@ -264,12 +264,12 @@ do_cont_vary_move_mapping <- function(input_list, cont_vary_movement, Movement_c
 #'   To specify age-invariant movement, use either \code{"constant"} or \code{list(c(1:n_ages))}.
 #' @param Movement_yearblk_spec Either:
 #'   \itemize{
-#'     \item Character string \code{"constant"} for time-invariant movement, or
+#'     \item Character string \code{"constant"} for time-invariant movement (default), or
 #'     \item A list of numeric vectors specifying year blocks sharing movement parameters.
 #'   }
 #' @param Movement_sexblk_spec Either:
 #'   \itemize{
-#'     \item Character string \code{"constant"} for sex-invariant movement, or
+#'     \item Character string \code{"constant"} for sex-invariant movement (default), or
 #'     \item A list of numeric vectors specifying sex blocks sharing movement parameters.
 #'   }
 #' @param cont_vary_movement Character string specifying continuous varying movement type.
@@ -308,9 +308,9 @@ Setup_Mod_Movement <- function(input_list,
                                Fixed_Movement = NA,
                                Use_Movement_Prior = 0,
                                Movement_prior = NULL,
-                               Movement_ageblk_spec = NULL,
-                               Movement_yearblk_spec = NULL,
-                               Movement_sexblk_spec = NULL,
+                               Movement_ageblk_spec = 'constant',
+                               Movement_yearblk_spec = 'constant',
+                               Movement_sexblk_spec = 'constant',
                                cont_vary_movement = 'none',
                                Movement_cont_pe_pars_spec = 'none',
                                ...
