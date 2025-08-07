@@ -81,27 +81,12 @@ ddirmult = function(obs, pred, Ntotal, ln_theta, give_log = TRUE) {
 #' @keywords internal
 #'
 dlogistnormal = function(obs, pred, Sigma, give_log = TRUE) {
-
-  # Dealing with zeros
-  if(any(obs == 0)) {
-    # normalize by adding 85% of the minimum observed value in a given year
-    obs = (obs + min(obs[obs != 0]) * 0.85) / sum(obs + min(obs[obs != 0]) * 0.85)
-    pred = (pred + min(obs[obs != 0]) * 0.85) / sum(pred + min(obs[obs != 0]) * 0.85)
-    # do logistic transformation on observed values
-    tmp_Obs = log(obs[-length(obs)])
-    tmp_Obs = tmp_Obs - log(obs[length(obs)])
-    # do logistic transformation on expected values
-    mu = log(pred[-length(pred)]) # remove last bin since it's known
-    mu = mu - log(pred[length(pred)]) # calculate log ratio
-  } else {
-    obs = obs / sum(obs)
-    # do logistic transformation on observed values
-    tmp_Obs = log(obs[-length(obs)])
-    tmp_Obs = tmp_Obs - log(obs[length(obs)])
-    # do logistic transformation on expected values
-    mu = log(pred[-length(pred)]) # remove last bin since it's known
-    mu = mu - log(pred[length(pred)]) # calculate log ratio
-  } # if we don't have any zeros
+  # do logistic transformation on observed values
+  tmp_Obs = log(obs[-length(obs)])
+  tmp_Obs = tmp_Obs - log(obs[length(obs)])
+  # do logistic transformation on expected values
+  mu = log(pred[-length(pred)]) # remove last bin since it's known
+  mu = mu - log(pred[length(pred)]) # calculate log ratio
   res = RTMB::dmvnorm(as.vector(tmp_Obs), as.vector(mu), Sigma = Sigma, log = give_log) # fit multivariate normal on log ratios
   return(res)
 }

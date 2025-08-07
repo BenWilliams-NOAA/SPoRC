@@ -5,8 +5,9 @@
 #' @param mapping Mapping list
 #' @param random Character of random effects to integrate out
 #' @param newton_loops Number of newton loops to run to get gradients down
+#' @param do_optim Boolean on whether or not model is optimized
 #' @param silent Boolean on whether or not model run is silent
-#' @param ... additional arguments taken by MakeADFUN
+#'
 #' @importFrom stats nlminb optimHess
 #' @return Returns a list object that is optimized, with results outputted from the RTMB model
 #' @export fit_model
@@ -25,6 +26,7 @@ fit_model <- function(data,
                       random = NULL,
                       newton_loops = 3,
                       silent = FALSE,
+                      do_optim = TRUE,
                       ...
                       ) {
 
@@ -32,18 +34,20 @@ fit_model <- function(data,
   obj <- RTMB::MakeADFun(cmb(SPoRC_rtmb, data), parameters = parameters,
                          map = mapping, random = random, silent = silent, ...)
 
-  # Now, optimize the function
-  optim <- stats::nlminb(obj$par, obj$fn, obj$gr,
-                               control = list(iter.max = 1e5, eval.max = 1e5, rel.tol = 1e-15))
-  # newton steps
-  try_improve <- tryCatch(expr =
-                            for(i in 1:newton_loops) {
-                              g = as.numeric(obj$gr(optim$par))
-                              h = optimHess(optim$par, fn = obj$fn, gr = obj$gr)
-                              optim$par = optim$par - solve(h,g)
-                              optim$objective = obj$fn(optim$par)
-                            }
-                          , error = function(e){e}, warning = function(w){w})
+  if(do_optim == TRUE) {
+    # Now, optimize the function
+    optim <- stats::nlminb(obj$par, obj$fn, obj$gr,
+                           control = list(iter.max = 1e5, eval.max = 1e5, rel.tol = 1e-15))
+    # newton steps
+    try_improve <- tryCatch(expr =
+                              for(i in 1:newton_loops) {
+                                g = as.numeric(obj$gr(optim$par))
+                                h = optimHess(optim$par, fn = obj$fn, gr = obj$gr)
+                                optim$par = optim$par - solve(h,g)
+                                optim$objective = obj$fn(optim$par)
+                              }
+                            , error = function(e){e}, warning = function(w){w})
+  }
 
   # save report
   obj$rep <- obj$report(obj$env$last.par.best)
