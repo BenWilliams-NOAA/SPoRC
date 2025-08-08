@@ -301,7 +301,7 @@ Get_Comp_Likelihoods = function(Exp,
         # Construct Sigma matrix
         LN_corr_b = rho_trans(LN_corr_pars[r,1,1])
         LN_corr_s = rho_trans(LN_corr_pars[r,1,2])
-        Sigma = kronecker(get_AR1_CorrMat(n_obs_bins, LN_corr_b), get_Constant_CorrMat(n_sexes, LN_corr_s))
+        Sigma = kronecker(get_Constant_CorrMat(n_sexes, LN_corr_s), get_AR1_CorrMat(n_obs_bins, LN_corr_b))
         Sigma = Sigma * exp(ln_theta[r,1])^2
 
         if(length(zeros) > 0) {
