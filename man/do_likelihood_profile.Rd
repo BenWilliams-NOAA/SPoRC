@@ -13,7 +13,9 @@ do_likelihood_profile(
   idx = NULL,
   min_val,
   max_val,
-  inc = 0.05
+  inc = 0.05,
+  do_par = FALSE,
+  n_cores = NULL
 )
 }
 \arguments{
@@ -34,6 +36,10 @@ do_likelihood_profile(
 \item{max_val}{maximum value of profile}
 
 \item{inc}{increment value between min and max value}
+
+\item{do_par}{logical, whether to use parallel processing (default FALSE)}
+
+\item{n_cores}{integer, number of cores to use for parallel processing (default is detectCores() - 1)}
 }
 \value{
 Returns a list of likelihood profiled values for each data component with their respective dimensions (e.g., likelihood profiles by fleet, region, year, etc.) as well likelihood profiles for each data component, aggregated across all their respective dimensions.
