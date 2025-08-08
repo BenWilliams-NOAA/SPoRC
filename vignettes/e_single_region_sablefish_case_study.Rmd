@@ -98,35 +98,26 @@ input_list <- Setup_Mod_Rec(input_list = input_list, # input data list from abov
 
 ## Setup Biological Dynamics
 
-Passing on the `input_list` that was updated in the previous helper function, we can then parameterize the biological dynamics of the model. The `Setup_Mod_Biologicals` requires data inputs for weight-at-age (`WAA`) and maturity-at-age (`MatAA`), both of which are dimensioned by `n_regions`, `n_years`, `n_ages`, `n_sexes`. Optional model inputs include a single ageing-error matrix `AgeingError`, dimensioned by `n_ages`, `n_ages`. This can be left as NULL if no ageing-error matrix is available, and the model will assume an identity matrix for the ageing-error for age-composition data. Additionally, a size-age transition matrix can be supplied if length data are being fit to `fit_lengths = 1`, which are dimensioned by `n_regions`, `n_years`, `n_lens`, `n_ages`, `n_sexes`. Because natural mortality is often poorly estimated, Alaska sablefish utilizes priors for natural mortality, which can be specifed using the `Use_M_prior = 1` argument in conjunction with the `M_prior` argument. The `M_prior` argument expects a vector of length 2, where the first value represents the mean prior value and the second value represents the standard deviation of the prior (lognormal). The `M_spec` argument specifies how natural mortality should be estimated, where several options are included. In this case, we are estimating the log natural mortality for females, and fixing the natural mortlaity offset parameter for males (accidentally jittered in the original assessment). Starting values and fixed parameters can be specified using the `...`, where the parameter name is supplied, and the values provided to the parameter name represent the starting value. 
+Passing on the `input_list` that was updated in the previous helper function, we can then parameterize the biological dynamics of the model. The `Setup_Mod_Biologicals` requires data inputs for weight-at-age (`WAA`) and maturity-at-age (`MatAA`), both of which are dimensioned by `n_regions`, `n_years`, `n_ages`, `n_sexes`. Optional model inputs include a single ageing-error matrix `AgeingError`, dimensioned by `n_ages`, `n_ages`. This can be left as NULL if no ageing-error matrix is available, and the model will assume an identity matrix for the ageing-error for age-composition data. Additionally, a size-age transition matrix can be supplied if length data are being fit to `fit_lengths = 1`, which are dimensioned by `n_regions`, `n_years`, `n_lens`, `n_ages`, `n_sexes`. Although the Alaska sablefish assessment utilizes priors for natural mortality, it is not possible to get an exact match with the 2024 assessment, given differences in the parameterization of natural mortality. Thus, for demonstration purposes, M will be fixed in this case. The `M_spec` argument specifies that natural mortality should be fixed and an array of fixed values is provided `Fixed_natmort = fixed_natmort`. Starting values and fixed parameters can be specified using the `...`, where the parameter name is supplied, and the values provided to the parameter name represent the starting value. 
 
 ```{r Setup Biologicals, message = FALSE,  eval = FALSE}
+# Specificying natural mortality fixed array
+fixed_natmort <- array(0, dim = c(input_list$data$n_regions, length(input_list$data$years), length(input_list$data$ages), input_list$data$n_sexes))
+fixed_natmort[,,,1] <- 0.1134156 # fix female M
+fixed_natmort[,,,2] <- 0.1052175 # fix male M
+
 input_list <- Setup_Mod_Biologicals(input_list = input_list,
-                                    
                                     # Data inputs
-                                    WAA = sgl_rg_sable_data$WAA, 
-                                    # weight-at-age
-                                    MatAA = sgl_rg_sable_data$MatAA, 
-                                    # maturity at age
-                                    AgeingError = as.matrix(sgl_rg_sable_data$age_error),
-                                    # ageing error
-                                    SizeAgeTrans = sgl_rg_sable_data$SizeAgeTrans, 
-                                    # size age transition matrix
-                                    
+                                    WAA = rtmb_data$WAA, # weight-at-age
+                                    MatAA = rtmb_data$MatAA, # maturity at age
+                                    AgeingError = as.matrix(ageing_dat$age_error), # ageing error
+                                    SizeAgeTrans = rtmb_data$SizeAgeTrans, # size age transition matrix
                                     # Model options
-                                    fit_lengths = 1, 
-                                    # fitting length compositions
-                                    Use_M_prior = 1, 
-                                    # use natural mortality prior
-                                    M_prior = c(0.1, 0.1),
-                                    # mean and sd for M prior
-                                    M_spec = "est_ln_M_only",
-                                    ln_M = log(0.1143034), # starting value for M
-                                    M_offset = -0.00819813327864 
-                                    # starting value / 
-                                    # fixing Male M offset (accidently jittered 
-                                    # from original assessment)
-                                    )
+                                    Use_M_prior = 1, # use natural mortality prior
+                                    M_prior = M_prior, # mean and sd for M prior
+                                    fit_lengths = 1, # fitting length compositions
+                                    M_spec = "fix",
+                                    Fixed_natmort = fixed_natmort)
 ```
 
 ## Setup Movement and Tagging Dynamics

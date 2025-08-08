@@ -90,7 +90,7 @@ do_M_mapping <- function(input_list,
                          M_sexblk_spec_vals) {
 
   # Validate options
-  if(!M_spec %in% c('est_ln_M', 'fix')) stop("M_spec needs to be specified as either est_ln_M (only for a single sex) or fix")
+  if(!M_spec %in% c('est_ln_M', 'fix')) stop("M_spec needs to be specified as either est_ln_M or fix")
 
   # set up whether fixing M or estimating
   if(M_spec == 'est_ln_M') input_list$map$ln_M <- factor(1:length(input_list$par$ln_M))
@@ -167,7 +167,7 @@ do_M_mapping <- function(input_list,
 #' }
 #' @param WAA_fish Numeric array of weight-at-age (fishery), dimensioned \code{[n_regions, n_years, n_ages, n_sexes, n_fish_fleets]}.
 #' @param WAA_srv Numeric array of weight-at-age (survey), dimensioned \code{[n_regions, n_years, n_ages, n_sexes, n_srv_fleets]}.
-#' @param addtocomp Numeric value for a constant to add to composition data. Default is 1e-3.
+#' @param addtocomp Numeric value for a constant to add to composition data. Default is 1e-3 Not used if logistic normal likelihoods are utilized.
 #' @param M_ageblk_spec Specification of age blocking for natural mortality estimation.
 #'   Either a character string ("constant") or a list of index vectors, e.g., \code{list(1:10, 11:30)}, which specifies 2 age blocks for M.
 #' @param M_regionblk_spec Specification of regional blocking for natural mortality.
@@ -228,6 +228,11 @@ Setup_Mod_Biologicals <- function(input_list,
       check_data_dimensions(Fixed_natmort, n_regions = input_list$data$n_regions, n_years = length(input_list$data$years), n_ages = length(input_list$data$ages), n_sexes = input_list$data$n_sexes, what = 'Fixed_natmort')
     }
   }
+
+  # Check M blocks
+  if(!is.null(M_ageblk_spec)) if(!typeof(M_ageblk_spec) %in% c("list", "character", NULL)) stop("M fixed effects age blocks are not correctly specified, it needs to be either a list object or set at 'constant'. For example, if we had 10 ages and wanted 2 age blocks, this would be list(c(1:5), c(6:10)) such that ages 1 - 5 are a block, and ages 6 - 10 are a block.")
+  if(!is.null(M_yearblk_spec)) if(!typeof(M_yearblk_spec) %in% c("list", "character", NULL)) stop("M fixed effects year blocks are not correctly specified, it needs to be either a list object or set at 'constant'. For example, if we had 10 years and wanted 2 year blocks, this would be list(c(1:5), c(6:10)) such that years 1 - 5 are a block, and years 6 - 10 are a block.")
+  if(!is.null(M_sexblk_spec)) if(!typeof(M_sexblk_spec) %in% c("list", "character", NULL)) stop("M fixed effects sex blocks are not correctly specified, it needs to be either a list object or set at 'constant'. For example, if we had 2 sexes and wanted sex-specific M, this would be list(1, 2).")
 
   # Natural Mortality prior checking
   if(!Use_M_prior %in% c(0,1)) stop("Values for Use_M_prior are not valid. They are == 0 (don't use prior), or == 1 (use prior)")

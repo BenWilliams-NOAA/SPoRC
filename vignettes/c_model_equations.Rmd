@@ -969,12 +969,11 @@ catchability, steepness, movement, and tag reporting rates.
 For natural mortality, a lognormal prior can be invoked:
 
 $$
-P(log(NatMort_{s = 1}) = \frac{1}{\sqrt{2\pi} \sigma^{\text{NatMortPrior}}} \exp(-\frac{[log(NatMort_{s = 1}) - log(Natmort_{s = 1}^{\text{Prior}})]^2}{2\sigma^{2^{\text{NatMortPrior}}}})
+P(log(NatMort_{r,y,a,s}) = \frac{1}{\sqrt{2\pi} \sigma^{\text{NatMortPrior}}_{r,y,a,s}} \exp(-\frac{[log(NatMort_{r,y,a,s}) - log(Natmort_{r,y,a,s}^{\text{Prior}})]^2}{2\sigma^{2^{\text{NatMortPrior}}}_{r,y,a,s}})
 $$
 
-where the lognormal prior is only invoked on the first sex (female if
-sex-structured), $\sigma^{2^{\text{NatMortPrior}}}$ represents the
-variance of the prior, and $Natmort_{s = 1}^{\text{Prior}}$ represents
+where $\sigma^{2^{\text{NatMortPrior}}}_{r,y,a,s}$ represents the
+variance of the prior, and $Natmort_{r,y,a,s}^{\text{Prior}}$ represents
 the prior value itself.
 
 #### Fishery and Survey Catchability

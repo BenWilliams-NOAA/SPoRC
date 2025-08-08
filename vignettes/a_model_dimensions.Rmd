@@ -61,10 +61,11 @@ Name | Description
 `SizeAgeTrans`	| Size-age transition matrix dimensioned by n_regions, n_years, n_lens, n_ages, n_sexes. Can be specified as NA if length compositions are not fit
 `addtocomp`  | Constant to add to all composition data.
 `Use_M_prior` | Value specifying whether natural mortality priors are used. 0: Don’t use prior, 1: Use prior
-`M_prior`	| Vector specifying the mean and standard deviation of natural mortality in normal space. Element 1 should be the mean and element 2 should be the standard deviation. The prior is applied to the M parameter and not the offset 
+`M_prior`	| A dataframe specifying how natural mortality priors should be applied. 
 `Selex_Type` | Value specifying whether age or length-based selectivity is used. 0: Age-based, 1: Length-based
 `use_fixed_natmort` | Value specifying whether a fixed mortality array is used. 0: Don't use and estimate M, 1: Use 
 `Fixed_natmort` | Natural mortality array dimensioned by n_regions, n_years, n_ages, and n_sexes.
+`M_blocks` | Array that specifies the dimensions in which natural mortality is blocked (n_regions, n_years, n_ages, and n_sexes)
 
 ## Data Inputs for Defining Movement Processes
 Name | Description

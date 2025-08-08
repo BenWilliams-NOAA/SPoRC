@@ -285,10 +285,8 @@ use prior, 1: Use prior</td>
 </tr>
 <tr class="even">
 <td><code>M_prior</code></td>
-<td>Vector specifying the mean and standard deviation of natural
-mortality in normal space. Element 1 should be the mean and element 2
-should be the standard deviation. The prior is applied to the M
-parameter and not the offset</td>
+<td>A dataframe specifying how natural mortality priors should be
+applied.</td>
 </tr>
 <tr class="odd">
 <td><code>Selex_Type</code></td>
@@ -304,6 +302,11 @@ use and estimate M, 1: Use</td>
 <td><code>Fixed_natmort</code></td>
 <td>Natural mortality array dimensioned by n_regions, n_years, n_ages,
 and n_sexes.</td>
+</tr>
+<tr class="even">
+<td><code>M_blocks</code></td>
+<td>Array that specifies the dimensions in which natural mortality is
+blocked (n_regions, n_years, n_ages, and n_sexes)</td>
 </tr>
 </tbody>
 </table>

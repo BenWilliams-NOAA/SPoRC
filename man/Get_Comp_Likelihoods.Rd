@@ -64,7 +64,7 @@ Get_Comp_Likelihoods(
 
 \item{comp_agg_type}{How to aggregate data (if aggregating)}
 
-\item{addtocomp}{Small constant to add to composition data}
+\item{addtocomp}{Small constant to add to composition data (Not added if dlogistnormal is used)}
 }
 \value{
 Returns negative log likelihood for composition data (age and/or length)

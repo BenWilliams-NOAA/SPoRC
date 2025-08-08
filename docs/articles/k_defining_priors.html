@@ -170,26 +170,34 @@ deviation (<code>sd</code>). For instance:</p>
 <div class="section level2">
 <h2 id="natural-mortality">Natural Mortality<a class="anchor" aria-label="anchor" href="#natural-mortality"></a>
 </h2>
-<p>Currently, the natural mortality module is relatively simple, where
-it estimates a single natural mortality value for all model partitions.
-Thus, priors can be simply defined as well (likely subject to change).
-Here, we use the <code>Setup_Mod_Biologicals</code> function to specify
-a natural mortality prior. To do so, we will set
-<code>Use_M_prior = 1</code> and provide a vector of values
-corresponding to the mean and standard deviation
-<code>M_prior = c(0.1, 0.1)</code> of the natural mortality prior.</p>
+<p>To define natural mortality priors, we use the
+<code>Setup_Mod_Biologicals</code> function to specify a natural
+mortality prior. To do so, we will set <code>Use_M_prior = 1</code> and
+provide a dataframe of values corresponding the region, year, age, and
+sex blocks specified for natural mortality, along with their associated
+mean and standard deviation.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">input_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/Setup_Mod_Biologicals.html">Setup_Mod_Biologicals</a></span><span class="op">(</span>input_list <span class="op">=</span> <span class="va">input_list</span>,</span>
-<span>                                    </span>
+<code class="sourceCode R"><span><span class="co"># Define natural mortality prior</span></span>
+<span><span class="va">M_prior</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span> </span>
+<span>  regionblk <span class="op">=</span> <span class="fl">1</span>, <span class="co"># region block</span></span>
+<span>  yearblk <span class="op">=</span> <span class="fl">1</span>, <span class="co"># year block</span></span>
+<span>  ageblk <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span>, <span class="co"># age block</span></span>
+<span>  sexblk <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span><span class="op">)</span>, <span class="co"># sex block</span></span>
+<span>  mu <span class="op">=</span> <span class="fl">0.085</span>, <span class="co"># mean</span></span>
+<span>  sd <span class="op">=</span> <span class="fl">0.1</span> <span class="co">#sd</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">input_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/Setup_Mod_Biologicals.html">Setup_Mod_Biologicals</a></span><span class="op">(</span>input_list <span class="op">=</span> <span class="va">input_list</span>,</span>
 <span>                                    <span class="co"># Data inputs</span></span>
 <span>                                    WAA <span class="op">=</span> <span class="va">sgl_rg_sable_data</span><span class="op">$</span><span class="va">WAA</span>, <span class="co"># weight-at-age</span></span>
 <span>                                    MatAA <span class="op">=</span> <span class="va">sgl_rg_sable_data</span><span class="op">$</span><span class="va">MatAA</span>, <span class="co"># maturity at age</span></span>
 <span>                                    AgeingError <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">sgl_rg_sable_data</span><span class="op">$</span><span class="va">age_error</span><span class="op">)</span>, <span class="co"># ageing error</span></span>
 <span>                                    SizeAgeTrans <span class="op">=</span> <span class="va">sgl_rg_sable_data</span><span class="op">$</span><span class="va">SizeAgeTrans</span>, <span class="co"># size age transition matrix</span></span>
-<span>                                    </span>
 <span>                                    <span class="co"># Model options</span></span>
 <span>                                    Use_M_prior <span class="op">=</span> <span class="fl">1</span>, <span class="co"># use natural mortality prior</span></span>
-<span>                                    M_prior <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.1</span><span class="op">)</span> <span class="co"># mean and sd for M prior</span></span>
+<span>                                    M_prior <span class="op">=</span> <span class="va">M_prior</span>, <span class="co"># mean and sd for M prior</span></span>
+<span>                                    M_spec <span class="op">=</span> <span class="st">"est_ln_M"</span>, <span class="co"># estmating M</span></span>
+<span>                                    M_sexblk_spec <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span><span class="op">)</span> <span class="co"># specifying M as sex-specific</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; Length Composition data are: Not Used</span></span>
 <span><span class="co">#&gt; Natural Mortality priors are: Used</span></span>
@@ -197,7 +205,11 @@ corresponding to the mean and standard deviation
 <span><span class="co">#&gt; WAA_fish was specified at NULL. Using the spawning WAA for WAA_fish</span></span>
 <span><span class="co">#&gt; WAA_srv was specified at NULL. Using the spawning WAA for WAA_srv</span></span>
 <span><span class="co">#&gt; Ageing Error is specified to be time-invariant</span></span>
-<span><span class="co">#&gt; Natural Mortality is estimated for both all dimensions</span></span></code></pre></div>
+<span><span class="co">#&gt; Natural Mortality specified as: est_ln_M</span></span>
+<span><span class="co">#&gt; Natural Mortality Region Blocks is specified as: 1</span></span>
+<span><span class="co">#&gt; Natural Mortality Year Blocks is specified as: 1</span></span>
+<span><span class="co">#&gt; Natural Mortality Age Blocks is specified as: 1</span></span>
+<span><span class="co">#&gt; Natural Mortality Sex Blocks is specified as: 2</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="catchability">Catchability<a class="anchor" aria-label="anchor" href="#catchability"></a>

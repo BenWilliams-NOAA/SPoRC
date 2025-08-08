@@ -7,7 +7,7 @@
 dlogistnormal(obs, pred, Sigma, give_log = TRUE)
 }
 \arguments{
-\item{obs}{Vector of observed values in numbers (can be integers or non-integers - vector length of n_bins)}
+\item{obs}{Vector of observed values in numbers (can be integers or non-integers - vector length of n_bins).}
 
 \item{pred}{Vector of predicted values in proportions (vector length of n_bins)}
 

@@ -176,48 +176,34 @@ matrix for the ageing-error for age-composition data. Additionally, a
 size-age transition matrix can be supplied if length data are being fit
 to <code>fit_lengths = 1</code>, which are dimensioned by
 <code>n_regions</code>, <code>n_years</code>, <code>n_lens</code>,
-<code>n_ages</code>, <code>n_sexes</code>. Because natural mortality is
-often poorly estimated, Alaska sablefish utilizes priors for natural
-mortality, which can be specifed using the <code>Use_M_prior = 1</code>
-argument in conjunction with the <code>M_prior</code> argument. The
-<code>M_prior</code> argument expects a vector of length 2, where the
-first value represents the mean prior value and the second value
-represents the standard deviation of the prior (lognormal). The
-<code>M_spec</code> argument specifies how natural mortality should be
-estimated, where several options are included. In this case, we are
-estimating the log natural mortality for females, and fixing the natural
-mortlaity offset parameter for males (accidentally jittered in the
-original assessment). Starting values and fixed parameters can be
-specified using the <code>...</code>, where the parameter name is
-supplied, and the values provided to the parameter name represent the
-starting value.</p>
+<code>n_ages</code>, <code>n_sexes</code>. Although the Alaska sablefish
+assessment utilizes priors for natural mortality, it is not possible to
+get an exact match with the 2024 assessment, given differences in the
+parameterization of natural mortality. Thus, for demonstration purposes,
+M will be fixed in this case. The <code>M_spec</code> argument specifies
+that natural mortality should be fixed and an array of fixed values is
+provided <code>Fixed_natmort = fixed_natmort</code>. Starting values and
+fixed parameters can be specified using the <code>...</code>, where the
+parameter name is supplied, and the values provided to the parameter
+name represent the starting value.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">input_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/Setup_Mod_Biologicals.html">Setup_Mod_Biologicals</a></span><span class="op">(</span>input_list <span class="op">=</span> <span class="va">input_list</span>,</span>
-<span>                                    </span>
+<code class="sourceCode R"><span><span class="co"># Specificying natural mortality fixed array</span></span>
+<span><span class="va">fixed_natmort</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="fl">0</span>, dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">input_list</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">n_regions</span>, <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">input_list</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">years</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">input_list</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">ages</span><span class="op">)</span>, <span class="va">input_list</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">n_sexes</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">fixed_natmort</span><span class="op">[</span>,,,<span class="fl">1</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">0.1134156</span> <span class="co"># fix female M</span></span>
+<span><span class="va">fixed_natmort</span><span class="op">[</span>,,,<span class="fl">2</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">0.1052175</span> <span class="co"># fix male M</span></span>
+<span></span>
+<span><span class="va">input_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/Setup_Mod_Biologicals.html">Setup_Mod_Biologicals</a></span><span class="op">(</span>input_list <span class="op">=</span> <span class="va">input_list</span>,</span>
 <span>                                    <span class="co"># Data inputs</span></span>
-<span>                                    WAA <span class="op">=</span> <span class="va">sgl_rg_sable_data</span><span class="op">$</span><span class="va">WAA</span>, </span>
-<span>                                    <span class="co"># weight-at-age</span></span>
-<span>                                    MatAA <span class="op">=</span> <span class="va">sgl_rg_sable_data</span><span class="op">$</span><span class="va">MatAA</span>, </span>
-<span>                                    <span class="co"># maturity at age</span></span>
-<span>                                    AgeingError <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">sgl_rg_sable_data</span><span class="op">$</span><span class="va">age_error</span><span class="op">)</span>,</span>
-<span>                                    <span class="co"># ageing error</span></span>
-<span>                                    SizeAgeTrans <span class="op">=</span> <span class="va">sgl_rg_sable_data</span><span class="op">$</span><span class="va">SizeAgeTrans</span>, </span>
-<span>                                    <span class="co"># size age transition matrix</span></span>
-<span>                                    </span>
+<span>                                    WAA <span class="op">=</span> <span class="va">rtmb_data</span><span class="op">$</span><span class="va">WAA</span>, <span class="co"># weight-at-age</span></span>
+<span>                                    MatAA <span class="op">=</span> <span class="va">rtmb_data</span><span class="op">$</span><span class="va">MatAA</span>, <span class="co"># maturity at age</span></span>
+<span>                                    AgeingError <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">ageing_dat</span><span class="op">$</span><span class="va">age_error</span><span class="op">)</span>, <span class="co"># ageing error</span></span>
+<span>                                    SizeAgeTrans <span class="op">=</span> <span class="va">rtmb_data</span><span class="op">$</span><span class="va">SizeAgeTrans</span>, <span class="co"># size age transition matrix</span></span>
 <span>                                    <span class="co"># Model options</span></span>
-<span>                                    fit_lengths <span class="op">=</span> <span class="fl">1</span>, </span>
-<span>                                    <span class="co"># fitting length compositions</span></span>
-<span>                                    Use_M_prior <span class="op">=</span> <span class="fl">1</span>, </span>
-<span>                                    <span class="co"># use natural mortality prior</span></span>
-<span>                                    M_prior <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.1</span><span class="op">)</span>,</span>
-<span>                                    <span class="co"># mean and sd for M prior</span></span>
-<span>                                    M_spec <span class="op">=</span> <span class="st">"est_ln_M_only"</span>,</span>
-<span>                                    ln_M <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">0.1143034</span><span class="op">)</span>, <span class="co"># starting value for M</span></span>
-<span>                                    M_offset <span class="op">=</span> <span class="op">-</span><span class="fl">0.00819813327864</span> </span>
-<span>                                    <span class="co"># starting value / </span></span>
-<span>                                    <span class="co"># fixing Male M offset (accidently jittered </span></span>
-<span>                                    <span class="co"># from original assessment)</span></span>
-<span>                                    <span class="op">)</span></span></code></pre></div>
+<span>                                    Use_M_prior <span class="op">=</span> <span class="fl">1</span>, <span class="co"># use natural mortality prior</span></span>
+<span>                                    M_prior <span class="op">=</span> <span class="va">M_prior</span>, <span class="co"># mean and sd for M prior</span></span>
+<span>                                    fit_lengths <span class="op">=</span> <span class="fl">1</span>, <span class="co"># fitting length compositions</span></span>
+<span>                                    M_spec <span class="op">=</span> <span class="st">"fix"</span>,</span>
+<span>                                    Fixed_natmort <span class="op">=</span> <span class="va">fixed_natmort</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="setup-movement-and-tagging-dynamics">Setup Movement and Tagging Dynamics<a class="anchor" aria-label="anchor" href="#setup-movement-and-tagging-dynamics"></a>
