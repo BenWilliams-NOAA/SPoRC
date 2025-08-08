@@ -47,7 +47,9 @@
 <span>  idx <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">min_val</span>,</span>
 <span>  <span class="va">max_val</span>,</span>
-<span>  inc <span class="op">=</span> <span class="fl">0.05</span></span>
+<span>  inc <span class="op">=</span> <span class="fl">0.05</span>,</span>
+<span>  do_par <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  n_cores <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -89,6 +91,14 @@
 
 <dt id="arg-inc">inc<a class="anchor" aria-label="anchor" href="#arg-inc"></a></dt>
 <dd><p>increment value between min and max value</p></dd>
+
+
+<dt id="arg-do-par">do_par<a class="anchor" aria-label="anchor" href="#arg-do-par"></a></dt>
+<dd><p>logical, whether to use parallel processing (default FALSE)</p></dd>
+
+
+<dt id="arg-n-cores">n_cores<a class="anchor" aria-label="anchor" href="#arg-n-cores"></a></dt>
+<dd><p>integer, number of cores to use for parallel processing (default is detectCores() - 1)</p></dd>
 
 </dl></div>
     <div class="section level2">

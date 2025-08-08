@@ -301,7 +301,8 @@ input_list <- Setup_Mod_Fishsel_and_Q(input_list = input_list,
                                       fish_sel_blocks = "none_Fleet_1", # fishery selex blocks
                                       fish_sel_model = "logist1_Fleet_1", # fishery selex model
                                       fish_q_blocks = "none_Fleet_1", # fishery catchability blocks
-                                      fish_fixed_sel_pars_spec = "est_shared_r" # whether parameters are spatially varying
+                                      fish_fixed_sel_pars_spec = "est_shared_r", # whether parameters are spatially varying
+                                      fish_q_spec = "fix" # fixing fishery q, because not simulated
 )
 
 # Setup survey selectivity and catchability

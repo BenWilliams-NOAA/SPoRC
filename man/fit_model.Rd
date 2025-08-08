@@ -11,6 +11,7 @@ fit_model(
   random = NULL,
   newton_loops = 3,
   silent = FALSE,
+  do_optim = TRUE,
   ...
 )
 }
@@ -27,7 +28,7 @@ fit_model(
 
 \item{silent}{Boolean on whether or not model run is silent}
 
-\item{...}{additional arguments taken by MakeADFUN}
+\item{do_optim}{Boolean on whether or not model is optimized}
 }
 \value{
 Returns a list object that is optimized, with results outputted from the RTMB model
