@@ -720,22 +720,19 @@ $n_b - 1 \cdot n_b - 1$. A first-order autoregressive process can also
 be specified across ages:
 
 $$
-\boldsymbol{\Sigma} = \boldsymbol{R_a} \cdot \theta^2
+\boldsymbol{\Sigma} = \boldsymbol{R_b} \cdot \theta^2
 $$
 
-where $\boldsymbol{R_a}$ is a matrix representing a first-order
-autoregressive process. Two-dimensional autoregression can also be
-specified across ages and sexes:
+where $\boldsymbol{R_b}$ is a matrix representing a first-order
+autoregressive process across bins. Two-dimensional autoregression can also be
+specified across ages/lengths and sexes:
 
 $$
-\boldsymbol{\Sigma} = \boldsymbol{R_a} \otimes \boldsymbol{R_s} \cdot \theta^2
+\boldsymbol{\Sigma} = \boldsymbol{R_s} \otimes \boldsymbol{R_c} \cdot \theta^2
 $$
 
 where $\boldsymbol{R_s}$ in this case is a constant correlation matrix
-by sex. Following the specification of a covariance matrix, a logistic
-transformation is then conducted on the observed and expected
-compositions, and a multivariate normal likelihood is invoked on
-logistic random variables:
+by sex, and $\boldsymbol{R_c}$ is a first-order autoregressive process across age/length categories. Following the specification of a covariance matrix, a logistic transformation is then conducted on the observed and expected compositions, and a multivariate normal likelihood is invoked on logistic random variables:
 
 $$
 \begin{aligned}
