@@ -7,6 +7,7 @@
 #' @param newton_loops Number of newton loops to run to get gradients down
 #' @param do_optim Boolean on whether or not model is optimized
 #' @param silent Boolean on whether or not model run is silent
+#' @param ... Additional arguments taken by MakeADFun
 #'
 #' @importFrom stats nlminb optimHess
 #' @return Returns a list object that is optimized, with results outputted from the RTMB model
