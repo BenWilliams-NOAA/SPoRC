@@ -825,23 +825,26 @@ is an identity matrix dimensioned by
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>n</mi><mi>b</mi></msub><mo>−</mo><mn>1</mn><mo>⋅</mo><msub><mi>n</mi><mi>b</mi></msub><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">n_b - 1 \cdot n_b - 1</annotation></semantics></math>.
 A first-order autoregressive process can also be specified across
 ages:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝚺</mi><mo>=</mo><msub><mi>𝐑</mi><mi>𝐚</mi></msub><mo>⋅</mo><msup><mi>θ</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">
-\boldsymbol{\Sigma} = \boldsymbol{R_a} \cdot \theta^2
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝚺</mi><mo>=</mo><msub><mi>𝐑</mi><mi>𝐛</mi></msub><mo>⋅</mo><msup><mi>θ</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">
+\boldsymbol{\Sigma} = \boldsymbol{R_b} \cdot \theta^2
 </annotation></semantics></math></p>
 <p>where
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝐑</mi><mi>𝐚</mi></msub><annotation encoding="application/x-tex">\boldsymbol{R_a}</annotation></semantics></math>
-is a matrix representing a first-order autoregressive process.
-Two-dimensional autoregression can also be specified across ages and
-sexes:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝚺</mi><mo>=</mo><msub><mi>𝐑</mi><mi>𝐚</mi></msub><mo>⊗</mo><msub><mi>𝐑</mi><mi>𝐬</mi></msub><mo>⋅</mo><msup><mi>θ</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">
-\boldsymbol{\Sigma} = \boldsymbol{R_a} \otimes \boldsymbol{R_s} \cdot \theta^2
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝐑</mi><mi>𝐛</mi></msub><annotation encoding="application/x-tex">\boldsymbol{R_b}</annotation></semantics></math>
+is a matrix representing a first-order autoregressive process across
+bins. Two-dimensional autoregression can also be specified across
+ages/lengths and sexes:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝚺</mi><mo>=</mo><msub><mi>𝐑</mi><mi>𝐬</mi></msub><mo>⊗</mo><msub><mi>𝐑</mi><mi>𝐜</mi></msub><mo>⋅</mo><msup><mi>θ</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">
+\boldsymbol{\Sigma} = \boldsymbol{R_s} \otimes \boldsymbol{R_c} \cdot \theta^2
 </annotation></semantics></math></p>
 <p>where
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝐑</mi><mi>𝐬</mi></msub><annotation encoding="application/x-tex">\boldsymbol{R_s}</annotation></semantics></math>
-in this case is a constant correlation matrix by sex. Following the
-specification of a covariance matrix, a logistic transformation is then
-conducted on the observed and expected compositions, and a multivariate
-normal likelihood is invoked on logistic random variables:</p>
+in this case is a constant correlation matrix by sex, and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝐑</mi><mi>𝐜</mi></msub><annotation encoding="application/x-tex">\boldsymbol{R_c}</annotation></semantics></math>
+is a first-order autoregressive process across age/length categories.
+Following the specification of a covariance matrix, a logistic
+transformation is then conducted on the observed and expected
+compositions, and a multivariate normal likelihood is invoked on
+logistic random variables:</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right"><msubsup><mi>O</mi><mi>b</mi><mi>′</mi></msubsup><mo>=</mo><mi>l</mi><mi>o</mi><mi>g</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>O</mi><mrow><mi>−</mi><msub><mi>n</mi><mi>b</mi></msub></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mi>l</mi><mi>o</mi><mi>g</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>O</mi><msub><mi>n</mi><mi>b</mi></msub></msub><mo stretchy="true" form="postfix">)</mo></mrow></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><msubsup><mi>E</mi><mi>b</mi><mi>′</mi></msubsup><mo>=</mo><mi>l</mi><mi>o</mi><mi>g</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>E</mi><mrow><mi>−</mi><msub><mi>n</mi><mi>b</mi></msub></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mi>l</mi><mi>o</mi><mi>g</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>E</mi><msub><mi>n</mi><mi>b</mi></msub></msub><mo stretchy="true" form="postfix">)</mo></mrow></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><mi>L</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mtext mathvariant="normal">ObsCompositionData</mtext><mrow><mi>r</mi><mo>,</mo><mi>y</mi><mo>,</mo><mi>f</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msub><mi>λ</mi><mtext mathvariant="normal">ObsCompositionData</mtext></msub><mo>⋅</mo><mn>2</mn><msup><mi>π</mi><mrow><mi>−</mi><mi>k</mi><mi>/</mi><mn>2</mn></mrow></msup><mtext mathvariant="normal">det</mtext><msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝚺</mi><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mi>−</mi><mn>1</mn><mi>/</mi><mn>2</mn></mrow></msup><mo>exp</mo><mrow><mo stretchy="true" form="prefix">[</mo><mi>−</mi><mfrac><mn>1</mn><mn>2</mn></mfrac><msup><mrow><mo stretchy="true" form="prefix">(</mo><msubsup><mi>O</mi><mi>b</mi><mi>′</mi></msubsup><mo>−</mo><msubsup><mi>E</mi><mi>b</mi><mi>′</mi></msubsup><mo stretchy="true" form="postfix">)</mo></mrow><mi>T</mi></msup><msup><mi>𝚺</mi><mrow><mi>−</mi><mn>1</mn></mrow></msup><mrow><mo stretchy="true" form="prefix">(</mo><msubsup><mi>O</mi><mi>b</mi><mi>′</mi></msubsup><mo>−</mo><msubsup><mi>E</mi><mi>b</mi><mi>′</mi></msubsup><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">]</mo></mrow></mtd></mtr></mtable><annotation encoding="application/x-tex">
 \begin{aligned}
 O^{'}_b = log(O_{-n_b}) - log(O_{n_b}) \\
