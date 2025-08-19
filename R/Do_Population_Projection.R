@@ -4,7 +4,7 @@
 #' @param n_regions Number of regions
 #' @param n_ages Number of ages
 #' @param n_sexes Number of sexes
-#' @param sexratio Recruitment sex ratio
+#' @param sexratio Vector of recruitment sex ratio
 #' @param n_fish_fleets Number of fishery fleets
 #' @param do_recruits_move Whether recruits move (0 == don't move, 1 == move)
 #' @param recruitment Recruitment matrix dimensioned by n_regions, and n_yrs that we want to summarize across, or condition our projection on
@@ -266,7 +266,8 @@ Do_Population_Projection <- function(n_proj_yrs = 2,
       if(recruitment_opt == 'inv_gauss') {
         for(r in 1:n_regions) {
           tmp_rec[r] <- rinvgauss_rec(1, recruitment[r,]) # generate inverse gaussian draws
-          proj_NAA[r,y,1,] <- tmp_rec[r] * sexratio # input into projected NAA
+          if(n_sexes > 1) proj_NAA[r,y,1,] <- tmp_rec[r] * sexratio # input into projected NAA
+          else proj_NAA[r,y,1,] <- tmp_rec[r]
         } # end r loop
       } # end if
 
@@ -274,7 +275,8 @@ Do_Population_Projection <- function(n_proj_yrs = 2,
       if(recruitment_opt == "mean_rec") {
         for(r in 1:n_regions) {
           tmp_rec[r] <- mean(recruitment[r,]) # get mean recruitment
-          proj_NAA[r,y,1,] <- tmp_rec[r] * sexratio # input into projected NAA
+          if(n_sexes > 1) proj_NAA[r,y,1,] <- tmp_rec[r] * sexratio # input into projected NAA
+          else proj_NAA[r,y,1,] <- tmp_rec[r]
         } # end r loop
       }
 
@@ -306,7 +308,8 @@ Do_Population_Projection <- function(n_proj_yrs = 2,
 
         # Input deterministic recruitment
         for(r in 1:n_regions) {
-          proj_NAA[r,y,1,] <- tmp_rec[r] * sexratio # input into projected NAA
+          if(n_sexes > 1) proj_NAA[r,y,1,] <- tmp_rec[r] * sexratio # input into projected NAA
+          else proj_NAA[r,y,1,] <- tmp_rec[r]
         } # end r loop
       }
 

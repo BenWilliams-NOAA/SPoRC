@@ -13,11 +13,8 @@ articles:
   i_reference_points: i_reference_points.html
   j_starting_mapping: j_starting_mapping.html
   k_defining_priors: k_defining_priors.html
-  l_plotting: l_plotting.html
-  m_diagnostics: m_diagnostics.html
-  n_francis_reweighting: n_francis_reweighting.html
   o_get_started: o_get_started.html
-last_built: 2025-08-08T15:43Z
+last_built: 2025-08-19T17:55Z
 urls:
   reference: https://chengmatt.github.io/SPoRC/reference
   article: https://chengmatt.github.io/SPoRC/articles

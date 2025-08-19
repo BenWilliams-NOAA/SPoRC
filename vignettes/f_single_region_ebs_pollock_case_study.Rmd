@@ -59,7 +59,7 @@ To initially set the model up, an input list containing a data list, parameter l
 
 ## Setup Recruitment Dynamics
 
-Following the initialization of `input_list`, we can pass the created object into the next function (`Setup_Mod_Rec`) to parameterize recruitment dynamics. In the case of Bering Sea Pollock, recruitment is parameterized as such:
+Following the initialization of `input_list`, we can pass the created object into the next function (`Setup_Mod_Rec`) to parameterize recruitment dynamics. In the case of Eastern Bering Sea Pollock, recruitment is parameterized as such:
 
 1) Beverton-Holt Recruitment, where steepness is fixed at the 2024 assessment estiamted value,
 2) Recruitment deviations are estimated in a penalized likelihood framework,

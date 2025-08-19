@@ -39,7 +39,7 @@ Do_Population_Projection(
 
 \item{n_sexes}{Number of sexes}
 
-\item{sexratio}{Recruitment sex ratio}
+\item{sexratio}{Vector of recruitment sex ratio}
 
 \item{n_fish_fleets}{Number of fishery fleets}
 

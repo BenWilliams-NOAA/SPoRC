@@ -6,7 +6,7 @@
 \usage{
 Setup_Mod_Weighting(
   input_list,
-  sablefish_ADMB,
+  sablefish_ADMB = 0,
   likelihoods,
   Wt_Catch = 1,
   Wt_FishIdx = 1,

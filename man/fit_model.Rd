@@ -29,6 +29,8 @@ fit_model(
 \item{silent}{Boolean on whether or not model run is silent}
 
 \item{do_optim}{Boolean on whether or not model is optimized}
+
+\item{...}{Additional arguments taken by MakeADFun}
 }
 \value{
 Returns a list object that is optimized, with results outputted from the RTMB model
