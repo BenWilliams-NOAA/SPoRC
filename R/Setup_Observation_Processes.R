@@ -99,7 +99,7 @@ Setup_Sim_Observation_Proc <- function(Comp_Structure,
 #'
 #' @export Setup_Mod_Weighting
 Setup_Mod_Weighting <- function(input_list,
-                                sablefish_ADMB,
+                                sablefish_ADMB = 0,
                                 likelihoods,
                                 Wt_Catch = 1,
                                 Wt_FishIdx = 1,

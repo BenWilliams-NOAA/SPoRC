@@ -320,7 +320,12 @@ do_retrospective <- function(n_retro,
               init$retro_data$Wt_SrvLenComps[] <- 1
             } else {
               # get new weights
-              wts <- do_francis_reweighting(data = init$retro_data, rep = rep, age_labels = init$retro_data$ages, len_labels = init$retro_data$lens, year_labels = init$retro_data$years)
+              wts <- do_francis_reweighting(data = init$retro_data, rep = rep,
+                                            # Use dimensions of fishery ages to get weights (because obs and modelled ages might not equal; dimensions should be observed ages)
+                                            age_labels = 1:dim(data$ObsFishAgeComps)[3],
+                                            len_labels = init$retro_data$lens,
+                                            year_labels = init$retro_data$years)
+
               init$retro_data$Wt_FishAgeComps[] <- wts$new_fish_age_wts
               init$retro_data$Wt_FishLenComps[] <- wts$new_fish_len_wts
               init$retro_data$Wt_SrvAgeComps[] <- wts$new_srv_age_wts

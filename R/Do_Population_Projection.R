@@ -266,7 +266,8 @@ Do_Population_Projection <- function(n_proj_yrs = 2,
       if(recruitment_opt == 'inv_gauss') {
         for(r in 1:n_regions) {
           tmp_rec[r] <- rinvgauss_rec(1, recruitment[r,]) # generate inverse gaussian draws
-          proj_NAA[r,y,1,] <- tmp_rec[r] * sexratio # input into projected NAA
+          if(n_sexes > 1) proj_NAA[r,y,1,] <- tmp_rec[r] * sexratio # input into projected NAA
+          else proj_NAA[r,y,1,] <- tmp_rec[r]
         } # end r loop
       } # end if
 
@@ -274,7 +275,8 @@ Do_Population_Projection <- function(n_proj_yrs = 2,
       if(recruitment_opt == "mean_rec") {
         for(r in 1:n_regions) {
           tmp_rec[r] <- mean(recruitment[r,]) # get mean recruitment
-          proj_NAA[r,y,1,] <- tmp_rec[r] * sexratio # input into projected NAA
+          if(n_sexes > 1) proj_NAA[r,y,1,] <- tmp_rec[r] * sexratio # input into projected NAA
+          else proj_NAA[r,y,1,] <- tmp_rec[r]
         } # end r loop
       }
 
@@ -306,7 +308,8 @@ Do_Population_Projection <- function(n_proj_yrs = 2,
 
         # Input deterministic recruitment
         for(r in 1:n_regions) {
-          proj_NAA[r,y,1,] <- tmp_rec[r] * sexratio # input into projected NAA
+          if(n_sexes > 1) proj_NAA[r,y,1,] <- tmp_rec[r] * sexratio # input into projected NAA
+          else proj_NAA[r,y,1,] <- tmp_rec[r]
         } # end r loop
       }
 
