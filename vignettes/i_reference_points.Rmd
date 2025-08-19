@@ -778,7 +778,7 @@ data("sgl_rg_sable_data") # read in single region data
 
 # Setup necessary inputs
 t_spawn <- 0 # spawn timing
-sexratio <- 0.5 # sex ratio
+sexratio <- c(0.5, 0.5) # sex ratio
 n_proj_yrs <- 15 # number of projection years
 n_regions <- 1 # number of regions
 n_ages <- length(sgl_rg_sable_data$ages) # number of ages
@@ -931,7 +931,7 @@ data("mlt_rg_sable_data") # read in multi region data
 
 # Setup necessary inputs
 t_spawn <- 0 # spawn timing
-sexratio <- 0.5 # sex ratio
+sexratio <- c(0.50, 0.5) # sex ratio
 n_proj_yrs <- 15 # number of projection years
 n_regions <- 5 # number of regions
 n_ages <- length(mlt_rg_sable_data$ages) # number of ages
@@ -1058,7 +1058,7 @@ data("sgl_rg_sable_data") # read in single region data
 # Setup necessary inputs
 n_sims <- 1e3 # number of simulations to conduct
 t_spawn <- 0 # spawn timing
-sexratio <- 0.5 # sex ratio
+sexratio <- c(0.50, 0.5) # sex ratio
 n_proj_yrs <- 15 # number of projection years
 n_regions <- 1 # number of regions
 n_ages <- length(sgl_rg_sable_data$ages) # number of ages

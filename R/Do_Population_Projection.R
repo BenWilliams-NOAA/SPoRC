@@ -4,7 +4,7 @@
 #' @param n_regions Number of regions
 #' @param n_ages Number of ages
 #' @param n_sexes Number of sexes
-#' @param sexratio Recruitment sex ratio
+#' @param sexratio Vector of recruitment sex ratio
 #' @param n_fish_fleets Number of fishery fleets
 #' @param do_recruits_move Whether recruits move (0 == don't move, 1 == move)
 #' @param recruitment Recruitment matrix dimensioned by n_regions, and n_yrs that we want to summarize across, or condition our projection on
