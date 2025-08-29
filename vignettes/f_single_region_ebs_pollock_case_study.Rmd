@@ -197,12 +197,8 @@ input_list <- Setup_Mod_FishIdx_and_Comps(
     # length comp likelihoods for fishery
     FishAgeComps_Type = c("agg_Year_1-terminal_Fleet_1"),
     # age comp structure for fishery
-    FishLenComps_Type = c("none_Year_1-terminal_Fleet_1"),
+    FishLenComps_Type = c("none_Year_1-terminal_Fleet_1")
     # length comp structure for fishery
-    FishAge_comp_agg_type = c(1),
-    # ADMB aggregation quirks, ideally get rid of this
-    FishLen_comp_agg_type = c(0)
-    # ADMB aggregation quirks, ideally get rid of this
   )
 ```
 
@@ -244,13 +240,8 @@ Setting up survey indices and compositions follows a similar fashion. Here, will
       "none_Year_1-terminal_Fleet_1",
       "none_Year_1-terminal_Fleet_2",
       "none_Year_1-terminal_Fleet_3"
-    ),
+    )
     # survey length comp type
-
-    SrvAge_comp_agg_type = c(1, 1, 1),
-    # ADMB aggregation quirks, ideally get rid of this
-    SrvLen_comp_agg_type = c(0, 0, 0)
-    # ADMB aggregation quirks, ideally get rid of this
   )
 ```
 
@@ -317,12 +308,10 @@ Survey selectivity is setup in a similar way. Here, we specify that the first su
 
 # Setup Model Weighting
 
-We will then set up how data should be weighted with $\lambda$ in this model. Here, all $\lambda$ values are set at 1 and TMB likelihoods are utilized. Thus, all data sources are weighted either using specified input sample sizes (for composition data) or specified variances (catch and abundance indices). 
+We will then set up how data should be weighted with $\lambda$ in this model. Here, all $\lambda$ values are set at 1. Thus, all data sources are weighted either using specified input sample sizes (for composition data) or specified variances (catch and abundance indices). 
 ```{r, eval = FALSE}
 input_list <- Setup_Mod_Weighting(
   input_list = input_list,
-  sablefish_ADMB = 0,
-  likelihoods = 1, # using TMB likelihoods
   Wt_Catch = 1,
   Wt_FishIdx = 1,
   Wt_SrvIdx = 1,

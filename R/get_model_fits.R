@@ -126,7 +126,6 @@ get_idx_fits <- function(data,
 #' @param Comp_Type Composition Parameterization Type (== 0, aggregated comps by sex, == 1, split comps by sex (no implicit sex ratio information), == 2, joint comps across sexes (implicit sex ratio information)
 #' @param age_or_len Age or length comps (== 0, Age, == 1, Length)
 #' @param AgeingError Ageing Error matrix
-#' @param comp_agg_type Composition aggregation type to mimic sablefish ADMB assessment
 #'
 #' @return Returns a list of array observed and expected values for a given year and fleet
 #' @keywords internal
@@ -162,20 +161,13 @@ Restrc_Comps <- function(Exp,
 
   # Aggregated comps by sex and region
   if(Comp_Type == 0) {
-    if(comp_agg_type == 0) { # aggregated age comps are normalized, aggregated, ageing error, and then normalized again
-      # Expected Values
-      tmp_Exp = Exp / array(data = rep(colSums(matrix(Exp, nrow = n_model_bins)), each = n_model_bins), dim = dim(Exp)) # normalize by sex and region
-      tmp_Exp = matrix(rowSums(matrix(tmp_Exp, nrow = n_model_bins)) / (n_sexes * n_regions), nrow = 1) # take average proportions and transpose
-    }
 
-    if(comp_agg_type == 1) tmp_Exp = matrix(rowSums(matrix(Exp, nrow = n_model_bins)) / (n_sexes * n_regions), nrow = 1) # age comps are aggregated, ageing error, and the normalized
-
+    tmp_Exp = matrix(rowSums(matrix(Exp, nrow = n_model_bins)) / (n_sexes * n_regions), nrow = 1) # aggregate
     # Expected age bins get collapsed to observed age bins if ageing error is non-square
     if(age_or_len == 0) {
       tmp_Exp = tmp_Exp %*% AgeingError # apply ageing error
-      tmp_Exp = as.vector((tmp_Exp) / sum(tmp_Exp)) # renormalize
+      tmp_Exp = tmp_Exp / sum(tmp_Exp) # renormalize
     }
-
     if(age_or_len == 1) tmp_Exp = as.vector((tmp_Exp) / sum(tmp_Exp)) # renormalize (lengths)
 
     # Normalize observed
@@ -193,9 +185,11 @@ Restrc_Comps <- function(Exp,
       for(r in 1:n_regions) {
 
         # Expected Values
-        if(age_or_len == 0) tmp_Exp = ((Exp[r,1,,s,1]) / sum(Exp[r,1,,s,1])) %*% AgeingError # Normalize temporary variable (ages), collapses to observed age bins if ageing error is non square
-        if(age_or_len == 1 && comp_agg_type == 0) tmp_Exp = (Exp[r,1,,s,1]) / sum(Exp[r,1,,s,1]) # Length comps are not normalized prior to age length transition
-        if(age_or_len == 1 && comp_agg_type == 1) tmp_Exp = (Exp[r,1,,s,1]) # Length comps are normalized prior to age length transition
+        if(age_or_len == 0) {
+          tmp_Exp = ((Exp[r,1,,s,1]) / sum(Exp[r,1,,s,1])) %*% AgeingError # Normalize temporary variable (ages), collapses to observed age bins if ageing error is non square
+          tmp_Exp = tmp_Exp / sum(tmp_Exp) # renormalize
+        }
+        if(age_or_len == 1) tmp_Exp = (Exp[r,1,,s,1]) / sum(Exp[r,1,,s,1]) # normalize lengths
 
         tmp_Obs = (Obs[r,1,,s,1]) / sum(Obs[r,1,,s,1]) # Normalize observed temporary variable
 
@@ -213,7 +207,6 @@ Restrc_Comps <- function(Exp,
         tmp_Exp = t(as.vector((Exp[r,1,,,1])/ sum(Exp[r,1,,,1]))) %*% kronecker(diag(n_sexes), AgeingError) # apply ageing error, collapses to observed age bins if ageing error is non square
         tmp_Exp = as.vector((tmp_Exp) / sum(tmp_Exp)) # renormalize to make sure sum to 1
       } # if ages
-
       if(age_or_len == 1) tmp_Exp = as.vector((Exp[r,1,,,1]) / sum((Exp[r,1,,,1]))) # Normalize temporary variable (lengths)
 
       tmp_Obs = (Obs[r,1,,,1]) / sum(Obs[r,1,,,1]) # Normalize observed temporary variable
@@ -350,11 +343,10 @@ get_comp_prop <- function(data,
         Exp <- CAA[,y,,,f, drop = FALSE] # expected
         Obs <- ObsFishAgeComps[,y,,,f, drop = FALSE] # observed
         Comp_Type <- FishAge_CompType[y,f] # composition type
-        comp_agg_type <- FishAge_comp_agg_type[f] # aggregation type
 
         # reformat expected compositions
         tmp_comps <- Restrc_Comps(Exp = Exp, Obs = Obs, Comp_Type = Comp_Type,
-                                  age_or_len = 0, AgeingError = AgeingError_t[y,,], comp_agg_type = comp_agg_type)
+                                  age_or_len = 0, AgeingError = AgeingError_t[y,,])
         # Input into storage
         Obs_FishAge[,y,,,f] <- tmp_comps$Obs
         Pred_FishAge[,y,,,f] <- tmp_comps$Exp
@@ -373,11 +365,10 @@ get_comp_prop <- function(data,
         Exp <- CAL[,y,,,f, drop = FALSE] # expected
         Obs <- ObsFishLenComps[,y,,,f, drop = FALSE] # observed
         Comp_Type <- FishLen_CompType[y,f] # composition type
-        comp_agg_type <- FishLen_comp_agg_type[f] # aggregation type
 
         # get compositions
         tmp_comps <- Restrc_Comps(Exp = Exp, Obs = Obs, Comp_Type = Comp_Type,
-                                  age_or_len = 1, AgeingError = NA, comp_agg_type = comp_agg_type)
+                                  age_or_len = 1, AgeingError = NA)
         # Input into storage
         Obs_FishLen[,y,,,f] <- tmp_comps$Obs
         Pred_FishLen[,y,,,f] <- tmp_comps$Exp
@@ -397,11 +388,10 @@ get_comp_prop <- function(data,
         Exp <- SrvIAA[,y,,,f, drop = FALSE] # expected
         Obs <- ObsSrvAgeComps[,y,,,f, drop = FALSE] # observed
         Comp_Type <- SrvAge_CompType[y,f] # composition type
-        comp_agg_type <- SrvAge_comp_agg_type[f] # aggregation type
 
         # reformat expected compositions
         tmp_comps <- Restrc_Comps(Exp = Exp, Obs = Obs, Comp_Type = Comp_Type,
-                                  age_or_len = 0, AgeingError = AgeingError_t[y,,], comp_agg_type = comp_agg_type)
+                                  age_or_len = 0, AgeingError = AgeingError_t[y,,])
         # Input into storage
         Obs_SrvAge[,y,,,f] <- tmp_comps$Obs
         Pred_SrvAge[,y,,,f] <- tmp_comps$Exp
@@ -421,11 +411,10 @@ get_comp_prop <- function(data,
         Exp <- SrvIAL[,y,,,f, drop = FALSE] # expected
         Obs <- ObsSrvLenComps[,y,,,f, drop = FALSE] # observed
         Comp_Type <- SrvLen_CompType[y,f] # composition type
-        comp_agg_type <- SrvLen_comp_agg_type[f] # aggregation type
 
         # reformat expected compositions
         tmp_comps <- Restrc_Comps(Exp = Exp, Obs = Obs, Comp_Type = Comp_Type,
-                                  age_or_len = 1, AgeingError = NA, comp_agg_type = comp_agg_type)
+                                  age_or_len = 1, AgeingError = NA)
         # Input into storage
         Obs_SrvLen[,y,,,f] <- tmp_comps$Obs
         Pred_SrvLen[,y,,,f] <- tmp_comps$Exp

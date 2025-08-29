@@ -414,8 +414,8 @@ below):
 
 $$
 \begin{aligned}
-\text{FshIdx}_{r,y,f} = q^{Fsh}_{r,y,f} \sum_a^{a_+} \sum_s^{n_s} N_{r,y,a,s} \exp(-Z_{r,y,a,s}0.5) Sel_{r,y,a,s,f}^{Fsh} \\
-\text{FshIdx}_{r,y,f} = q^{Fsh}_{r,y,f} \sum_a^{a_+} \sum_s^{n_s} N_{r,y,a,s} \exp(-Z_{r,y,a,s}0.5) Sel_{r,y,a,s,f}^{Fsh} W_{r,y,a,s}^\text{fish}
+\text{FshIdx}_{r,y,f} = q^{Fsh}_{r,y,f} \sum_a^{a_+} \sum_s^{n_s} N_{r,y,a,s} \exp(-Z_{r,y,a,s}) Sel_{r,y,a,s,f}^{Fsh} \\
+\text{FshIdx}_{r,y,f} = q^{Fsh}_{r,y,f} \sum_a^{a_+} \sum_s^{n_s} N_{r,y,a,s} \exp(-Z_{r,y,a,s}) Sel_{r,y,a,s,f}^{Fsh} W_{r,y,a,s}^\text{fish}
 \end{aligned}
 $$
 
@@ -431,10 +431,10 @@ survey catch-at-length, and survey indices. Expected survey catch-at-age
 ($I^a_{r,y,a,s,sf}$) is calculated using the following equation:
 
 $$
-I^a_{r,y,a,s,sf} = N_{r,y,a,s} \exp(-Z_{r,y,a,s}0.5) Sel_{r,y,a,s,sf}^{Srv} 
+I^a_{r,y,a,s,sf} = N_{r,y,a,s} \exp(-Z_{r,y,a,s}t_{srv}) Sel_{r,y,a,s,sf}^{Srv} 
 $$
 
-where $Sel_{r,y,a,s,sf}^{Srv}$ here is the survey selectivity pattern.
+where $Sel_{r,y,a,s,sf}^{Srv}$ here is the survey selectivity pattern and $t_{srv}$ is the timing of the survey.
 Expected survey catch-at-length ($I^l_{r,y,l,s,sf}$) can then be derived
 as:
 

@@ -344,8 +344,6 @@ Lastly, we can then set up the model weights for our estimation model with the f
 ```{r, eval = FALSE}
 # setup model weighting
 input_list <- Setup_Mod_Weighting(input_list = input_list,
-                                  sablefish_ADMB = 0, # not using sablefish weirdness
-                                  likelihoods = 1, # tmb likelihoods
                                   Wt_Catch = 1, # catch weight
                                   Wt_FishIdx = 1, # fishery idx weight
                                   Wt_SrvIdx = 1, # survey idx weight

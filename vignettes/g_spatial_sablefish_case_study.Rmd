@@ -281,12 +281,7 @@ input_list <- Setup_Mod_FishIdx_and_Comps(input_list = input_list,
                                           # age comp structure for fishery fleet 1 and 2
                                           FishLenComps_Type =
                                             c("spltRjntS_Year_1-terminal_Fleet_1",
-                                              "spltRjntS_Year_1-terminal_Fleet_2"),
-                                          # length comp structure for fishery fleet 1 and 2
-                                          FishAge_comp_agg_type = c(NA,NA),
-                                          # ADMB aggregation quirks, ideally get rid of this
-                                          FishLen_comp_agg_type = c(NA,NA)
-                                          # ADMB aggregation quirks, ideally get rid of this
+                                              "spltRjntS_Year_1-terminal_Fleet_2")
 )
 ```
 
@@ -320,12 +315,8 @@ input_list <- Setup_Mod_SrvIdx_and_Comps(input_list = input_list,
                                                               "spltRjntS_Year_1-terminal_Fleet_2"),
                                          # survey age comp type
                                          SrvLenComps_Type = c("none_Year_1-terminal_Fleet_1",
-                                                              "none_Year_1-terminal_Fleet_2"),
+                                                              "none_Year_1-terminal_Fleet_2")
                                          # survey length comp type
-                                         SrvAge_comp_agg_type = c(NA, NA),
-                                         # ADMB aggregation quirks, ideally get rid of this
-                                         SrvLen_comp_agg_type = c(NA, NA)
-                                         # ADMB aggregation quirks, ideally get rid of this
 )
 ```
 
@@ -486,16 +477,11 @@ input_list$par$ln_srv_fixed_sel_pars[] <- log(5) # some more informative startin
 
 ## Setup Model Weighting 
 
-Finally, we can specify how we want model weighting to be conducted. In this case, we are using TMB-style likelihoods (`likelihoods = 1`) such that all data sources are weighted with user specified sigmas or standard errors. Thus, the remaining arguments of `Wt_Catch`, `Wt_FishIdx`, `Wt_SrvIdx`, `Wt_Rec`, and `Wt_F` are specified at 1. Additionally, Francis re-weighting is not used in this case study and composition weights are similarly specified at values of 1 (`Wt_FishAgeComps`, `Wt_FishLenComps`, `Wt_SrvAgeComps`, and `Wt_SrvLenComps`).
+Finally, we can specify how we want model weighting to be conducted. Here, all weights are specified at 1. 
 
 ```{r Setup Weighting, message = FALSE,  eval = FALSE}
 # set up model weighting stuff
 input_list <- Setup_Mod_Weighting(input_list = input_list,
-                                  sablefish_ADMB = 0,
-                                  # don't use sablefish single region ADMB quirks
-                                  likelihoods = 1, # using TMB-style likelihoods,
-                                  # and weight using sigmas, instead of lambdas
-                                  # and sigmas together
                                   Wt_Catch = 1,
                                   Wt_FishIdx = 1,
                                   Wt_SrvIdx = 1,
@@ -543,7 +529,7 @@ sabie_rtmb_model <- fit_model(data,
                               mapping,
                               random = NULL,
                               newton_loops = 5,
-                              silent = TRUE
+                              silent = F
                               )
 
 # Get standard error report

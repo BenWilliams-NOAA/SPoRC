@@ -171,12 +171,8 @@ input_list <- Setup_Mod_FishIdx_and_Comps(
   # length comp likelihoods for fishery
   FishAgeComps_Type = c("agg_Year_1-terminal_Fleet_1"),
   # age comp structure for fishery
-  FishLenComps_Type = c("agg_Year_1-terminal_Fleet_1"),
+  FishLenComps_Type = c("agg_Year_1-terminal_Fleet_1")
   # length comp structure for fishery
-  FishAge_comp_agg_type = c(1),
-  # ADMB aggregation quirks, ideally get rid of this
-  FishLen_comp_agg_type = c(0)
-  # ADMB aggregation quirks, ideally get rid of this
 )
 ```
 
@@ -212,13 +208,8 @@ input_list <- Setup_Mod_SrvIdx_and_Comps(
 
   SrvLenComps_Type = c(
     "agg_Year_1-terminal_Fleet_1"
-  ),
+  )
   # survey length comp type
-
-  SrvAge_comp_agg_type = 1,
-  # ADMB aggregation quirks, ideally get rid of this
-  SrvLen_comp_agg_type = NA
-  # ADMB aggregation quirks, ideally get rid of this
 )
 ```
 
@@ -296,8 +287,6 @@ Wt_Catch[,-which(sgl_rg_dusky_data$years %in% 1977:1991),] <- 50
 
 input_list <- Setup_Mod_Weighting(
   input_list = input_list,
-  sablefish_ADMB = 0,
-  likelihoods = 1, # using TMB likelihoods
   Wt_Catch = Wt_Catch,
   Wt_FishIdx = 1,
   Wt_SrvIdx = 1.66,
@@ -350,47 +339,20 @@ nofrancis_model$sdrep <- RTMB::sdreport(nofrancis_model) # get standard error re
 ```
 
 ## Fit model (With Francis)
-Conducting Francis re-weighting on composition data requires an iterative procedure to adjust the effective weights of age and length compositions based on model fit. First, a separate copy of the data list (`francis_data`) is created, which will be updated with revised weights during the iterations. The number of Francis iterations is specified (`n_francis_iters = 10`), which indicates the number of times the model is refit, where the composition weights are updated after each model iteration.
-Within the loop, the first iteration resets all composition weights to 1. For subsequent iterations, weights are updated using the output from the previous iteration (`wts$new_fish_age_wts`, `wts$new_fish_len_wts`, etc.), which are computed using the weight calculations from Francis's method of TA1.8. During each iteration, the model is fitted with `fit_model`, and the resulting report is extracted. The function `do_francis_reweighting` then computes new weights for the next iteration. After all iterations are complete, a standard error report (`sdreport`) is generated for the final Francis-reweighted model. Note that the Francis weights are now saved in the `francis_data` list.
-
-
+Conducting Francis re-weighting on composition data requires an iterative procedure to adjust the effective weights of age and length compositions based on model fit. First, a separate copy of the data list (`francis_data`) is created, which will be updated with revised weights during the iterations. The number of Francis iterations is specified (`n_francis_iters = 10`), which indicates the number of times the model is refit, where the composition weights are updated after each model iteration. The `run_francis` function then conducts the reweighting procedure and the weights are saved inside the data list object (`francis_runs$obj$data`)
 ```{r eval = FALSE}
 francis_data <- data # redefine data list for francis (replacing data weights)
-n_francis_iters <- 10 # number of francis iterations
 
-for(j in 1:n_francis_iters) {
+# run francis reweighting
+francis_runs <- run_francis(francis_data,
+                             parameters,
+                             mapping,
+                             n_francis_iters = 10,
+                             newton_loops =  3)
 
-  if(j == 1) { # reset weights at 1
-    francis_data$Wt_FishAgeComps[] <- 1
-    francis_data$Wt_FishLenComps[] <- 1
-    francis_data$Wt_SrvAgeComps[] <- 1
-    francis_data$Wt_SrvLenComps[] <- 1
-  } else {
-    # iterate francis weights
-    francis_data$Wt_FishAgeComps[] <- wts$new_fish_age_wts
-    francis_data$Wt_FishLenComps[] <- wts$new_fish_len_wts
-    francis_data$Wt_SrvAgeComps[] <- wts$new_srv_age_wts
-    francis_data$Wt_SrvLenComps[] <- wts$new_srv_len_wts
-  }
-
-  # run model
-  francis_model <- fit_model(francis_data,
-                                 parameters,
-                                 mapping,
-                                 random = NULL,
-                                 newton_loops = 3,
-                                 silent = TRUE
-  )
-
-  rep <- francis_model$report(francis_model$env$last.par.best) # Get report
-
-  # get francis weights
-  wts <- do_francis_reweighting(data = francis_data, rep = rep,
-                                age_labels = 4:30,
-                                len_labels = 21:52,
-                                year_labels = 1977:2024)
-} # end j loop
-
+# get obj
+francis_model <- francis_runs$obj
+francis_data <- francis_runs$obj$data
 francis_model$sdrep <- RTMB::sdreport(francis_model) # get standard error report
 ```
 
@@ -776,7 +738,7 @@ mcmc_diagnostics[[4]]
 ![](figures/o_mcmc_mle_comp.png)
 
 Time series of recruitment and spawning stock biomass derived from posterior samples can also readily be plotted. 
-```{r}
+```{r eval = FALSE}
 mcmc_ts_plot <- get_mcmc_ssb_rec(mcmc, francis_model)
 mcmc_ts_plot[[2]] + coord_cartesian(ylim = c(0, NA))
 ```

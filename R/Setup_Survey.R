@@ -378,23 +378,6 @@ do_SrvLen_corr_pars_mapping <- function(input_list) {
 #' (e.g., \code{"agg_Year_1-10_Fleet_1"}).
 #'
 #' @param SrvLenComps_Type Same as \code{SrvAgeComps_Type}, but for length compositions.
-#'
-#' @param SrvAge_comp_agg_type Optional integer vector of length \code{n_srv_fleets} specifying
-#' the order of operations for aggregating age compositions when \code{SrvAgeComps_Type == "agg"}.
-#' \itemize{
-#'   \item \code{0}: Normalize, then aggregate, then apply ageing error, then normalize again.
-#'   \item \code{1}: Aggregate first, normalize, then apply ageing error.
-#' }
-#' Default is \code{NULL}.
-#'
-#' @param SrvLen_comp_agg_type Optional integer vector of length \code{n_srv_fleets} specifying
-#' the order of operations for aggregating length compositions.
-#' \itemize{
-#'   \item \code{0}: Do not normalize before applying size–age transition.
-#'   \item \code{1}: Normalize before applying size–age transition.
-#' }
-#' Default is \code{NULL}.
-#'
 #' @param srv_idx_type Character vector of length \code{n_srv_fleets} specifying the type of index data.
 #' Options are \code{"abd"} for abundance, \code{"biom"} for biomass, and \code{"none"} if no index is available.
 #'
@@ -424,8 +407,6 @@ Setup_Mod_SrvIdx_and_Comps <- function(input_list,
                                        SrvLenComps_LikeType,
                                        SrvAgeComps_Type,
                                        SrvLenComps_Type,
-                                       SrvAge_comp_agg_type = NULL,
-                                       SrvLen_comp_agg_type = NULL,
                                        ...
                                        ) {
 
@@ -619,17 +600,6 @@ Setup_Mod_SrvIdx_and_Comps <- function(input_list,
   input_list$data$SrvAgeComps_Type <- SrvAgeComps_Type_Mat
   input_list$data$SrvLenComps_Type <- SrvLenComps_Type_Mat
   input_list$data$srv_idx_type <- srv_idx_type_vals
-
-  # initialize how to aggregate survey age comps
-  if(is.null(SrvAge_comp_agg_type)) {
-    input_list$data$SrvAge_comp_agg_type <- rep(NA, input_list$data$n_srv_fleets)
-  } else input_list$data$SrvAge_comp_agg_type <- SrvAge_comp_agg_type
-
-  # Initialize how to aggregate survey length comps
-  if(is.null(SrvLen_comp_agg_type)) {
-    input_list$data$SrvLen_comp_agg_type <- rep(NA, input_list$data$n_srv_fleets)
-  } else input_list$data$SrvLen_comp_agg_type <- SrvLen_comp_agg_type
-
 
   # Populate Parameter List -------------------------------------------------
 
@@ -1409,6 +1379,7 @@ do_srvsel_devs_mapping <- function(input_list, srv_sel_devs_spec) {
 #'         two covariates.
 #'   \item \code{"Region_3_Fleet_2"} = \code{~ NULL} disables environmental covariates for that fleet-region.
 #' }
+#' @param t_srv Survey timing in fractions (n_regions * n_srv_fleets; default is 0.5)
 #'
 #' @export Setup_Mod_Srvsel_and_Q
 #' @importFrom stringr str_detect
@@ -1428,6 +1399,7 @@ Setup_Mod_Srvsel_and_Q <- function(input_list,
                                    srv_q_cov_dat = NULL,
                                    Use_srv_selex_prior = 0,
                                    srv_selex_prior = NULL,
+                                   t_srv = array(0.5, dim = c(input_list$data$n_regions, input_list$data$n_srv_fleets)),
                                    ...
                                    ) {
 
@@ -1659,6 +1631,7 @@ Setup_Mod_Srvsel_and_Q <- function(input_list,
   input_list$data$srv_q_cov <- srv_q_cov
   input_list$data$Use_srv_selex_prior <- Use_srv_selex_prior
   input_list$data$srv_selex_prior <- srv_selex_prior
+  input_list$data$t_srv <- t_srv
 
 
   # Populate Parameter List -------------------------------------------------

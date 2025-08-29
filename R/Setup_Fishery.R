@@ -793,23 +793,6 @@ do_FishLen_corr_pars_mapping <- function(input_list) {
 #' (e.g., \code{"agg_Year_1-10_Fleet_1"}).
 #'
 #' @param FishLenComps_Type Same as \code{FishAgeComps_Type}, but for length compositions.
-#'
-#' @param FishAge_comp_agg_type Optional integer vector of length \code{n_fish_fleets} specifying
-#' the order of operations for aggregating age compositions when \code{FishAgeComps_Type == "agg"}.
-#' \itemize{
-#'   \item \code{0}: Normalize, then aggregate, then apply ageing error, then normalize again.
-#'   \item \code{1}: Aggregate first, normalize, then apply ageing error.
-#' }
-#' Default is \code{NULL}.
-#'
-#' @param FishLen_comp_agg_type Optional integer vector of length \code{n_fish_fleets} specifying
-#' the order of operations for aggregating length compositions.
-#' \itemize{
-#'   \item \code{0}: Do not normalize before applying size–age transition.
-#'   \item \code{1}: Normalize before applying size–age transition.
-#' }
-#' Default is \code{NULL}.
-#'
 #' @param fish_idx_type Character vector of length \code{n_fish_fleets} specifying the type of index data.
 #' Options are \code{"abd"} for abundance, \code{"biom"} for biomass, and \code{"none"} if no index is available.
 #'
@@ -839,8 +822,6 @@ Setup_Mod_FishIdx_and_Comps <- function(input_list,
                                         FishLenComps_LikeType,
                                         FishAgeComps_Type,
                                         FishLenComps_Type,
-                                        FishAge_comp_agg_type = NULL,
-                                        FishLen_comp_agg_type = NULL,
                                         ...
                                         ) {
 
@@ -1038,16 +1019,6 @@ Setup_Mod_FishIdx_and_Comps <- function(input_list,
   input_list$data$FishLenComps_LikeType <- comp_fishlen_like_vals
   input_list$data$FishAgeComps_Type <- FishAgeComps_Type_Mat
   input_list$data$FishLenComps_Type <- FishLenComps_Type_Mat
-
-  # Aggregation steps for fishery ages
-  if(is.null(FishAge_comp_agg_type)) {
-    input_list$data$FishAge_comp_agg_type <- rep(NA, input_list$data$n_fish_fleets)
-  } else input_list$data$FishAge_comp_agg_type <- FishAge_comp_agg_type
-
-  # Aggregation steps for fishery lengths
-  if(is.null(FishLen_comp_agg_type)) {
-    input_list$data$FishLen_comp_agg_type <- rep(NA, input_list$data$n_fish_fleets)
-  } else input_list$data$FishLen_comp_agg_type <- FishLen_comp_agg_type
 
   # Populate Parameter List -------------------------------------------------
 

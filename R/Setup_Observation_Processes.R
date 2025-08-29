@@ -76,11 +76,6 @@ Setup_Sim_Observation_Proc <- function(Comp_Structure,
 #' Set up SPoRC model weighting
 #'
 #' @param input_list List containing data, parameter, and map lists.
-#' @param likelihoods Numeric flag indicating likelihood implementation to use:
-#'   \itemize{
-#'     \item 0 for ADMB likelihoods
-#'     \item 1 for TMB likelihoods
-#'   }
 #' @param Wt_Catch Either a numeric scalar (lambda) applied to the overall catch dataset or an array of lambdas (i.e., weights can change by year and fleet) dimensioned by n_regions, n_years, n_fish_fleets.
 #' @param Wt_FishIdx Either a numeric scalar (lambda) applied to the overall fishery index dataset  or an array of lambdas (i.e., weights can change by year and fleet) dimensioned by n_regions, n_years, n_fish_fleets.
 #' @param Wt_SrvIdx Either a numeric scalar (lambda) applied to the overall survey index dataset or an array of lambdas (i.e., weights can change by year and fleet) dimensioned by n_regions, n_years, n_srv_fleets.
@@ -90,17 +85,10 @@ Setup_Sim_Observation_Proc <- function(Comp_Structure,
 #' @param Wt_SrvAgeComps Numeric weight (lambda) applied to survey age composition data.
 #' @param Wt_FishLenComps Numeric weight (lambda) applied to fishery length composition data.
 #' @param Wt_SrvLenComps Numeric weight (lambda) applied to survey length composition data.
-#' @param sablefish_ADMB Numeric flag to mimic calculations for the sablefish ADMB model:
-#'   \itemize{
-#'     \item 1 to mimic sablefish ADMB calculations
-#'     \item 0 otherwise
-#'   }
 #' @param Wt_Tagging Numeric weight (lambda) applied to tagging data.
 #'
 #' @export Setup_Mod_Weighting
 Setup_Mod_Weighting <- function(input_list,
-                                sablefish_ADMB = 0,
-                                likelihoods,
                                 Wt_Catch = 1,
                                 Wt_FishIdx = 1,
                                 Wt_SrvIdx = 1,
@@ -115,11 +103,6 @@ Setup_Mod_Weighting <- function(input_list,
 
   messages_list <<- character(0) # string to attach to for printing messages
 
-  if(!likelihoods %in% c(0,1)) stop("likelihoods are not correctly specified. Should be either 0 (ADMB) or 1 (TMB)")
-  else collect_message("Using ", ifelse(likelihoods == 0, 'ADMB', 'TMB'), " likelihoods")
-
-  input_list$data$sablefish_ADMB <- sablefish_ADMB
-  input_list$data$likelihoods <- likelihoods
   input_list$data$Wt_Catch <- Wt_Catch
   input_list$data$Wt_FishIdx <- Wt_FishIdx
   input_list$data$Wt_SrvIdx <- Wt_SrvIdx
