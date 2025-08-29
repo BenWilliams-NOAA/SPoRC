@@ -775,6 +775,13 @@ mcmc_diagnostics[[4]]
 ![](figures/o_mcmc_dens.png)
 ![](figures/o_mcmc_mle_comp.png)
 
+Time series of recruitment and spawning stock biomass derived from posterior samples can also readily be plotted. 
+```{r}
+mcmc_ts_plot <- get_mcmc_ssb_rec(mcmc, francis_model)
+mcmc_ts_plot[[2]] + coord_cartesian(ylim = c(0, NA))
+```
+![](figures/o_mcmc_ts_plot.png)
+
 # Reference Points and Projections
 
 The final step in the assessment workflow is to provide management advice based on reference points derived from model estimates. For the GOA Dusky Rockfish model, reference points are based on spawning potential ratios, aiming to maintain the population at $B_{40\%}$ by fishing at or below $F_{40\%}$. These reference points are then projected forward to generate catch advice for future years. Additionally, in compliance with the Magnuson-Stevens Reauthorization Act, a range of projection scenarios need to be conducted to evaluate whether the population is within sustainable limits.

@@ -132,7 +132,7 @@ get_francis_weights <- function(n_regions,
   return(list(weights = weights, mean_francis = mean_francis))
 } # end function
 
-#' Run Francis Reweighting
+#' Get Francis Weights
 #'
 #' @param rep Report file list
 #' @param age_labels Age labels
@@ -142,6 +142,9 @@ get_francis_weights <- function(n_regions,
 #'
 #' @return A list object of francis weights (note that it will be NAs for some, if using jnt composition approaches - i.e., only uses one dimension), as well as a dataframe of francis mean fits
 #' @export do_francis_reweighting
+#' @details
+#' Function to get francis weights. Used inside the wrapper function run_francis(), or can be defined by the user as a loop to extract Francis weights (see example).
+#'
 #'
 #' @examples
 #' \dontrun{
@@ -316,3 +319,99 @@ do_francis_reweighting <- function(data,
               new_srv_age_wts = new_srv_age_wts, new_srv_len_wts = new_srv_len_wts, mean_francis = mean_francis))
 
 } # end function
+
+#' Run Iterative Francis Reweighting Procedure
+#'
+#' Runs an iterative Francis reweighting procedure for composition data
+#' (fishery and survey age- and length-compositions). The function
+#' reweights input data, repeatedly fits the model, and computes
+#' updated Francis weights.
+#'
+#' @param data A list of model input data, including at least observed
+#'   compositions (`ObsFishAgeComps`, `ObsFishLenComps`, `ObsSrvAgeComps`,
+#'   `ObsSrvLenComps`) and corresponding weights
+#'   (`Wt_FishAgeComps`, `Wt_FishLenComps`, `Wt_SrvAgeComps`,
+#'   `Wt_SrvLenComps`).
+#' @param parameters A list of model parameters to be passed to
+#'   [fit_model()].
+#' @param mapping A list or mapping object used to specify fixed or
+#'   estimated parameters in [fit_model()].
+#' @param n_francis_iters Integer. Number of Francis reweighting
+#'   iterations to perform. Default is `10`.
+#' @param newton_loops Integer. Number of Newton loops passed to
+#'   [fit_model()]. Default is `0`.
+#' @param random A character string of random effects passed to [fit_model()].
+#'
+#' @returns A list with two elements:
+#' \describe{
+#'   \item{obj}{The fitted model object returned by [fit_model()],
+#'   including all elements of a TMB object, data, parameters, mapping, random effects specified, and report.}
+#'   \item{mean_francis}{A summary of the mean Francis weights from the
+#'   final iteration.}
+#' }
+#'
+#' @export run_francis
+#'
+#' @examples
+#' \dontrun{
+#'   out <- run_francis(data = data,
+#'                      parameters = parameters,
+#'                      mapping = mapping,
+#'                      random = NULL
+#'                      n_francis_iters = 5,
+#'                      newton_loops = 3)
+#'   out$obj
+#'   out$mean_francis
+#' }
+
+run_francis <- function(data,
+                        parameters,
+                        mapping,
+                        random = NULL,
+                        n_francis_iters = 10,
+                        newton_loops = 0) {
+
+  # run francis
+  for(j in 1:n_francis_iters) {
+
+    if(j == 1) { # reset weights at 1
+      data$Wt_FishAgeComps[] <- 1
+      data$Wt_FishLenComps[] <- 1
+      data$Wt_SrvAgeComps[] <- 1
+      data$Wt_SrvLenComps[] <- 1
+    } else {
+      # iterate francis weights
+      data$Wt_FishAgeComps[] <- wts$new_fish_age_wts
+      data$Wt_FishLenComps[] <- wts$new_fish_len_wts
+      data$Wt_SrvAgeComps[] <- wts$new_srv_age_wts
+      data$Wt_SrvLenComps[] <- wts$new_srv_len_wts
+    }
+
+    # run model
+    obj <- fit_model(data,
+                     parameters,
+                     mapping,
+                     random = random,
+                     newton_loops = newton_loops,
+                     silent = TRUE
+    )
+
+    rep <- obj$report(obj$env$last.par.best) # Get report
+
+    # get francis weights
+    wts <- do_francis_reweighting(data = data, rep = rep,
+                                  # uses fishery ages to index, because of potential for uneven number of observed and modelled ages
+                                  age_labels = 1:dim(data$ObsFishAgeComps)[3],
+                                  len_labels = data$lens,
+                                  year_labels = data$years)
+  } # end j loop
+
+  obj$data <- data
+  obj$parameters <- parameters
+  obj$mapping <- mapping
+  obj$random <- random
+  obj$rep <- rep
+
+  return(list(obj = obj, mean_francis = wts$mean_francis))
+
+}
