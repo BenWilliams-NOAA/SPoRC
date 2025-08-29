@@ -258,60 +258,44 @@ Do_Population_Projection <- function(n_proj_yrs = 2,
   } # end a loop
 
 # Recruitment Processes ---------------------------------------------------
-    tmp_rec <- vector() # temporary variable
-
     if(y > 1) {
 
-      # Inverse Gaussian Recruitment
-      if(recruitment_opt == 'inv_gauss') {
-        for(r in 1:n_regions) {
-          tmp_rec[r] <- rinvgauss_rec(1, recruitment[r,]) # generate inverse gaussian draws
-          if(n_sexes > 1) proj_NAA[r,y,1,] <- tmp_rec[r] * sexratio # input into projected NAA
-          else proj_NAA[r,y,1,] <- tmp_rec[r]
-        } # end r loop
-      } # end if
+      # Get recruitment
+      tmp_rec <- switch(recruitment_opt,
 
-      # Mean Recruitment
-      if(recruitment_opt == "mean_rec") {
-        for(r in 1:n_regions) {
-          tmp_rec[r] <- mean(recruitment[r,]) # get mean recruitment
-          if(n_sexes > 1) proj_NAA[r,y,1,] <- tmp_rec[r] * sexratio # input into projected NAA
-          else proj_NAA[r,y,1,] <- tmp_rec[r]
-        } # end r loop
-      }
+                        "inv_gauss" = { # if inverse gaussian
+                          sapply(1:n_regions, function(r) rinvgauss_rec(1, recruitment[r,]))
+                        },
 
-      # Zero Recruitment
-      if(recruitment_opt == "zero") {
-        for(r in 1:n_regions) {
-          proj_NAA[r,y,1,] <- 0 # input into projected NAA
-        } # end r loop
-      }
+                        "mean_rec" = { # if mean recruitment
+                          sapply(1:n_regions, function(r) mean(recruitment[r,]))
+                        },
 
-      # Deterministic Beverton-Holt Recruitment
-      if(recruitment_opt == 'bh_rec') {
+                        "zero" = { # if zero recruitment
+                          rep(0, n_regions)
+                        },
 
-        # Get deterministic recruitment
-        tmp_rec <- Get_Det_Recruitment(recruitment_model = 1,
-                                       recruitment_dd = bh_rec_opt$recruitment_dd,
-                                       y = y + dim(bh_rec_opt$SSB)[2],
-                                       rec_lag = bh_rec_opt$rec_lag,
-                                       R0 = bh_rec_opt$R0,
-                                       Rec_Prop = bh_rec_opt$Rec_Prop,
-                                       h = bh_rec_opt$h,
-                                       n_regions = n_regions,
-                                       n_ages = n_ages,
-                                       WAA = bh_rec_opt$WAA,
-                                       MatAA = bh_rec_opt$MatAA,
-                                       natmort = bh_rec_opt$natmort,
-                                       SSB_vals = cbind(bh_rec_opt$SSB, proj_SSB)
-                                       )
+                        "bh_rec" = { # if beverton holt recruitment
+                          Get_Det_Recruitment(recruitment_model = 1,
+                                              recruitment_dd = bh_rec_opt$recruitment_dd,
+                                              y = y + dim(bh_rec_opt$SSB)[2],
+                                              rec_lag = bh_rec_opt$rec_lag,
+                                              R0 = bh_rec_opt$R0,
+                                              Rec_Prop = bh_rec_opt$Rec_Prop,
+                                              h = bh_rec_opt$h,
+                                              n_regions = n_regions,
+                                              n_ages = n_ages,
+                                              WAA = bh_rec_opt$WAA,
+                                              MatAA = bh_rec_opt$MatAA,
+                                              natmort = bh_rec_opt$natmort,
+                                              SSB_vals = cbind(bh_rec_opt$SSB, proj_SSB))
+                        }
+                        )
 
-        # Input deterministic recruitment
-        for(r in 1:n_regions) {
-          if(n_sexes > 1) proj_NAA[r,y,1,] <- tmp_rec[r] * sexratio # input into projected NAA
-          else proj_NAA[r,y,1,] <- tmp_rec[r]
-        } # end r loop
-      }
+      # Apply recruitment to projected NAA
+      for(r in 1:n_regions) {
+        proj_NAA[r,y,1,] <- if(n_sexes > 1) tmp_rec[r] * sexratio else tmp_rec[r]
+      } # end r loop
 
     }
 
