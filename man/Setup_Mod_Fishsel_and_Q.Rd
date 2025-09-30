@@ -6,12 +6,12 @@
 \usage{
 Setup_Mod_Fishsel_and_Q(
   input_list,
-  cont_tv_fish_sel,
-  fish_sel_blocks,
+  cont_tv_fish_sel = paste("none_Fleet_", 1:input_list$data$n_fish_fleets, sep = ""),
+  fish_sel_blocks = paste("none_Fleet_", 1:input_list$data$n_fish_fleets, sep = ""),
   fish_sel_model,
   Use_fish_q_prior = 0,
   fish_q_prior = NA,
-  fish_q_blocks,
+  fish_q_blocks = paste("none_Fleet_", 1:input_list$data$n_fish_fleets, sep = ""),
   fishsel_pe_pars_spec = NULL,
   fish_fixed_sel_pars_spec = NULL,
   fish_q_spec = NULL,
@@ -31,7 +31,7 @@ The vector must be length \code{n_fish_fleets}, and each element must follow the
 
 Valid time variation types include:
 \itemize{
-  \item \code{"none"}: No continuous time variation.
+  \item \code{"none"}: No continuous time variation (default)
   \item \code{"iid"}: Independent and identically distributed deviations across years.
   \item \code{"rw"}: Random walk in time.
   \item \code{"3dmarg"}: 3D marginal time-varying selectivity.
@@ -49,7 +49,7 @@ For example:
 
 \item{fish_sel_blocks}{Character vector specifying the fishery selectivity blocks for each region and fleet.
 Each element must follow the structure: `"Block_<block number>_Year_<start>-<end>_Fleet_<fleet number>"` or `"none_Fleet_<fleet number>"`.
-This allows users to define time-varying selectivity blocks for specific fleets within a region.
+This allows users to define time-varying selectivity blocks for specific fleets within a region. Default is "none_Fleet_x".
 
 For example:
 \itemize{
@@ -97,7 +97,7 @@ Only parameters with rows in this data frame will have priors applied.}
 
 \item{fish_q_blocks}{Character vector specifying fishery catchability (q) blocks for each fleet.
 Each element must follow the structure: \code{"Block_<block number>_Year_<start>-<end>_Fleet_<fleet number>"}
-or \code{"none_Fleet_<fleet number>"}.
+or \code{"none_Fleet_<fleet number>"}. Default is "none_Fleet_x".
 
 This allows users to define time-varying catchability blocks independently of selectivity blocks.
 The blocks must be non-overlapping and sequential in time within each fleet.
@@ -218,3 +218,17 @@ Only parameters with rows in this data frame will have priors applied.}
 \description{
 Setup fishery selectivity and catchability specifications
 }
+\seealso{
+Other Model Setup: 
+\code{\link{Setup_Mod_Biologicals}()},
+\code{\link{Setup_Mod_Catch_and_F}()},
+\code{\link{Setup_Mod_Dim}()},
+\code{\link{Setup_Mod_FishIdx_and_Comps}()},
+\code{\link{Setup_Mod_Movement}()},
+\code{\link{Setup_Mod_Rec}()},
+\code{\link{Setup_Mod_SrvIdx_and_Comps}()},
+\code{\link{Setup_Mod_Srvsel_and_Q}()},
+\code{\link{Setup_Mod_Tagging}()},
+\code{\link{Setup_Mod_Weighting}()}
+}
+\concept{Model Setup}

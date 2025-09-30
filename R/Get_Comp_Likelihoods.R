@@ -20,6 +20,7 @@
 #' @param n_model_bins Number of bins used in the model
 #' @param n_obs_bins Number of observed composition bins
 #' @param addtocomp Small constant to add to composition data
+#' @param sim Boolean on whether or not to simualte values from a given specification of the likelihood
 #'
 #' @return Returns negative log likelihood for composition data (age and/or length)
 #' @keywords internal
@@ -42,8 +43,8 @@ Get_Comp_Likelihoods = function(Exp,
                                 AgeingError,
                                 use,
                                 comp_agg_type,
-                                addtocomp
-) {
+                                addtocomp,
+                                sim = FALSE) {
 
   "c" <- RTMB::ADoverload("c")
   "[<-" <- RTMB::ADoverload("[<-")
@@ -68,13 +69,7 @@ Get_Comp_Likelihoods = function(Exp,
 
   # Aggregated comps by sex and region
   if(Comp_Type == 0) {
-    if(comp_agg_type == 0) { # aggregated age comps are normalized, aggregated, ageing error, and then normalized again
-      # Expected Values
-      tmp_Exp = Exp / array(data = rep(colSums(matrix(Exp, nrow = n_model_bins)), each = n_model_bins), dim = dim(Exp)) # normalize by sex and region
-      tmp_Exp = matrix(rowSums(matrix(tmp_Exp, nrow = n_model_bins)) / (n_sexes * n_regions), nrow = 1) # take average proportions and transpose
-    }
-
-    if(comp_agg_type == 1) tmp_Exp = matrix(rowSums(matrix(Exp, nrow = n_model_bins)) / (n_sexes * n_regions), nrow = 1) # age comps are aggregated, ageing error, and the normalized
+    tmp_Exp = matrix(rowSums(matrix(Exp, nrow = n_model_bins)) / (n_sexes * n_regions), nrow = 1) # aggregate
 
     # Expected age bins get collapsed to observed age bins if ageing error is non-square
     if(age_or_len == 0) {
@@ -151,9 +146,11 @@ Get_Comp_Likelihoods = function(Exp,
     for(s in 1:n_sexes) {
       for(r in 1:n_regions_obs_use) {
         # Expected Values
-        if(age_or_len == 0) tmp_Exp = ((Exp[r,,s]) / sum(Exp[r,,s])) %*% AgeingError # Normalize temporary variable (ages)
-        if(age_or_len == 1 && comp_agg_type == 0) tmp_Exp = (Exp[r,,s]) / sum(Exp[r,,s]) # Length comps are not normalized prior to age length transition
-        if(age_or_len == 1 && comp_agg_type == 1) tmp_Exp = (Exp[r,,s]) # Length comps are normalized prior to age length transition
+        if(age_or_len == 0) {
+          tmp_Exp = ((Exp[r,,s]) / sum(Exp[r,,s])) %*% AgeingError # Normalize temporary variable (ages)
+          tmp_Exp = tmp_Exp / sum(tmp_Exp) # renormalize
+        }
+        if(age_or_len == 1) tmp_Exp = (Exp[r,,s]) / sum(Exp[r,,s]) # Normalize lengths
 
         # Multinomial likelihood
         if(Likelihood_Type == 0) {

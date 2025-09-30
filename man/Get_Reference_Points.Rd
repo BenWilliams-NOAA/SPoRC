@@ -9,7 +9,7 @@ Get_Reference_Points(
   rep,
   SPR_x = NULL,
   t_spwn = 0,
-  sex_ratio_f = 0.5,
+  sex_ratio_f = rep(0.5, data$n_regions),
   calc_rec_st_yr = 1,
   rec_age = 1,
   type,
@@ -18,48 +18,50 @@ Get_Reference_Points(
 )
 }
 \arguments{
-\item{data}{Data list from RTMB}
+\item{data}{List. Data object containing ages, years, weight-at-age, maturity, natural mortality, and other simulation/assessment info.}
 
-\item{rep}{Report list from RTMB}
+\item{rep}{List. Report object from RTMB containing estimated parameters like Fmort, selectivity, recruitment, steepness.}
 
-\item{SPR_x}{SPR percentage to target}
+\item{SPR_x}{Numeric. Target Spawning Potential Ratio fraction. Required for SPR-based reference points.}
 
-\item{t_spwn}{specified mortality time up until spawning}
+\item{t_spwn}{Numeric. Mortality time until spawning.}
 
-\item{sex_ratio_f}{Sex ratio for females used to compute biological reference points}
+\item{sex_ratio_f}{Numeric vector. Female sex ratio by region.}
 
-\item{calc_rec_st_yr}{The first year in which mean recruitment is computed for}
+\item{calc_rec_st_yr}{Integer. First year used to compute mean recruitment.}
 
-\item{rec_age}{Actual recruitment age value}
+\item{rec_age}{Integer. Age at recruitment.}
 
-\item{type}{Whether this is a "single_region" reference point or "multi_region"}
+\item{type}{Character. "single_region" or "multi_region".}
 
-\item{what}{What kind of reference point to use:
+\item{what}{Character. Type of reference point:
 \describe{
-\item{SPR}{Spawning Potential Ratio for a single region model}
-\item{independent_SPR}{Spawning Potential Ratio for a multi region model, without movement }
-\item{global_SPR}{Global Spawning Potential Ratio for a multi region model, with movement }
-\item{BH_MSY}{MSY reference points derived from a Beverton-Holt for a single region model}
-\item{independent_BH_MSY}{MSY reference points derived from a Beverton-Holt, without movement }
-\item{global_BH_MSY}{MSY reference points derived from a Beverton-Holt, with movement }
+  \item{SPR}{Single-region SPR reference point}
+  \item{independent_SPR}{Multi-region SPR without movement}
+  \item{global_SPR}{Multi-region SPR with movement}
+  \item{BH_MSY}{Single-region Beverton–Holt MSY}
+  \item{independent_BH_MSY}{Multi-region BH-MSY without movement}
+  \item{global_BH_MSY}{Multi-region BH-MSY with movement}
 }}
 
-\item{n_avg_yrs}{Number of years to average over demographics to compute reference points}
+\item{n_avg_yrs}{Integer. Number of years to average demographic rates when calculating reference points.}
 }
 \value{
-A list object of fishing and biological reference points
+A list with elements:
+  \describe{
+    \item{f_ref_pt}{Vector of fishing reference points for each region.}
+    \item{b_ref_pt}{Vector of biological reference points for each region.}
+    \item{virgin_b_ref_pt}{Vector of virgin biomass reference points for each region.}
+  }
 }
 \description{
-Wrapper function to get reference points
+Wrapper function to compute fishing and biological reference points given data and report
+objects from an assessment or simulation. Supports both single-region and multi-region
+calculations with options for SPR or Beverton–Holt MSY reference points.
 }
-\examples{
-\dontrun{
-f_40 <- Get_Reference_Points(data = data,
-rep = rep,
-SPR_x = 0.4,
-t_spwn = 0,
-type = "single_region",
-what = "SPR")
-f_40$F_x # estimated reference point
+\seealso{
+Other Reference Points and Projections: 
+\code{\link{Do_Population_Projection}()},
+\code{\link{get_key_quants}()}
 }
-}
+\concept{Reference Points and Projections}

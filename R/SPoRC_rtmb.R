@@ -26,6 +26,10 @@
 
 # version 4 - (M.LH Cheng)
 # Added in capabilities for length-based selectivity processes
+# Removed unncessary constants added to likelihoods
+# Refactored natural mortality module
+# Removed ADMB likelihoods and Sablefish specific calculations
+
 
 #' Generalized RTMB model
 #'
@@ -49,6 +53,7 @@ SPoRC_rtmb = function(pars, data) {
   n_est_rec_devs = dim(ln_RecDevs)[2] # number of recruitment deviates estimated
   Rec = array(0, dim = c(n_regions, n_yrs)) # Recruitment
   R0 = rep(0, n_regions) # R0 or mean recruitment
+  sexratio = array(0, dim = c(n_regions, n_yrs, n_sexes)) # recruitment sex ratio
 
   # Population Dynamics
   init_iter = n_ages * 5 # Number of times to iterate to equilibrium when movement occurs
@@ -57,7 +62,6 @@ SPoRC_rtmb = function(pars, data) {
   NAA = array(data = 0, dim = c(n_regions, n_yrs + 1, n_ages, n_sexes)) # Numbers at age
   NAA0 = array(data = 0, dim = c(n_regions, n_yrs + 1, n_ages, n_sexes)) # Unfished Numbers at age
   ZAA = array(data = 0, dim = c(n_regions, n_yrs, n_ages, n_sexes)) # Total mortality at age
-  SAA_mid = array(data = 0, dim = c(n_regions, n_yrs, n_ages, n_sexes)) # Survival at age (midpoint of the year)
   natmort = array(data = 0, dim = c(n_regions, n_yrs, n_ages, n_sexes)) # natural mortality at age
   Total_Biom = array(0, dim = c(n_regions, n_yrs)) # Total biomass
   SSB = array(0, dim = c(n_regions, n_yrs)) # Spawning stock biomass
@@ -145,6 +149,23 @@ SPoRC_rtmb = function(pars, data) {
     } # end y loop
   } # end r loop
 
+
+  ## Natural Mortality Parameters (Set up) -----------------------------------
+  if(use_fixed_natmort == 0) {
+    for(r in 1:n_regions) {
+      for(y in 1:n_yrs) {
+        for(a in 1:n_ages) {
+          for(s in 1:n_sexes) {
+            idx = M_blocks[r,y,a,s] # Get indexing from blocking structure on base natural mortality
+            natmort[r,y,a,s] = exp(ln_M[idx]) # input into natural mortality array
+          } # end s loop
+        } # end a loop
+      } # end y loop
+    } # end r loop
+  } # if using fixed natural mortality
+
+  if(use_fixed_natmort == 1) natmort = Fixed_natmort # Using fixed natural mortality
+
   ## Fishery Selectivity -----------------------------------------------------
   if(Selex_Type == 0) selex_bins = ages # if age-based selectivity
   if(Selex_Type == 1) selex_bins = lens # if length-based selectivity
@@ -231,24 +252,15 @@ SPoRC_rtmb = function(pars, data) {
         FAA[r,y,,,f] = Fmort[r,y,f] * fish_sel[r,y,,,f,drop = FALSE] # Fishing mortality at age
       } # f loop
 
-      # Population Mortality and Survival
-      # estimating natural mortality (base parameter, with a sex offset)
-      if(use_fixed_natmort == 0) {
-        natmort[r,y,,1] = exp(ln_M) # get natural mortality (females or single-sex)
-        if(n_sexes == 2) natmort[r,y,,2] = exp(ln_M) + M_offset # natural mortality with offset (males)
-      }
-
-      if(use_fixed_natmort == 1) natmort[r,y,,] = Fixed_natmort[r,y,,] # Using fixed natural mortality
-
       ZAA[r,y,,] = apply(FAA[r,y,,,,drop = FALSE], 3:4, sum) + natmort[r,y,,] # Total Mortality at age
-      SAA_mid[r,y,,] = exp(-0.5 * ZAA[r,y,,]) # Survival at age at midpoint of year
 
     } # end y loop
   } # end r loop
 
 
   ## Recruitment Transformations and Bias Ramp (Methot and Taylor) -------------------------------
-  # Mean or virgin recruitment
+  ### Parameter Transformations -----------------------------------------------
+  # Mean or virgin recruitment proportions
   if(n_regions > 1) {
     Rec_trans_prop = c(0, Rec_prop) # set up vector for transformation
     Rec_trans_prop = exp(Rec_trans_prop) / sum(exp(Rec_trans_prop)) # do multinomial logit to get recruitment proportions
@@ -264,7 +276,18 @@ SPoRC_rtmb = function(pars, data) {
   sigmaR2_early = exp(ln_sigmaR[1])^2 # recruitment variability for early period
   sigmaR2_late = exp(ln_sigmaR[2])^2 # recruitment variability for late period
 
-  # Bias ramp set up
+  # Recruitment sex-ratio
+  if(n_sexes == 2) {
+    for(r in 1:n_regions) {
+      for(y in 1:n_yrs) {
+        sexratio_blk_idx = sexratio_blocks[r,y] # extract sex ratio block
+        sexratio_f = RTMB::plogis(sexratio_pars[r,sexratio_blk_idx]) # get female recruitment sex-ratio
+        sexratio[r,y,] = c(sexratio_f, 1 - sexratio_f) # input total sex ratio
+      } # end y loop
+    } # end r loop
+  } else sexratio[] = 1 # set recruitment sex ratio at 1
+
+  ### Bias ramp ---------------------------------------------------------------
   if (do_rec_bias_ramp == 0) {
     bias_ramp = rep(1, n_est_rec_devs) # don't do bias ramp, set values to 1
   } else if (do_rec_bias_ramp == 1) {
@@ -291,7 +314,7 @@ SPoRC_rtmb = function(pars, data) {
     for(r in 1:n_regions) {
       for(s in 1:n_sexes) {
         tmp_cumsum_Z = cumsum(natmort[r,1,1:(n_ages-1),s] + init_F * fish_sel[r,1,1:(n_ages-1),s,1])
-        Init_NAA[r,,s] = c(R0 * sexratio[s] * Rec_trans_prop[r], R0 * sexratio[s] * Rec_trans_prop[r] * exp(-tmp_cumsum_Z))
+        Init_NAA[r,,s] = c(R0 * sexratio[r,1,s] * Rec_trans_prop[r], R0 * sexratio[r,1,s] * Rec_trans_prop[r] * exp(-tmp_cumsum_Z))
       } # end s loop
     } # end r loop
 
@@ -299,14 +322,15 @@ SPoRC_rtmb = function(pars, data) {
     for(i in 1:init_iter) {
       for(s in 1:n_sexes) {
 
-        Init_NAA_next_year[,1,s] = R0 * sexratio[s] * Rec_trans_prop # recruitment
+        Init_NAA_next_year[,1,s] = R0 * sexratio[,1,s] * Rec_trans_prop # recruitment
 
         # movement
         if(do_recruits_move == 0) for(a in 2:n_ages) Init_NAA[,a,s] = t(Init_NAA[,a,s]) %*% Movement[,,1,a,s] # recruits don't move
         if(do_recruits_move == 1) for(a in 1:n_ages) Init_NAA[,a,s] = t(Init_NAA[,a,s]) %*% Movement[,,1,a,s] # recruits move
 
         # ageing and mortality
-        Init_NAA_next_year[,2:n_ages,s] = Init_NAA[,1:(n_ages-1),s] * exp(-(natmort[,1,1:(n_ages-1),s] + (init_F * fish_sel[,1,1:(n_ages-1),s,1])))
+        Init_NAA_next_year[,2:n_ages,s] = Init_NAA[,1:(n_ages-1),s] * exp(-(natmort[,1,1:(n_ages-1),s] +
+                                          (init_F * fish_sel[,1,1:(n_ages-1),s,1])))
 
         # accumulate plus group
         Init_NAA_next_year[,n_ages,s] = (Init_NAA_next_year[,n_ages,s] * exp(-(natmort[,1,n_ages,s] + (init_F * fish_sel[,1,n_ages,s,1])))) +
@@ -335,12 +359,11 @@ SPoRC_rtmb = function(pars, data) {
         # not plus group
         NAA[r,1,init_age_idx + 1,s] = R0 * exp(ln_InitDevs[r,init_age_idx] -
                                      (init_age_idx * (natmort[r,1, init_age_idx + 1, s] + (init_F * fish_sel[r,1, init_age_idx + 1, s, 1])))) *
-                                      sexratio[s] *  Rec_trans_prop[r]
+                                      sexratio[r,1,s] *  Rec_trans_prop[r]
 
         # Plus group calculations
         NAA[r,1,n_ages,s] = R0 * exp( ln_InitDevs[r,n_ages - 1] - ((n_ages - 1) * (natmort[r,1, n_ages, s] + (init_F * fish_sel[r,1, n_ages, s, 1]))) ) /
-                            (1 - exp(-(natmort[r,1, n_ages, s] + (init_F * fish_sel[r,1, n_ages, s, 1])))) *
-                            sexratio[s] * Rec_trans_prop[r]
+                            (1 - exp(-(natmort[r,1, n_ages, s] + (init_F * fish_sel[r,1, n_ages, s, 1])))) * sexratio[r,1,s] * Rec_trans_prop[r]
 
       } # end s loop
     } # end r loop
@@ -373,8 +396,8 @@ SPoRC_rtmb = function(pars, data) {
 
     for(r in 1:n_regions) {
       for(s in 1:n_sexes) {
-        if(y < sigmaR_switch) NAA[r,y,1,s] = tmp_Det_Rec[r] * exp(ln_RecDevs[r,y] - (sigmaR2_early/2 * bias_ramp[y])) * sexratio[s] # early period recruitment
-        if(y >= sigmaR_switch && y <= n_est_rec_devs) NAA[r,y,1,s] = tmp_Det_Rec[r] * exp(ln_RecDevs[r,y] - (sigmaR2_late/2 * bias_ramp[y])) * sexratio[s] # late period recruitment
+        if(y < sigmaR_switch) NAA[r,y,1,s] = tmp_Det_Rec[r] * exp(ln_RecDevs[r,y] - (sigmaR2_early/2 * bias_ramp[y])) * sexratio[r,y,s] # early period recruitment
+        if(y >= sigmaR_switch && y <= n_est_rec_devs) NAA[r,y,1,s] = tmp_Det_Rec[r] * exp(ln_RecDevs[r,y] - (sigmaR2_late/2 * bias_ramp[y])) * sexratio[r,y,s] # late period recruitment
         # Dealing with terminal year recruitment
         if(y > n_est_rec_devs) NAA[r,y,1,s] = tmp_Det_Rec[r] * sexratio[s] # mean recruitment in terminal year (not estimate last year rec dev)
       } # end s loop
@@ -394,8 +417,8 @@ SPoRC_rtmb = function(pars, data) {
           } # end s loop
         } # end a loop
         for(r in 1:n_regions) {
-          NAA[r,y,1,] = Rec[r,y] * sexratio # Fished
-          NAA0[r,y,1,] = Rec[r,y] * sexratio # Unfished
+          NAA[r,y,1,] = Rec[r,y] * sexratio[r,y,] # Fished
+          NAA0[r,y,1,] = Rec[r,y] * sexratio[r,y,] # Unfished
         } # end r loop
       } # end if recruits don't move
 
@@ -423,6 +446,7 @@ SPoRC_rtmb = function(pars, data) {
     Total_Biom[,y] = apply(NAA[,y,,,drop = FALSE] * WAA[,y,,,drop = FALSE], 1, sum) # Total biomass
     SSB[,y] = apply(NAA[,y,,1,drop = FALSE] * WAA[,y,,1,drop = FALSE] * MatAA[,y,,1,drop = FALSE] * exp(-ZAA[,y,,1,drop = FALSE] * t_spawn), 1, sum)
     Dynamic_SSB0[,y] = apply(NAA0[,y,,1,drop = FALSE] * WAA[,y,,1,drop = FALSE] * MatAA[,y,,1,drop = FALSE] * exp(-ZAA[,y,,1,drop = FALSE] * t_spawn), 1, sum)
+
     # If single sex model, multiply SSB calculations by 0.5
     if(n_sexes == 1) {
       SSB[,y] = SSB[,y] * 0.5
@@ -441,22 +465,19 @@ SPoRC_rtmb = function(pars, data) {
 
         fish_q_blk_idx = fish_q_blocks[r,y,f] # get time-block catchability index
         fish_q[r,y,f] = exp(ln_fish_q[r,fish_q_blk_idx,f]) # Input into fishery catchability container
-
         CAA[r,y,,,f] = FAA[r,y,,,f] / ZAA[r,y,,] * NAA[r,y,,] * (1 - exp(-ZAA[r,y,,])) # Catch at age (Baranov's)
 
-        for(s in 1:n_sexes) {
-          if(fit_lengths == 1 && sablefish_ADMB == 1) CAL[r,y,,s,f] = SizeAgeTrans[r,y,,,s] %*% (CAA[r,y,,s,f] / sum(CAA[r,y,,s,f])) # Catch at length (Sablefish bridging specific)
-          else if(fit_lengths == 1) CAL[r,y,,s,f] = SizeAgeTrans[r,y,,,s] %*% CAA[r,y,,s,f] # Catch at length
-        } # end s loop
+        if(fit_lengths == 1) {
+          for(s in 1:n_sexes) {
+            CAL[r,y,,s,f] = SizeAgeTrans[r,y,,,s] %*% CAA[r,y,,s,f] # Catch at length
+          } # end s loop
+        } # fitting lengths
 
         PredCatch[r,y,f] = sum(CAA[r,y,,,f] * WAA_fish[r,y,,,f]) # get total catch
 
         # Get fishery index
-        if(fish_idx_type[r,f] == 0) PredFishIdx[r,y,f] = fish_q[r,y,f] * sum(NAA[r,y,,] * SAA_mid[r,y,,] * fish_sel[r,y,,,f]) # abundance
-        if(fish_idx_type[r,f] == 1) {
-          if(fish_q_blk_idx == 1 && sablefish_ADMB == 1) PredFishIdx[r,y,f] = fish_q[r,y,f] * sum(NAA[r,y,,] * SAA_mid[r,y,,] * fish_sel[r,y,,1,f] * WAA_fish[r,y,,,f]) # first time block (Sablefish bridging specific)
-          else PredFishIdx[r,y,f] = fish_q[r,y,f] * sum(NAA[r,y,,] * SAA_mid[r,y,,] * fish_sel[r,y,,,f] * WAA_fish[r,y,,,f]) # for not first time block
-        } # weight
+        if(fish_idx_type[r,f] == 0) PredFishIdx[r,y,f] = fish_q[r,y,f] * sum(NAA[r,y,,] * fish_sel[r,y,,,f]) # abundance
+        if(fish_idx_type[r,f] == 1) PredFishIdx[r,y,f] = fish_q[r,y,f] * sum(NAA[r,y,,] * fish_sel[r,y,,,f] * WAA_fish[r,y,,,f]) # biomass
 
       } # end f loop
     } # end y loop
@@ -467,21 +488,21 @@ SPoRC_rtmb = function(pars, data) {
     for(y in 1:n_yrs) {
       for(sf in 1:n_srv_fleets) {
 
+        tmp_SAA_srv = exp(-t_srv[r,sf] * ZAA[r,y,,]) # get temporary survey survival
         srv_q_blk_idx = srv_q_blocks[r,y,sf] # get time-block catchability index
         srv_q[r,y,sf] = exp(ln_srv_q[r,srv_q_blk_idx,sf]) # Input into survey catchability container
-        if(exists("do_srv_q_cov") && do_srv_q_cov == 1) srv_q[r,y,sf] = srv_q[r,y,sf] * exp(sum(srv_q_cov[r,y,sf,] * srv_q_coeff[r,sf,])) # adding covariate effects
+        if(do_srv_q_cov == 1) srv_q[r,y,sf] = srv_q[r,y,sf] * exp(sum(srv_q_cov[r,y,sf,] * srv_q_coeff[r,sf,])) # adding covariate effects
+        SrvIAA[r,y,,,sf] = NAA[r,y,,] * srv_sel[r,y,,,sf] * tmp_SAA_srv # Survey index at age
 
-
-        if(sablefish_ADMB == 1) SrvIAA[r,y,,,sf] = NAA[r,y,,] * srv_sel[r,y,,,sf] # Survey index at age (sablefish specific)
-        else SrvIAA[r,y,,,sf] = NAA[r,y,,] * srv_sel[r,y,,,sf] * SAA_mid[r,y,,] # Survey index at age
-
-        for(s in 1:n_sexes) {
-          if(fit_lengths == 1) SrvIAL[r,y,,s,sf] = SizeAgeTrans[r,y,,,s] %*% SrvIAA[r,y,,s,sf] # Survey index at length
-        } # end s loop
+        if(fit_lengths == 1) {
+          for(s in 1:n_sexes) {
+            SrvIAL[r,y,,s,sf] = SizeAgeTrans[r,y,,,s] %*% SrvIAA[r,y,,s,sf] # Survey index at length
+          } # end s loop
+        } # fitting lengths
 
         # Get predicted survey index
-        if(srv_idx_type[r,sf] == 0) PredSrvIdx[r,y,sf] = srv_q[r,y,sf] * sum(NAA[r,y,,] * srv_sel[r,y,,,sf] * SAA_mid[r,y,,]) # abundance
-        if(srv_idx_type[r,sf] == 1) PredSrvIdx[r,y,sf] = srv_q[r,y,sf] * sum(NAA[r,y,,] * srv_sel[r,y,,,sf] * SAA_mid[r,y,,] * WAA_srv[r,y,,,sf]) # biomass
+        if(srv_idx_type[r,sf] == 0) PredSrvIdx[r,y,sf] = srv_q[r,y,sf] * sum(SrvIAA[r,y,,,sf]) # abundance
+        if(srv_idx_type[r,sf] == 1) PredSrvIdx[r,y,sf] = srv_q[r,y,sf] * sum(SrvIAA[r,y,,,sf] * WAA_srv[r,y,,,sf]) # biomass
 
       } # end sf loop
     } # end y loop
@@ -553,32 +574,18 @@ SPoRC_rtmb = function(pars, data) {
 
       # If we have catch data but it's not resolved on the region scale (sum across regions)
       if(UseCatch[1,y,f] == 1 && Catch_Type[y,f] == 0) {
-        # ADMB likelihoods
-        if(likelihoods == 0) {
-          Catch_nLL[1,y,f] = UseCatch[1,y,f] * (log(ObsCatch[1,y,f] + Catch_Constant[f]) -
-                                                log((PredCatch[,y,f] + Catch_Constant[f])))^2 # SSQ Catch
-        } # ADMB likelihoods
-        if(likelihoods == 1) {
-          Catch_nLL[1,y,f] = UseCatch[1,y,f] -1 * RTMB::dnorm(log(ObsCatch[1,y,f] + Catch_Constant[f]),
-                                                              log(sum(PredCatch[,y,f]) + Catch_Constant[f]),
-                                                              exp(ln_sigmaC_agg[f]), TRUE)
-        } # TMB likelihoods
+        Catch_nLL[1,y,f] = UseCatch[1,y,f] -1 * RTMB::dnorm(log(ObsCatch[1,y,f]),
+                                                            log(sum(PredCatch[,y,f])),
+                                                            exp(ln_sigmaC_agg[y,f]), TRUE)
       } # if some fishery catches are aggregated
 
       for(r in 1:n_regions) {
 
         # If we have catch data and it's resolved on the region scale
         if(UseCatch[r,y,f] == 1 && Catch_Type[y,f] == 1) {
-          # ADMB likelihoods
-          if(likelihoods == 0) {
-            Catch_nLL[r,y,f] = UseCatch[r,y,f] * (log(ObsCatch[r,y,f] + Catch_Constant[f]) -
-                                                  log(PredCatch[r,y,f] + Catch_Constant[f]))^2 # SSQ Catch
-          } # ADMB likelihoods
-          if(likelihoods == 1) {
-            Catch_nLL[r,y,f] = UseCatch[r,y,f] -1 * RTMB::dnorm(log(ObsCatch[r,y,f] + Catch_Constant[f]),
-                                                                log(PredCatch[r,y,f] + Catch_Constant[f]),
-                                                                exp(ln_sigmaC[r,f]), TRUE)
-          } # TMB likelihoods
+          Catch_nLL[r,y,f] = UseCatch[r,y,f] -1 * RTMB::dnorm(log(ObsCatch[r,y,f]),
+                                                              log(PredCatch[r,y,f]),
+                                                              exp(ln_sigmaC[r,y,f]), TRUE)
         } # if no NAs for fishery catches
 
       } # end r loop
@@ -593,17 +600,9 @@ SPoRC_rtmb = function(pars, data) {
 
         # ADMB likelihoods
         if(UseFishIdx[r,y,f] == 1) {
-          if(likelihoods == 0) {
-            FishIdx_nLL[r,y,f] = (log(ObsFishIdx[r,y,f] + 1e-4) - log(PredFishIdx[r,y,f] + 1e-4))^2 /
-                                 (2 * (ObsFishIdx_SE[r,y,f] / ObsFishIdx[r,y,f])^2) # lognormal Fishery index
-          }
-
-          # TMB likelihoods
-          if(likelihoods == 1) {
-            FishIdx_nLL[r,y,f] = -1 * RTMB::dnorm(log(ObsFishIdx[r,y,f] + 1e-4),
-                                                  log(PredFishIdx[r,y,f] + 1e-4),
-                                                  ObsFishIdx_SE[r,y,f], TRUE)
-          }
+          FishIdx_nLL[r,y,f] = -1 * RTMB::dnorm(log(ObsFishIdx[r,y,f] + addtofishidx),
+                                                log(PredFishIdx[r,y,f] + addtofishidx),
+                                                ObsFishIdx_SE[r,y,f], TRUE)
         }
 
       } # end f loop
@@ -639,7 +638,6 @@ SPoRC_rtmb = function(pars, data) {
           use = UseFishAgeComps[,y,f],
           n_model_bins = n_ages,
           n_obs_bins = dim(ObsFishAgeComps)[3],
-          comp_agg_type = FishAge_comp_agg_type[f],
           addtocomp = addtocomp
         )
 
@@ -670,7 +668,6 @@ SPoRC_rtmb = function(pars, data) {
           AgeingError = NA, use = UseFishLenComps[,y,f],
           n_model_bins = n_lens,
           n_obs_bins = dim(ObsFishLenComps)[3],
-          comp_agg_type = FishLen_comp_agg_type[f],
           addtocomp = addtocomp
         )
 
@@ -688,17 +685,9 @@ SPoRC_rtmb = function(pars, data) {
 
         # ADMB likelihoods
         if(UseSrvIdx[r,y,sf] == 1) {
-          if(likelihoods == 0) {
-            SrvIdx_nLL[r,y,sf] = (log(ObsSrvIdx[r,y,sf] + 1e-4) - log(PredSrvIdx[r,y,sf] + 1e-4))^2 /
-                                 (2 * (ObsSrvIdx_SE[r,y,sf] / ObsSrvIdx[r,y,sf])^2) # lognormal Survey index
-          }
-
-          # TMB likelihoods
-          if(likelihoods == 1) {
-            SrvIdx_nLL[r,y,sf] = -1 * RTMB::dnorm(log(ObsSrvIdx[r,y,sf] + 1e-4),
-                                                  log(PredSrvIdx[r,y,sf] + 1e-4),
-                                                  ObsSrvIdx_SE[r,y,sf], TRUE)
-          }
+          SrvIdx_nLL[r,y,sf] = -1 * RTMB::dnorm(log(ObsSrvIdx[r,y,sf] + addtosrvidx),
+                                                log(PredSrvIdx[r,y,sf] + addtosrvidx),
+                                                ObsSrvIdx_SE[r,y,sf], TRUE)
         }
 
       } # end sf loop
@@ -734,7 +723,6 @@ SPoRC_rtmb = function(pars, data) {
           AgeingError = AgeingError[y,,], use = UseSrvAgeComps[,y,sf],
           n_model_bins = n_ages,
           n_obs_bins = dim(ObsSrvAgeComps)[3],
-          comp_agg_type = SrvAge_comp_agg_type[sf],
           addtocomp = addtocomp
         )
 
@@ -765,7 +753,6 @@ SPoRC_rtmb = function(pars, data) {
           AgeingError = NA, use = UseSrvLenComps[,y,sf],
           n_model_bins = n_lens,
           n_obs_bins = dim(ObsSrvLenComps)[3],
-          comp_agg_type = SrvLen_comp_agg_type[sf],
           addtocomp = addtocomp
         )
 
@@ -793,16 +780,16 @@ SPoRC_rtmb = function(pars, data) {
 
               # Poisson likelihood
               if(Tag_LikeType == 0) {
-                Tag_nLL[ry,tc,r,1,1] = Tag_nLL[ry,tc,r,1,1] + -dpois_noint(sum(Obs_Tag_Recap[ry,tc,r,move_age_pool_idx,move_sex_pool_idx] + 1e-10),
-                                                                           sum(Pred_Tag_Recap[ry,tc,r,move_age_pool_idx,move_sex_pool_idx] + 1e-10),
+                Tag_nLL[ry,tc,r,1,1] = Tag_nLL[ry,tc,r,1,1] + -dpois_noint(sum(Obs_Tag_Recap[ry,tc,r,move_age_pool_idx,move_sex_pool_idx] + addtotag),
+                                                                           sum(Pred_Tag_Recap[ry,tc,r,move_age_pool_idx,move_sex_pool_idx] + addtotag),
                                                                            give_log = TRUE)
               } # end if poisson likelihood
 
               # Negative binomial likelihood
               if(Tag_LikeType == 1) {
-                log_mu = log(sum(Pred_Tag_Recap[ry,tc,r,move_age_pool_idx,move_sex_pool_idx] + 1e-10)) # log mu
+                log_mu = log(sum(Pred_Tag_Recap[ry,tc,r,move_age_pool_idx,move_sex_pool_idx] + addtotag)) # log mu
                 log_var_minus_mu = 2 * log_mu - ln_tag_theta # log var minus mu
-                Tag_nLL[ry,tc,r,1,1] = Tag_nLL[ry,tc,r,1,1] + -dnbinom_robust_noint(x = sum(Obs_Tag_Recap[ry,tc,r,move_age_pool_idx,move_sex_pool_idx] + 1e-10),
+                Tag_nLL[ry,tc,r,1,1] = Tag_nLL[ry,tc,r,1,1] + -dnbinom_robust_noint(x = sum(Obs_Tag_Recap[ry,tc,r,move_age_pool_idx,move_sex_pool_idx] + addtotag),
                                                                                     log_mu = log_mu, log_var_minus_mu = log_var_minus_mu, give_log = TRUE)
               } # end if for negative binomial likelihood
 
@@ -818,7 +805,7 @@ SPoRC_rtmb = function(pars, data) {
           tmp_obs_c_all = vector()
 
           # number of tags released for a given tag cohort
-          tmp_n_tags_released = sum(Tagged_Fish[tc,,] + 1e-10)
+          tmp_n_tags_released = sum(Tagged_Fish[tc,,] + addtotag)
 
           # Loop through age and sex pooling and combine vectors into the correct format
           for(a in 1:n_move_age_tag_pool) {
@@ -828,8 +815,8 @@ SPoRC_rtmb = function(pars, data) {
 
               # Pool observed and expected if any pooling
               for (r in 1:n_regions) {
-                pred_val = sum(Pred_Tag_Recap[ry, tc, r, move_age_pool_idx, move_sex_pool_idx] + 1e-10) # sum across age and sex groups
-                obs_val  = sum(Obs_Tag_Recap[ry, tc, r, move_age_pool_idx, move_sex_pool_idx] + 1e-10) # sum across age and sex groups
+                pred_val = sum(Pred_Tag_Recap[ry, tc, r, move_age_pool_idx, move_sex_pool_idx] + addtotag) # sum across age and sex groups
+                obs_val  = sum(Obs_Tag_Recap[ry, tc, r, move_age_pool_idx, move_sex_pool_idx] + addtotag) # sum across age and sex groups
                 tmp_pred_c_all = c(tmp_pred_c_all, pred_val) # combine predicted recaptures for a given age sex pooled group
                 tmp_obs_c_all  = c(tmp_obs_c_all,  obs_val) # combine observed recaptures for a given age sex pooled group
               } # end r loop
@@ -857,7 +844,7 @@ SPoRC_rtmb = function(pars, data) {
           tmp_obs_all = vector()
 
           # number of recaptures
-          tmp_n_tags_recap = sum(Obs_Tag_Recap[ry,tc,,,] + 1e-10)
+          tmp_n_tags_recap = sum(Obs_Tag_Recap[ry,tc,,,] + addtotag)
 
           # Loop through age and sex pooling and combine vectors into the correct format
           for(a in 1:n_move_age_tag_pool) {
@@ -866,8 +853,8 @@ SPoRC_rtmb = function(pars, data) {
               move_sex_pool_idx = move_sex_tag_pool[[s]] # extract movement sex pool indices
 
               for (r in 1:n_regions) {
-                pred_val = sum(Pred_Tag_Recap[ry, tc, r, move_age_pool_idx, move_sex_pool_idx] + 1e-10) # sum across age and sex groups
-                obs_val  = sum(Obs_Tag_Recap[ry, tc, r, move_age_pool_idx, move_sex_pool_idx] + 1e-10) # sum across age and sex groups
+                pred_val = sum(Pred_Tag_Recap[ry, tc, r, move_age_pool_idx, move_sex_pool_idx] + addtotag) # sum across age and sex groups
+                obs_val  = sum(Obs_Tag_Recap[ry, tc, r, move_age_pool_idx, move_sex_pool_idx] + addtotag) # sum across age and sex groups
                 tmp_pred_all = c(tmp_pred_all, pred_val) # combine predicted recaptures for a given age sex pooled group
                 tmp_obs_all  = c(tmp_obs_all,  obs_val) # combine observed recaptures for a given age sex pooled group
               } # end r loop
@@ -896,17 +883,9 @@ SPoRC_rtmb = function(pars, data) {
         for(r in 1:n_regions) {
 
           if(UseCatch[r,y,f] == 1) {
-            if(likelihoods == 0) {
-              if(Catch_Type[y,f] == 0 && est_all_regional_F == 0) Fmort_nLL[1,y,f] = (ln_F_devs_AggCatch[y,f] / exp(ln_sigmaF_agg[f]))^2 # Use aggregated catch
-              else Fmort_nLL[r,y,f] = (ln_F_devs[r,y,f] / exp(ln_sigmaF[r,f]))^2 # SSQ ADMB
-            } # ADMB
-
-            if(likelihoods == 1) {
-              if(Catch_Type[y,f] == 0 && est_all_regional_F == 0) Fmort_nLL[1,y,f] = -RTMB::dnorm(ln_F_devs_AggCatch[y,f], 0, exp(ln_sigmaF_agg[f]), TRUE) # Use aggregated catch
-              else Fmort_nLL[r,y,f] = -RTMB::dnorm(ln_F_devs[r,y,f], 0, exp(ln_sigmaF[r,f]), TRUE)
-            } # TMB
+            if(Catch_Type[y,f] == 0 && est_all_regional_F == 0) Fmort_nLL[1,y,f] = -RTMB::dnorm(ln_F_devs_AggCatch[y,f], 0, exp(ln_sigmaF_agg[f]), TRUE) # Use aggregated catch
+            else Fmort_nLL[r,y,f] = -RTMB::dnorm(ln_F_devs[r,y,f], 0, exp(ln_sigmaF[r,f]), TRUE)
           } # end if have catch
-
 
         } # end r loop
       } # y loop
@@ -972,8 +951,7 @@ SPoRC_rtmb = function(pars, data) {
       s = fish_selex_prior$sex[i]
       f = fish_selex_prior$fleet[i]
       # Compute penalty / prior here
-      if(likelihoods == 0) sel_nLL = sel_nLL + (ln_fish_fixed_sel_pars[r,p,b,s,f] - log(fish_selex_prior$mu[i]))^2 / (2 * (fish_selex_prior$sd[i])^2) # ADMB likelihood
-      if(likelihoods == 1) sel_nLL = sel_nLL - RTMB::dnorm(ln_fish_fixed_sel_pars[r,p,b,s,f], log(fish_selex_prior$mu[i]), fish_selex_prior$sd[i], TRUE)
+      sel_nLL = sel_nLL - RTMB::dnorm(ln_fish_fixed_sel_pars[r,p,b,s,f], log(fish_selex_prior$mu[i]), fish_selex_prior$sd[i], TRUE)
     } # end i loop
   } # end if using selex priors
 
@@ -987,42 +965,25 @@ SPoRC_rtmb = function(pars, data) {
       s = srv_selex_prior$sex[i]
       sf = srv_selex_prior$fleet[i]
       # Compute penalty / prior here
-      if(likelihoods == 0) sel_nLL = sel_nLL + (ln_srv_fixed_sel_pars[r,p,b,s,sf] - log(srv_selex_prior$mu[i]))^2 / (2 * (srv_selex_prior$sd[i])^2) # ADMB likelihood
-      if(likelihoods == 1) sel_nLL = sel_nLL - RTMB::dnorm(ln_srv_fixed_sel_pars[r,p,b,s,sf], log(srv_selex_prior$mu[i]), srv_selex_prior$sd[i], TRUE)
+      sel_nLL = sel_nLL - RTMB::dnorm(ln_srv_fixed_sel_pars[r,p,b,s,sf], log(srv_selex_prior$mu[i]), srv_selex_prior$sd[i], TRUE)
     } # end i loop
   } # end if using selex priors
 
   ### Recruitment (Penalty) ----------------------------------------------------
-  if(likelihoods == 0) {
-    for(r in 1:n_regions) {
-      # if initial age structure is stochastic
-      if(equil_init_age_strc %in% c(1,2)) Init_Rec_nLL[r,] = (ln_InitDevs[r,] / exp(ln_sigmaR[1]))^2 # initial age structure penalty
-      if(sigmaR_switch > 1) for(y in 1:(sigmaR_switch-1)) {
-        Rec_nLL[r,y] = (ln_RecDevs[r,y]/exp(ln_sigmaR[1]))^2 + bias_ramp[y]*ln_sigmaR[1] # early period
-      } # end first y loop
-      for(y in (sigmaR_switch:n_est_rec_devs)) {
-        Rec_nLL[r,y] = (ln_RecDevs[r,y]/exp(ln_sigmaR[2]))^2 + bias_ramp[y]*ln_sigmaR[2] # late period
-      } # end second y loop
-    } # end r loop
-    Rec_nLL = 0.5 * Rec_nLL  # multiply by 0.5 and sum
-    Init_Rec_nLL = 0.5 * Init_Rec_nLL # multiply by 0.5 and sum
-  }
+  for(r in 1:n_regions) {
+    # if initial age structure is stochastic
+    if(equil_init_age_strc %in% c(1,2)) Init_Rec_nLL[r,] = -RTMB::dnorm(ln_InitDevs[r,], 0, exp(ln_sigmaR[1]), TRUE) # initial age structure penalty
+    if(sigmaR_switch > 1) for(y in 1:(sigmaR_switch-1)) {
+      Rec_nLL[r,y] = -RTMB::dnorm(ln_RecDevs[r,y], 0, exp(ln_sigmaR[1]), TRUE)
+      if(do_rec_bias_ramp == 1) Rec_nLL[r,y] = Rec_nLL[r,y] - (1 - 0.5 * bias_ramp[y]) * ln_sigmaR[1] # early period with bias ramp correction
+    } # first y loop
+    # Note that this penalizes the terminal year rec devs, which is estimated in this case
+    for(y in sigmaR_switch:n_est_rec_devs) {
+      Rec_nLL[r,y] = -RTMB::dnorm(ln_RecDevs[r,y], 0, exp(ln_sigmaR[2]), TRUE)
+      if(do_rec_bias_ramp == 1) Rec_nLL[r,y] = Rec_nLL[r,y] - (1 - 0.5 * bias_ramp[y]) * ln_sigmaR[2] # late period with bias ramp correction
+    } # end second y loop
+  } # end r loop
 
-  if(likelihoods == 1) {
-    for(r in 1:n_regions) {
-      # if initial age structure is stochastic
-      if(equil_init_age_strc %in% c(1,2)) Init_Rec_nLL[r,] = -RTMB::dnorm(ln_InitDevs[r,], 0, exp(ln_sigmaR[1]), TRUE) # initial age structure penalty
-      if(sigmaR_switch > 1) for(y in 1:(sigmaR_switch-1)) {
-        Rec_nLL[r,y] = -RTMB::dnorm(ln_RecDevs[r,y], 0, exp(ln_sigmaR[1]), TRUE)
-        if(do_rec_bias_ramp == 1) Rec_nLL[r,y] = Rec_nLL[r,y] - (1 - 0.5 * bias_ramp[y]) * ln_sigmaR[1] # early period with bias ramp correction
-      } # first y loop
-      # Note that this penalizes the terminal year rec devs, which is estimated in this case
-      for(y in sigmaR_switch:n_est_rec_devs) {
-        Rec_nLL[r,y] = -RTMB::dnorm(ln_RecDevs[r,y], 0, exp(ln_sigmaR[2]), TRUE)
-        if(do_rec_bias_ramp == 1) Rec_nLL[r,y] = Rec_nLL[r,y] - (1 - 0.5 * bias_ramp[y]) * ln_sigmaR[2] # late period with bias ramp correction
-      } # end second y loop
-    } # end r loop
-  }
 
   ### Fishery Catchability (Prior) -----------------------------------------------
   if(Use_fish_q_prior == 1) {
@@ -1032,8 +993,7 @@ SPoRC_rtmb = function(pars, data) {
       b = fish_q_prior$block[i]
       f = fish_q_prior$fleet[i]
       # Compute penalty / prior here
-      if(likelihoods == 0) fish_q_nLL = fish_q_nLL + (ln_fish_q[r,b,f] - log(fish_q_prior$mu[i]))^2 / (2 * (fish_q_prior$sd[i])^2) # ADMB likelihood
-      if(likelihoods == 1) fish_q_nLL = fish_q_nLL - sum(RTMB::dnorm(ln_fish_q[r,b,f], log(fish_q_prior$mu[i]), fish_q_prior$sd[i], TRUE))
+      fish_q_nLL = fish_q_nLL - sum(RTMB::dnorm(ln_fish_q[r,b,f], log(fish_q_prior$mu[i]), fish_q_prior$sd[i], TRUE))
     } # end i loop
   } # end if using survey catchability prior
 
@@ -1045,15 +1005,21 @@ SPoRC_rtmb = function(pars, data) {
       b = srv_q_prior$block[i]
       sf = srv_q_prior$fleet[i]
       # Compute penalty / prior here
-      if(likelihoods == 0) srv_q_nLL = srv_q_nLL + (ln_srv_q[r,b,sf] - log(srv_q_prior$mu[i]))^2 / (2 * (srv_q_prior$sd[i])^2) # ADMB likelihood
-      if(likelihoods == 1) srv_q_nLL = srv_q_nLL - sum(RTMB::dnorm(ln_srv_q[r,b,sf], log(srv_q_prior$mu[i]), srv_q_prior$sd[i], TRUE))
+      srv_q_nLL = srv_q_nLL - sum(RTMB::dnorm(ln_srv_q[r,b,sf], log(srv_q_prior$mu[i]), srv_q_prior$sd[i], TRUE))
     } # end i loop
   } # end if using survey catchability prior
 
-  ### Natural Mortality (Prior) -----------------------------------------------
+  ## Natural Mortality (Prior) -----------------------------------------------
   if(Use_M_prior == 1) {
-    if(likelihoods == 0) M_nLL = (ln_M - log(M_prior[1]))^2 / (2 * (M_prior[2])^2) # ADMB likelihood
-    if(likelihoods == 1) M_nLL = -RTMB::dnorm(ln_M, log(M_prior[1]), M_prior[2], TRUE) # TMB likelihood
+    for(i in 1:nrow(M_prior)) {
+      # Extract indices
+      r = M_prior$regionblk[i]
+      b = M_prior$yearblk[i]
+      a = M_prior$ageblk[i]
+      s = M_prior$sexblk[i]
+      # Compute prior
+      M_nLL = M_nLL + -RTMB::dnorm(ln_M[r,b,a,s], log(M_prior$mu[i]), M_prior$sd[i], TRUE) # TMB likelihood
+    }
   } # end if using natural mortality prior
 
   ### Steepness (Prior) -----------------------------------------------
@@ -1142,6 +1108,7 @@ SPoRC_rtmb = function(pars, data) {
   # Report Section ----------------------------------------------------------
   # Biological Processes
   RTMB::REPORT(R0)
+  RTMB::REPORT(sexratio)
   RTMB::REPORT(Rec_trans_prop)
   RTMB::REPORT(h_trans)
   RTMB::REPORT(NAA)
@@ -1152,6 +1119,8 @@ SPoRC_rtmb = function(pars, data) {
 
   # Fishery Processes
   RTMB::REPORT(init_F)
+  RTMB::REPORT(ln_sigmaC)
+  RTMB::REPORT(ln_sigmaC_agg)
   RTMB::REPORT(Fmort)
   RTMB::REPORT(FAA)
   RTMB::REPORT(CAA)

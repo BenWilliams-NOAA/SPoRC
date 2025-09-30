@@ -778,7 +778,6 @@ data("sgl_rg_sable_data") # read in single region data
 
 # Setup necessary inputs
 t_spawn <- 0 # spawn timing
-sexratio <- c(0.5, 0.5) # sex ratio
 n_proj_yrs <- 15 # number of projection years
 n_regions <- 1 # number of regions
 n_ages <- length(sgl_rg_sable_data$ages) # number of ages
@@ -794,6 +793,7 @@ Movement <- array(rep(sgl_rg_sable_rep$Movement[,,length(sgl_rg_sable_data$years
 terminal_F <- array(sgl_rg_sable_rep$Fmort[,length(sgl_rg_sable_data$years),], dim = c(n_regions, n_fish_fleets)) # terminal F
 natmort <- array(sgl_rg_sable_rep$natmort[,length(sgl_rg_sable_data$years),,], dim = c(n_regions, n_proj_yrs, n_ages, n_sexes)) # natural mortality
 recruitment <- array(sgl_rg_sable_rep$Rec[,20:(length(sgl_rg_sable_data$years) - 2)], dim = c(n_regions, length(20:length(sgl_rg_sable_data$years) - 2))) # recruitment values to use for mean recruitment calculations or inverse gaussian parameterization
+sexratio <- array(0.5, dim = c(n_regions, n_proj_yrs, n_sexes)) # recruitment sex ratio 
 
 # Define reference points to use in HCR
 f_ref_pt = array(sgl_ref_pt$f_ref_pt, dim = c(n_regions, n_proj_yrs))
@@ -931,7 +931,6 @@ data("mlt_rg_sable_data") # read in multi region data
 
 # Setup necessary inputs
 t_spawn <- 0 # spawn timing
-sexratio <- c(0.50, 0.5) # sex ratio
 n_proj_yrs <- 15 # number of projection years
 n_regions <- 5 # number of regions
 n_ages <- length(mlt_rg_sable_data$ages) # number of ages
@@ -947,6 +946,7 @@ Movement <- aperm(abind::abind(replicate(n_proj_yrs, mlt_rg_sable_rep$Movement[,
 terminal_F <- array(mlt_rg_sable_rep$Fmort[,length(mlt_rg_sable_data$years),], dim = c(n_regions, n_fish_fleets)) # terminal F
 natmort <- array(mlt_rg_sable_rep$natmort[,length(mlt_rg_sable_data$years),,], dim = c(n_regions, n_proj_yrs, n_ages, n_sexes)) # natural mortality
 recruitment <- array(mlt_rg_sable_rep$Rec[,20:(length(mlt_rg_sable_data$years) - 2)], dim = c(n_regions, length(20:length(mlt_rg_sable_data$years) - 2))) # recruitment values to use for mean recruitment calculations or inverse gaussian parameterization
+sexratio <- array(0.5, dim = c(n_regions, n_proj_yrs, n_sexes)) # recruitment sex ratio 
 
 # Define independent SPR reference points to use in HCR
 f_ref_pt_indp = array(mlt_ref_pt_indp$f_ref_pt, dim = c(n_regions, n_proj_yrs))
@@ -1058,7 +1058,6 @@ data("sgl_rg_sable_data") # read in single region data
 # Setup necessary inputs
 n_sims <- 1e3 # number of simulations to conduct
 t_spawn <- 0 # spawn timing
-sexratio <- c(0.50, 0.5) # sex ratio
 n_proj_yrs <- 15 # number of projection years
 n_regions <- 1 # number of regions
 n_ages <- length(sgl_rg_sable_data$ages) # number of ages
@@ -1074,6 +1073,8 @@ Movement <- array(rep(sgl_rg_sable_rep$Movement[,,length(sgl_rg_sable_data$years
 terminal_F <- array(sgl_rg_sable_rep$Fmort[,length(sgl_rg_sable_data$years),], dim = c(n_regions, n_fish_fleets)) # terminal F
 natmort <- array(sgl_rg_sable_rep$natmort[,length(sgl_rg_sable_data$years),,], dim = c(n_regions, n_proj_yrs, n_ages, n_sexes)) # natural mortality
 recruitment <- array(sgl_rg_sable_rep$Rec[,20:(length(sgl_rg_sable_data$years) - 2)], dim = c(n_regions, length(20:length(sgl_rg_sable_data$years) - 2))) # recruitment values to use for mean recruitment calculations or inverse gaussian parameterization
+sexratio <- array(0.5, dim = c(n_regions, n_proj_yrs, n_sexes)) # recruitment sex ratio 
+
 ```
 
 We can then define our two projection scenarios to use in this example, as well as arrays to store our projection results in:

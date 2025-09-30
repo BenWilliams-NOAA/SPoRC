@@ -2,39 +2,72 @@
 % Please edit documentation in R/Setup_Dimensions.R
 \name{Setup_Sim_Dim}
 \alias{Setup_Sim_Dim}
-\title{Set up simulation dimensions}
+\title{Initialize Simulation Dimension Settings}
 \usage{
 Setup_Sim_Dim(
   n_sims,
   n_yrs,
   n_regions,
   n_ages,
+  n_lens,
+  n_obs_ages = n_ages,
   n_sexes,
   n_fish_fleets,
   n_srv_fleets,
-  run_feedback,
-  feedback_start_yr
+  run_feedback = FALSE,
+  feedback_start_yr = NULL
 )
 }
 \arguments{
-\item{n_sims}{Number of simulations}
+\item{n_sims}{Integer. Number of simulation replicates.}
 
-\item{n_yrs}{Number of years}
+\item{n_yrs}{Integer. Number of years in the simulation.}
 
-\item{n_regions}{Number of regions}
+\item{n_regions}{Integer. Number of modeled regions.}
 
-\item{n_ages}{Number of ages}
+\item{n_ages}{Integer. Number of modeled age classes.}
 
-\item{n_sexes}{Number of sexes}
+\item{n_lens}{Integer. Number of modeled length bins.}
 
-\item{n_fish_fleets}{Number of fishery fleets}
+\item{n_obs_ages}{Integer. Number of observed age classes (can differ from \code{n_ages}, default = \code{n_ages}).}
 
-\item{n_srv_fleets}{Number of survey fleets}
+\item{n_sexes}{Integer. Number of sexes.}
 
-\item{run_feedback}{Boolean for whether to run or not run feedback management loop}
+\item{n_fish_fleets}{Integer. Number of fishery fleets.}
 
-\item{feedback_start_yr}{If MSE is run, when is the first year feedback starts}
+\item{n_srv_fleets}{Integer. Number of survey fleets.}
+
+\item{run_feedback}{Logical. Whether to include a feedback management loop (default = \code{FALSE}).}
+
+\item{feedback_start_yr}{Integer. First year that feedback is applied (only used if \code{run_feedback = TRUE}).}
+}
+\value{
+A list containing the specified dimension values, with elements:
+\itemize{
+  \item \code{n_sims}, \code{n_yrs}, \code{n_regions}, \code{n_ages}, \code{n_lens},
+  \code{n_obs_ages}, \code{n_sexes}, \code{n_fish_fleets}, \code{n_srv_fleets}
+  \item \code{init_iter} (set internally to \code{n_ages * 10})
+  \item \code{feedback_start_yr}, \code{run_feedback}
+}
 }
 \description{
-Set up simulation dimensions
+Creates and returns a list of key dimension values used to set up a
+simulation or management strategy evaluation (MSE). This list provides
+structural information such as number of simulations, years, regions,
+ages, fleets, and whether to include a feedback loop.
 }
+\seealso{
+Other Simulation Setup: 
+\code{\link{Setup_Sim_Biologicals}()},
+\code{\link{Setup_Sim_Containers}()},
+\code{\link{Setup_Sim_Fishing}()},
+\code{\link{Setup_Sim_Rec}()},
+\code{\link{Setup_Sim_Survey}()},
+\code{\link{Setup_Sim_Tagging}()},
+\code{\link{Setup_sim_env}()},
+\code{\link{Simulate_Pop_Static}()},
+\code{\link{run_annual_cycle}()},
+\code{\link{simulation_data_to_SPoRC}()},
+\code{\link{simulation_self_test}()}
+}
+\concept{Simulation Setup}

@@ -2,16 +2,45 @@
 % Please edit documentation in R/Setup_Biologicals.R
 \name{do_M_mapping}
 \alias{do_M_mapping}
-\title{Helper function to do natural mortality mapping}
+\title{Helper function to map natural mortality blocks}
 \usage{
-do_M_mapping(input_list, M_spec)
+do_M_mapping(
+  input_list,
+  M_spec,
+  M_regionblk_spec_vals,
+  M_yearblk_spec_vals,
+  M_ageblk_spec_vals,
+  M_sexblk_spec_vals
+)
 }
 \arguments{
-\item{input_list}{Input list}
+\item{input_list}{A named list object containing model data, parameters, and mapping structures.}
 
-\item{M_spec}{Character vector specifying M options}
+\item{M_spec}{Character string indicating whether to estimate or fix natural mortality.
+Options are:
+\itemize{
+  \item \code{"est_ln_M"}: Estimate natural mortality parameters.
+  \item \code{"fix"}: Fix all natural mortality parameters (requires them to be passed in the input list).
+}}
+
+\item{M_regionblk_spec_vals}{A list of numeric vectors specifying the region indices grouped in each block.}
+
+\item{M_yearblk_spec_vals}{A list of numeric vectors specifying the year indices grouped in each block.}
+
+\item{M_ageblk_spec_vals}{A list of numeric vectors specifying the age indices grouped in each block.}
+
+\item{M_sexblk_spec_vals}{A list of numeric vectors specifying the sex indices grouped in each block.}
+}
+\value{
+An updated \code{input_list} with mapped natural mortality blocks:
+\itemize{
+  \item \code{input_list$map$ln_M} is a factor indicating fixed or estimated mortality parameters.
+  \item \code{input_list$data$M_blocks} is a 4D array (region × year × age × sex) with unique block IDs.
+}
 }
 \description{
-Helper function to do natural mortality mapping
+This function maps natural mortality (\code{ln_M}) to a block structure across region, year, age, and sex dimensions.
+It assigns unique integer identifiers to each block defined by the user's specifications, which is stored in the \code{M_blocks}
+array in the input list.
 }
 \keyword{internal}

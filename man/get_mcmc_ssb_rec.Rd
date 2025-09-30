@@ -17,3 +17,23 @@ returns a dataframe of recruitment and ssb posterior samples and a plot of ssb a
 \description{
 Derive SSB and Recruitment from MCMC using posterior samples
 }
+\seealso{
+Other Model Diagnostics: 
+\code{\link{do_jitter}()},
+\code{\link{do_likelihood_profile}()},
+\code{\link{do_mcmc}()},
+\code{\link{do_retrospective}()},
+\code{\link{do_runs_test}()},
+\code{\link{get_catch_fits_plot}()},
+\code{\link{get_comp_prop}()},
+\code{\link{get_idx_fits}()},
+\code{\link{get_idx_fits_plot}()},
+\code{\link{get_nLL_plot}()},
+\code{\link{get_osa}()},
+\code{\link{get_retrospective_plot}()},
+\code{\link{get_retrospective_relative_difference}()},
+\code{\link{mcmc_diag}()},
+\code{\link{mcmc_par_names}()},
+\code{\link{plot_resids}()}
+}
+\concept{Model Diagnostics}

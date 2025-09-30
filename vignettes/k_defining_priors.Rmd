@@ -82,21 +82,32 @@ steepness_prior
 ```
 
 # Natural Mortality
-Currently, the natural mortality module is relatively simple, where it estimates a single natural mortality value for all model partitions. Thus, priors can be simply defined as well (likely subject to change). Here, we use the `Setup_Mod_Biologicals` function to specify a natural mortality prior. To do so, we will set `Use_M_prior = 1` and provide a vector of values corresponding to the mean and standard deviation `M_prior = c(0.1, 0.1)` of the natural mortality prior. 
+To define natural mortality priors, we use the `Setup_Mod_Biologicals` function to specify a natural mortality prior. To do so, we will set `Use_M_prior = 1` and provide a dataframe of values corresponding the region, year, age, and sex blocks specified for natural mortality, along with their associated mean and standard deviation. 
 
 ```{r}
+# Define natural mortality prior
+M_prior <- data.frame( 
+  regionblk = 1, # region block
+  yearblk = 1, # year block
+  ageblk = c(1), # age block
+  sexblk = c(1,2), # sex block
+  mu = 0.085, # mean
+  sd = 0.1 #sd
+)
+
 input_list <- Setup_Mod_Biologicals(input_list = input_list,
-                                    
                                     # Data inputs
                                     WAA = sgl_rg_sable_data$WAA, # weight-at-age
                                     MatAA = sgl_rg_sable_data$MatAA, # maturity at age
                                     AgeingError = as.matrix(sgl_rg_sable_data$age_error), # ageing error
                                     SizeAgeTrans = sgl_rg_sable_data$SizeAgeTrans, # size age transition matrix
-                                    
                                     # Model options
                                     Use_M_prior = 1, # use natural mortality prior
-                                    M_prior = c(0.1, 0.1) # mean and sd for M prior
+                                    M_prior = M_prior, # mean and sd for M prior
+                                    M_spec = "est_ln_M", # estmating M
+                                    M_sexblk_spec = list(1,2) # specifying M as sex-specific
 )
+
 ```
 
 # Catchability
@@ -293,7 +304,6 @@ In the context of a spatial model, Dirichlet priors can also be placed on recrui
 # Setup recruitment stuff (using defaults for other stuff)
 input_list <- Setup_Mod_Rec(input_list = input_list, # input data list from above
                             do_rec_bias_ramp = 0,
-                            sexratio = c(0.5, 0.5), # fix sex ratio at 0.5
 
                             # Model options
                             rec_model = "mean_rec", # recruitment model

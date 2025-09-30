@@ -9,6 +9,7 @@
 #' @param n_newton_loops Number of newton loops to do
 #' @param do_par Whether to do paralleizaiton or not (boolean)
 #' @param n_cores Number of cores to use
+#' @param par_vec Vector of parameter starting values to use for jitter analysis. The default of this is NULL (jitters the starting value of the model). If a vector is provided, the jitter is initialized at the MLE parameters
 #'
 #' @import RTMB
 #' @import future.apply
@@ -19,7 +20,7 @@
 #' @importFrom stats rnorm nlminb optimHess
 #' @returns Dataframe of jitter values
 #' @export do_jitter
-#'
+#' @family Model Diagnostics
 #' @examples
 #' \dontrun{
 #'    library(ggplot2)
@@ -83,7 +84,8 @@ do_jitter <- function(data,
                       n_jitter,
                       n_newton_loops,
                       do_par,
-                      n_cores
+                      n_cores,
+                      par_vec = NULL
                       ) {
 
   jitter_all <- data.frame()
@@ -98,7 +100,8 @@ do_jitter <- function(data,
     for(i in 1:n_jitter) {
 
       # jitter original parameters (additive normal draws)
-      jitter_pars <- obj$par + stats::rnorm(length(obj$par), 0, sd)
+      if(is.null(par_vec)) jitter_pars <- obj$par + stats::rnorm(length(obj$par), 0, sd) # if not using mle parameters
+      else jitter_pars <- par_vec + stats::rnorm(length(obj$par), 0, sd) # if using mle parameters
 
       # Now, optimize the function
       optim <- stats::nlminb(jitter_pars,
@@ -150,7 +153,8 @@ do_jitter <- function(data,
         obj <- RTMB::MakeADFun(cmb(SPoRC_rtmb, data), parameters = parameters,  map = mapping, random = random, silent = TRUE)
 
         # Jitter original parameters
-        jitter_pars <- obj$par + stats::rnorm(length(obj$par), 0, sd)
+        if(is.null(par_vec)) jitter_pars <- obj$par + stats::rnorm(length(obj$par), 0, sd) # if not using mle parameters
+        else jitter_pars <- par_vec + stats::rnorm(length(obj$par), 0, sd) # if using mle parameters
 
         # Optimize function
         optim <- stats::nlminb(jitter_pars,

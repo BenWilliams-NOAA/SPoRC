@@ -12,6 +12,7 @@ fit_model(
   newton_loops = 3,
   silent = FALSE,
   do_optim = TRUE,
+  nlminb_control = list(iter.max = 1e+05, eval.max = 1e+05, rel.tol = 1e-15),
   ...
 )
 }
@@ -30,6 +31,8 @@ fit_model(
 
 \item{do_optim}{Boolean on whether or not model is optimized}
 
+\item{nlminb_control}{List argument controls by nlminb}
+
 \item{...}{Additional arguments taken by MakeADFun}
 }
 \value{
@@ -47,3 +50,10 @@ model <- fit_model(data,
                  newton_loops = 3)
 }
 }
+\seealso{
+Other Utility: 
+\code{\link{get_par_est_info}()},
+\code{\link{post_optim_sanity_checks}()},
+\code{\link{set_data_indicator_unused}()}
+}
+\concept{Utility}

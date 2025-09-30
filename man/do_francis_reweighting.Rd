@@ -2,7 +2,7 @@
 % Please edit documentation in R/do_francis.R
 \name{do_francis_reweighting}
 \alias{do_francis_reweighting}
-\title{Run Francis Reweighting}
+\title{Get Francis Weights}
 \usage{
 do_francis_reweighting(data, rep, age_labels, len_labels, year_labels)
 }
@@ -21,7 +21,10 @@ do_francis_reweighting(data, rep, age_labels, len_labels, year_labels)
 A list object of francis weights (note that it will be NAs for some, if using jnt composition approaches - i.e., only uses one dimension), as well as a dataframe of francis mean fits
 }
 \description{
-Run Francis Reweighting
+Get Francis Weights
+}
+\details{
+Function to get francis weights. Used inside the wrapper function run_francis(), or can be defined by the user as a loop to extract Francis weights (see example).
 }
 \examples{
 \dontrun{
@@ -53,3 +56,8 @@ for(j in 1:5) {
 }
 }
 }
+\seealso{
+Other Francis Reweighting: 
+\code{\link{run_francis}()}
+}
+\concept{Francis Reweighting}

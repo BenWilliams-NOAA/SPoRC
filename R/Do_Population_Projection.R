@@ -4,7 +4,7 @@
 #' @param n_regions Number of regions
 #' @param n_ages Number of ages
 #' @param n_sexes Number of sexes
-#' @param sexratio Vector of recruitment sex ratio
+#' @param sexratio Array of recruitment sex ratio (n_regions, n_proj_yrs, n_sexes)
 #' @param n_fish_fleets Number of fishery fleets
 #' @param do_recruits_move Whether recruits move (0 == don't move, 1 == move)
 #' @param recruitment Recruitment matrix dimensioned by n_regions, and n_yrs that we want to summarize across, or condition our projection on
@@ -37,7 +37,7 @@
 #'
 #' @returns A list containing projected F, catch, SSB, and Numbers at Age. (Objects are generally dimensioned in the following order: n_regions, n_yrs, n_ages, n_sexes, n_fleets)
 #' @export Do_Population_Projection
-#'
+#' @family Reference Points and Projections
 #' @examples
 #' \dontrun{
 #' # Define HCR to use
@@ -55,11 +55,10 @@
 #' # Setup necessary inputs
 #' n_sims <- 1000
 #' t_spawn <- 0
-#' sexratio <- 0.5
 #' n_proj_yrs <- 15
 #' n_regions <- 1
 #' n_ages <- length(data$ages)
-#' n_sexes <- data$n_sexes
+#' n_sexes <- 1 # single sex
 #' n_fish_fleets <- 2
 #' do_recruits_move <- 0
 #' terminal_NAA <- array(obj$rep$NAA[,length(data$years),,], dim = c(n_regions, n_ages, n_sexes))
@@ -71,7 +70,7 @@
 #' terminal_F <- array(obj$rep$Fmort[,length(data$years),], dim = c(n_regions, n_fish_fleets))
 #' natmort <- array(obj$rep$natmort[,length(data$years),,], dim = c(n_regions, n_proj_yrs, n_ages, n_sexes))
 #' recruitment <- array(obj$rep$Rec[,20:(length(data$years) - 2)], dim = c(n_regions, length(20:length(data$years) - 2)))
-#'
+#' sexratio <- array(1, dim = c(n_regions, n_proj_yrs, n_sexes)) # recruitment sex ratio
 #' # Define reference points
 #' spr_35 <- Get_Reference_Points(data = data,
 #'                                rep = rep,
@@ -294,7 +293,9 @@ Do_Population_Projection <- function(n_proj_yrs = 2,
 
       # Apply recruitment to projected NAA
       for(r in 1:n_regions) {
-        proj_NAA[r,y,1,] <- if(n_sexes > 1) tmp_rec[r] * sexratio else tmp_rec[r]
+        if(n_sexes == 2) tmp <- tmp_rec[r] * sexratio[r,y,]
+        if(n_sexes == 1) tmp <- tmp_rec[r]
+        proj_NAA[r,y,1,] <- tmp
       } # end r loop
 
     }
@@ -306,7 +307,14 @@ Do_Population_Projection <- function(n_proj_yrs = 2,
       if(do_recruits_move == 0) {
         # Apply movement after ageing processes - start movement at age 2
         for(a in 2:n_ages) for(s in 1:n_sexes) proj_NAA[,y,a,s] = t(proj_NAA[,y,a,s]) %*% Movement[,,y,a,s]
-        for(r in 1:n_regions) proj_NAA[r,y,1,] = tmp_rec[r] * sexratio
+
+        # Apply recruitment to projected NAA
+        for(r in 1:n_regions) {
+          if(n_sexes == 2) tmp <- tmp_rec[r] * sexratio[r,y,]
+          if(n_sexes == 1) tmp <- tmp_rec[r]
+          proj_NAA[r,y,1,] <- tmp
+        } # end r loop
+
       } # end if recruits don't move
       # Recruits move here
       if(do_recruits_move == 1) for(a in 1:n_ages) for(s in 1:n_sexes) proj_NAA[,y,a,s] = t(proj_NAA[,y,a,s]) %*% Movement[,,y,a,s]

@@ -6,7 +6,7 @@
 #'
 #' @returns List object with p value and limits for a three-sigma limit - (potential data outlier, where residual is > 3 standard deviations away from a mean of 0)
 #' @export do_runs_test
-#'
+#' @family Model Diagnostics
 #' @import randtests
 #' @examples
 #' \dontrun{
@@ -44,9 +44,10 @@
 #'     facet_wrap(~Idx, scales = 'free', ncol = 2)
 #' }
 do_runs_test <- function(x,
-                         type=NULL,
-                         mixing="two.sided"
+                         type = NULL,
+                         mixing = "two.sided"
                          ) {
+
   if(is.null(type)) type="resid"
   if(type=="resid"){
     mu = 0}else{mu = mean(x, na.rm = TRUE)}

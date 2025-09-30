@@ -2,13 +2,30 @@
 % Please edit documentation in R/Setup_Containers.R
 \name{Setup_Sim_Containers}
 \alias{Setup_Sim_Containers}
-\title{Setup containers for simulation and output into global environment}
+\title{Setup containers for simulation and output}
 \usage{
 Setup_Sim_Containers(sim_list)
 }
 \arguments{
-\item{sim_list}{List object containing simulation components (should have n_regions, n_ages, n_sexes, n_sims, sim_list$n_fish_fleets, sim_list$n_srv_fleets)}
+\item{sim_list}{List from `Setup_Sim_Dim()` containing core simulation dimensions
+(`n_regions`, `n_yrs`, `n_ages`, `n_sexes`, `n_sims`, `n_fish_fleets`, `n_srv_fleets`, `n_obs_ages`, `n_lens`).
+The function appends container arrays for biological, fishery, and survey quantities.}
 }
 \description{
-Setup containers for simulation and output into global environment
+Setup containers for simulation and output
 }
+\seealso{
+Other Simulation Setup: 
+\code{\link{Setup_Sim_Biologicals}()},
+\code{\link{Setup_Sim_Dim}()},
+\code{\link{Setup_Sim_Fishing}()},
+\code{\link{Setup_Sim_Rec}()},
+\code{\link{Setup_Sim_Survey}()},
+\code{\link{Setup_Sim_Tagging}()},
+\code{\link{Setup_sim_env}()},
+\code{\link{Simulate_Pop_Static}()},
+\code{\link{run_annual_cycle}()},
+\code{\link{simulation_data_to_SPoRC}()},
+\code{\link{simulation_self_test}()}
+}
+\concept{Simulation Setup}

@@ -39,14 +39,21 @@
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">Setup_Sim_Tagging</span><span class="op">(</span></span>
-<span>  <span class="va">n_tags</span>,</span>
-<span>  <span class="va">max_liberty</span>,</span>
-<span>  <span class="va">tag_years</span>,</span>
-<span>  <span class="va">t_tagging</span>,</span>
-<span>  <span class="va">base_Tag_Reporting</span>,</span>
-<span>  <span class="va">Tag_Reporting_pattern</span>,</span>
-<span>  <span class="va">Tag_Ind_Mort</span>,</span>
-<span>  <span class="va">Tag_Shed</span>,</span>
+<span>  n_tags <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  n_tags_rel_input <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  UseTagging <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  max_liberty <span class="op">=</span> <span class="va">sim_list</span><span class="op">$</span><span class="va">n_ages</span><span class="op">/</span><span class="fl">2</span>,</span>
+<span>  tag_release_indicator <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span>regions <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">sim_list</span><span class="op">$</span><span class="va">n_regions</span>, tag_years <span class="op">=</span></span>
+<span>    <span class="fl">1</span><span class="op">:</span><span class="va">sim_list</span><span class="op">$</span><span class="va">n_yrs</span><span class="op">)</span>,</span>
+<span>  t_tagging <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  ln_Init_Tag_Mort <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">1e-05</span><span class="op">)</span>,</span>
+<span>  ln_Tag_Shed <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">1e-05</span><span class="op">)</span>,</span>
+<span>  Tag_Reporting_input <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="fl">0.5</span>, dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sim_list</span><span class="op">$</span><span class="va">n_regions</span>, <span class="va">sim_list</span><span class="op">$</span><span class="va">n_yrs</span>,</span>
+<span>    <span class="va">sim_list</span><span class="op">$</span><span class="va">n_sims</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  tag_selex <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>  tag_natmort <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>  tag_like <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  ln_tag_theta <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span>,</span>
 <span>  <span class="va">sim_list</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -56,41 +63,96 @@
 
 
 <dl><dt id="arg-n-tags">n_tags<a class="anchor" aria-label="anchor" href="#arg-n-tags"></a></dt>
-<dd><p>Number of tags to release in a given year</p></dd>
+<dd><p>Number of tags to release in a given year (scalar, default = NULL)</p></dd>
+
+
+<dt id="arg-n-tags-rel-input">n_tags_rel_input<a class="anchor" aria-label="anchor" href="#arg-n-tags-rel-input"></a></dt>
+<dd><p>Number of tag releases by tag cohort length (default = NULL)</p></dd>
+
+
+<dt id="arg-usetagging">UseTagging<a class="anchor" aria-label="anchor" href="#arg-usetagging"></a></dt>
+<dd><p>Boolean to use tagging (default = 0):</p><ul><li><p>0: Do not simulate tagging</p></li>
+<li><p>1: Simulate tagging</p></li>
+</ul></dd>
 
 
 <dt id="arg-max-liberty">max_liberty<a class="anchor" aria-label="anchor" href="#arg-max-liberty"></a></dt>
-<dd><p>Maximum liberty to track cohorts for</p></dd>
+<dd><p>Maximum liberty to track cohorts (default = sim_list$n_ages / 2)</p></dd>
 
 
-<dt id="arg-tag-years">tag_years<a class="anchor" aria-label="anchor" href="#arg-tag-years"></a></dt>
-<dd><p>Years to release tags for</p></dd>
+<dt id="arg-tag-release-indicator">tag_release_indicator<a class="anchor" aria-label="anchor" href="#arg-tag-release-indicator"></a></dt>
+<dd><p>Tag release indicator [regions × tag_years]
+(default = all combinations of regions × years via `expand.grid`)</p></dd>
 
 
 <dt id="arg-t-tagging">t_tagging<a class="anchor" aria-label="anchor" href="#arg-t-tagging"></a></dt>
-<dd><p>Time of tagging (e.g., start year == 0, mid year == 0.5)</p></dd>
+<dd><p>Time of tagging (e.g., start year == 0, mid year == 0.5; default = 0)</p></dd>
 
 
-<dt id="arg-base-tag-reporting">base_Tag_Reporting<a class="anchor" aria-label="anchor" href="#arg-base-tag-reporting"></a></dt>
-<dd><p>Base tag reporting rate by region</p></dd>
+<dt id="arg-ln-init-tag-mort">ln_Init_Tag_Mort<a class="anchor" aria-label="anchor" href="#arg-ln-init-tag-mort"></a></dt>
+<dd><p>Log initial tag-induced mortality (default = log(1e-5))</p></dd>
 
 
-<dt id="arg-tag-reporting-pattern">Tag_Reporting_pattern<a class="anchor" aria-label="anchor" href="#arg-tag-reporting-pattern"></a></dt>
-<dd><p>Tag reporting pattern. Options include: constant</p></dd>
+<dt id="arg-ln-tag-shed">ln_Tag_Shed<a class="anchor" aria-label="anchor" href="#arg-ln-tag-shed"></a></dt>
+<dd><p>Log chronic tag shedding rate (default = log(1e-5))</p></dd>
 
 
-<dt id="arg-tag-ind-mort">Tag_Ind_Mort<a class="anchor" aria-label="anchor" href="#arg-tag-ind-mort"></a></dt>
-<dd><p>Initial tag induced mortality</p></dd>
+<dt id="arg-tag-reporting-input">Tag_Reporting_input<a class="anchor" aria-label="anchor" href="#arg-tag-reporting-input"></a></dt>
+<dd><p>Tag reporting input [n_regions × n_yrs × n_sims]
+(default = 0.5)</p></dd>
 
 
-<dt id="arg-tag-shed">Tag_Shed<a class="anchor" aria-label="anchor" href="#arg-tag-shed"></a></dt>
-<dd><p>Chronic tag shedding rate</p></dd>
+<dt id="arg-tag-selex">tag_selex<a class="anchor" aria-label="anchor" href="#arg-tag-selex"></a></dt>
+<dd><p>Tag selectivity type (integer, default = 5):</p><ul><li><p>0: Uniform_DomFleet</p></li>
+<li><p>1: SexAgg_DomFleet</p></li>
+<li><p>2: SexSp_DomFleet</p></li>
+<li><p>3: Uniform_AllFleet</p></li>
+<li><p>4: SexAgg_AllFleet</p></li>
+<li><p>5: SexSp_AllFleet</p></li>
+</ul></dd>
+
+
+<dt id="arg-tag-natmort">tag_natmort<a class="anchor" aria-label="anchor" href="#arg-tag-natmort"></a></dt>
+<dd><p>Tag natural mortality type (integer, default = 3):</p><ul><li><p>0: AgeAgg_SexAgg</p></li>
+<li><p>1: AgeSp_SexAgg</p></li>
+<li><p>2: AgeAgg_SexSp</p></li>
+<li><p>3: AgeSp_SexSp</p></li>
+</ul></dd>
+
+
+<dt id="arg-tag-like">tag_like<a class="anchor" aria-label="anchor" href="#arg-tag-like"></a></dt>
+<dd><p>Tag likelihood type (integer, default = 0):</p><ul><li><p>0: Poisson</p></li>
+<li><p>1: NegBin</p></li>
+<li><p>2: Multinomial_Release</p></li>
+<li><p>3: Multinomial_Recapture</p></li>
+<li><p>4: Dirichlet-Multinomial_Release</p></li>
+<li><p>5: Dirichlet-Multinomial_Recapture</p></li>
+</ul></dd>
+
+
+<dt id="arg-ln-tag-theta">ln_tag_theta<a class="anchor" aria-label="anchor" href="#arg-ln-tag-theta"></a></dt>
+<dd><p>Scalar in log space describing tag likelihood overdispersion (default = log(1))</p></dd>
 
 
 <dt id="arg-sim-list">sim_list<a class="anchor" aria-label="anchor" href="#arg-sim-list"></a></dt>
-<dd><p>Simulation list</p></dd>
+<dd><p>Simulation list (required)</p></dd>
 
 </dl></div>
+    <div class="section level2">
+    <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
+    <div class="dont-index"><p>Other Simulation Setup:
+<code><a href="Setup_Sim_Biologicals.html">Setup_Sim_Biologicals</a>()</code>,
+<code><a href="Setup_Sim_Containers.html">Setup_Sim_Containers</a>()</code>,
+<code><a href="Setup_Sim_Dim.html">Setup_Sim_Dim</a>()</code>,
+<code><a href="Setup_Sim_Fishing.html">Setup_Sim_Fishing</a>()</code>,
+<code><a href="Setup_Sim_Rec.html">Setup_Sim_Rec</a>()</code>,
+<code><a href="Setup_Sim_Survey.html">Setup_Sim_Survey</a>()</code>,
+<code><a href="Setup_sim_env.html">Setup_sim_env</a>()</code>,
+<code><a href="Simulate_Pop_Static.html">Simulate_Pop_Static</a>()</code>,
+<code><a href="run_annual_cycle.html">run_annual_cycle</a>()</code>,
+<code><a href="simulation_data_to_SPoRC.html">simulation_data_to_SPoRC</a>()</code>,
+<code><a href="simulation_self_test.html">simulation_self_test</a>()</code></p></div>
+    </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>

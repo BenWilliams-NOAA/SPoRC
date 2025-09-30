@@ -39,7 +39,6 @@ Name | Description
 `max_bias_ramp_fct` | Value specifying the maximum bias correction factor applied to the recruitment bias ramp.
 `bias_year`	| Vector of years, specifying when to change the bias ramp. Can be specified with an NA if do_rec_bias_ramp = 0
 `sigmaR_switch`	| Value specifying when to transition between using an early period sigma and late period sigma R for penalizing initial age deviations and recruitment deviations. Specify as 0 if sigmaR early is equal to sigmaR late.
-`sexratio`	| Vector specifying the recruitment sex ratio
 `init_age_strc`	| Value specifying how the population age structure should be initialized. 0: Initialize via iteration to equilibrium, 1: Initialize with geometric series solution.
 `equil_init_age_strc` | Value specifying how intial age deviations arise. 0 == equilibrium, 1 == stochastic except for plus group, 2 == stochastic for all ages (including the plus group)
 `init_F_prop`	| Value specifying the proportion of fishing mortality to apply to the initial age deviations relative to the mean fishing mortality parameter for fishery fleet 1 (the dominant fleet)
@@ -47,7 +46,9 @@ Name | Description
 `rec_dd` | Value specifying the recruitment density dependence (only used when there is a stock recruitment relationship) 0 == local density, 1 == global density, 999 == no density dependent stock recruitment form is used
 `t_spawn` | Fraction of year in which spawning occurs
 `Use_Rec_prop_Prior` | Value specifying whether recruitment proportion priors are used. 0: Don't use priors, 1: Use Priors. Recruitment proportion priors are applied using a Dirichlet distribution.
-`Rec_prop_prior`     | Prior values defined for recruitment proportions if used (i.e., the Dirichlet concentration parameters) dimensioned by `n_regions`
+`Rec_prop_prior`    | Prior values defined for recruitment proportions if used (i.e., the Dirichlet concentration parameters) dimensioned by `n_regions`
+`sexratio_blocks`	| Matrix specifying sexratio blocks (`n_regions x n_years`)
+
 
 ## Data Inputs for Defining Biological Processes
 Name | Description
@@ -60,11 +61,15 @@ Name | Description
 `fit_lengths`	| Value describing whether or not to fit length composition data. 0: Don’t fit lengths, 1: Fit lengths
 `SizeAgeTrans`	| Size-age transition matrix dimensioned by n_regions, n_years, n_lens, n_ages, n_sexes. Can be specified as NA if length compositions are not fit
 `addtocomp`  | Constant to add to all composition data.
+`addtofishidx`  | Constant to add to all fishery index data.
+`addtosrvidx`  | Constant to add to all survey index data.
+`addtotag`  | Constant to add to all tagging data.
 `Use_M_prior` | Value specifying whether natural mortality priors are used. 0: Don’t use prior, 1: Use prior
-`M_prior`	| Vector specifying the mean and standard deviation of natural mortality in normal space. Element 1 should be the mean and element 2 should be the standard deviation. The prior is applied to the M parameter and not the offset 
+`M_prior`	| A dataframe specifying how natural mortality priors should be applied. 
 `Selex_Type` | Value specifying whether age or length-based selectivity is used. 0: Age-based, 1: Length-based
 `use_fixed_natmort` | Value specifying whether a fixed mortality array is used. 0: Don't use and estimate M, 1: Use 
 `Fixed_natmort` | Natural mortality array dimensioned by n_regions, n_years, n_ages, and n_sexes.
+`M_blocks` | Array that specifies the dimensions in which natural mortality is blocked (n_regions, n_years, n_ages, and n_sexes)
 
 ## Data Inputs for Defining Movement Processes
 Name | Description
@@ -106,7 +111,6 @@ Name | Description
 `Catch_Type` |	Matrix dimensioned by n_years, n_fish_fleets describing when and for what fishery fleet catch is aggregated across regions (0) or spatially explicit (1). For example, in a case where we have 10 years and 1 fishery fleet, where fishery fleet 1 is spatially aggregated in the first 5 years and fishery fleet 2 is spatially explicit, this would be structured as: `Catch_Type <- array(c(rep(0, 5), rep(1, 5)), dim = c(n_years, n_fish_fleets))`
 `UseCatch` |	Array dimensioned by n_regions, n_years, n_fish_fleets describing whether to fit to catch data in a given year for a given fleet. 0: Don’t fit catch, 1: Fit catch
 `est_all_regional_F` | Value specifying whether regional fishing mortality deviations are all estimated or only a subset are. 0: A subset of fishing mortality deviations are spatially aggregated, 1: All fishing mortality deviations are spatially explicit, irrespective of whether catch is aggregated across regions in certain periods
-`Catch_Constant` |	Vector dimensioned by n_fish_fleets specifying robustifying constants to add to catch data
 `Use_F_pen` |	Value specifying whether to use a fishing mortality penalty to regularize fishing mortality deviations. 0: Don’t use regularity penalty, 1: Use regularity penalty
 
 ## Data Inputs for Defining Fishery Indices and Compositions
@@ -146,6 +150,7 @@ Name | Description
 `SrvLenComps_LikeType` |	Vector dimensioned by n_srv_fleets specifying the likelihood to use for fitting survey length compositions. 0: Multinomial, 1: Dirichlet-multinomial, 2: Logistic-normal with iid covariance, 999: None Available. More options and details can be found in `Get_Comp_Likelihoods.R`
 `SrvAgeComps_Type` |	Matrix dimensioned by n_years, n_srv_fleets specifying how age composition data should be structured and fit to. 0: Aggregated across sexes and regions, 1: Split by sexes and regions, 2: Joint by sex but split by region, 999: None Available. More options and details can be found in `Get_Comp_Likelihoods.R`
 `SrvLenComps_Type` |	Matrix dimensioned by n_years, n_srv_fleets specifying how length composition data should be structured and fit to. 0: Aggregated across sexes and regions, 1: Split by sexes and regions, 2: Joint by sex but split by region, 999: None Available. More options and details can be found in `Get_Comp_Likelihoods.R`
+`t_srv` | Matrixum dimensioned by n_years, n_srv_fleets specifying survey timing as a proportion of the year.
 
 ## Data Inputs for Defining Fishery Selectivity and Catchability
 Name | Description
@@ -180,8 +185,6 @@ Name | Description
 ## Data Inputs for Defining Model Weighting
 Name | Description
 |-------------------------|------------------------------------------------------|
-`sablefish_ADMB` | Value specific to bridging exercise for sablefish ADMB assessment. 0: Don’t mimic sablefish ADMB assessment for calculating and normalizing length composition data, 1: Mimic sablefish ADMB assessment 
-`likelihoods` |	Value specifying the type of likelihoods to use. 0: Use ADMB likelihoods (with associated weights), 1: Use TMB likelihoods (without any associated weights; weighted using standard deviation or input sample size values)
 `Wt_Catch` |	Weight applied to fishery catch likelihoods. Either a numeric scalar or an array of scalars dimensioned by `n_regions`, `n_years`, `n_fish_fleets.` 
 `Wt_FishIdx` |	Weight applied to fishery index likelihoods. Either a numeric scalar or an array of scalars dimensioned by `n_regions`, `n_years`, `n_fish_fleets.` 
 `Wt_SrvIdx`	| Weight applied to survey index likelihoods. Either a numeric scalar or an array of scalars dimensioned by `n_regions`, `n_years`, `n_srv_fleets.` 

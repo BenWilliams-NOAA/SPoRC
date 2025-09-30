@@ -52,7 +52,6 @@
 <span>  max_bias_ramp_fct <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  sigmaR_switch <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  dont_est_recdev_last <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>  sexratio <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  init_age_strc <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  equil_init_age_strc <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  init_F_prop <span class="op">=</span> <span class="fl">0</span>,</span>
@@ -61,6 +60,8 @@
 <span>  RecDevs_spec <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  h_spec <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  t_spawn <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  sexratio_spec <span class="op">=</span> <span class="st">"fix"</span>,</span>
+<span>  sexratio_blocks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"none_Region_"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="va">input_list</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">n_regions</span><span class="op">)</span>, sep <span class="op">=</span> <span class="st">""</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -139,10 +140,6 @@ If scalar, a constant uniform prior is applied across all dimensions.</p></dd>
 <dd><p>Integer specifying how many of the most recent recruitment deviations to not estimate. Default is 0.</p></dd>
 
 
-<dt id="arg-sexratio">sexratio<a class="anchor" aria-label="anchor" href="#arg-sexratio"></a></dt>
-<dd><p>Numeric vector specifying recruitment sex ratio, dimensioned by number of sexes.</p></dd>
-
-
 <dt id="arg-init-age-strc">init_age_strc<a class="anchor" aria-label="anchor" href="#arg-init-age-strc"></a></dt>
 <dd><p>Integer flag specifying initialization of initial age structure:</p><ul><li><p><code>0</code>: Initialize by iteration.</p></li>
 <li><p><code>1</code>: Initialize using a geometric series.</p></li>
@@ -161,7 +158,7 @@ If scalar, a constant uniform prior is applied across all dimensions.</p></dd>
 
 
 <dt id="arg-sigmar-spec">sigmaR_spec<a class="anchor" aria-label="anchor" href="#arg-sigmar-spec"></a></dt>
-<dd><p>Character string specifying estimation of recruitment variability (<code>sigmaR</code>):</p><ul><li><p><code>NULL</code>: Estimate separate <code>sigmaR</code> for early and late periods.</p></li>
+<dd><p>Character string specifying estimation of recruitment variability (<code>sigmaR</code>):</p><ul><li><p><code>NULL or "est_all"</code>: Estimate separate <code>sigmaR</code> for early and late periods.</p></li>
 <li><p><code>"est_shared"</code>: Estimate one <code>sigmaR</code> shared across periods.</p></li>
 <li><p><code>"fix"</code>: Fix both <code>sigmaR</code> values.</p></li>
 <li><p><code>"fix_early_est_late"</code>: Fix early <code>sigmaR</code>, estimate late <code>sigmaR</code>.</p></li>
@@ -193,10 +190,38 @@ If scalar, a constant uniform prior is applied across all dimensions.</p></dd>
 <dd><p>Numeric fraction specifying spawning timing within the year.</p></dd>
 
 
+<dt id="arg-sexratio-spec">sexratio_spec<a class="anchor" aria-label="anchor" href="#arg-sexratio-spec"></a></dt>
+<dd><p>Character string specifying sex ratio estimation scheme:</p><ul><li><p><code>"est_all"</code> estimates sex ratio for all blocks and regions independently</p></li>
+<li><p><code>"est_shared_r"</code> estimates sex ratio shared across regions but varying by block</p></li>
+<li><p><code>"fix"</code> fixes all sex ratio (no estimation)</p></li>
+</ul></dd>
+
+
+<dt id="arg-sexratio-blocks">sexratio_blocks<a class="anchor" aria-label="anchor" href="#arg-sexratio-blocks"></a></dt>
+<dd><p>Character vector specifying blocks of years and regions for sex ratio. Format examples:</p><ul><li><p><code>"Block_1_Year_1-15_Region_1"</code></p></li>
+<li><p><code>"Block_2_Year_16-terminal_Region_2"</code></p></li>
+<li><p><code>"none_Region_3"</code> (means no block, constant for that region; this is the default option)</p></li>
+</ul></dd>
+
+
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
 <dd><p>Additional arguments specifying starting values for recruitment parameters such as <code>ln_global_R0</code>, <code>Rec_prop</code>, <code>h</code>, <code>ln_InitDevs</code>, <code>ln_RecDevs</code>, and <code>ln_sigmaR</code>.</p></dd>
 
 </dl></div>
+    <div class="section level2">
+    <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
+    <div class="dont-index"><p>Other Model Setup:
+<code><a href="Setup_Mod_Biologicals.html">Setup_Mod_Biologicals</a>()</code>,
+<code><a href="Setup_Mod_Catch_and_F.html">Setup_Mod_Catch_and_F</a>()</code>,
+<code><a href="Setup_Mod_Dim.html">Setup_Mod_Dim</a>()</code>,
+<code><a href="Setup_Mod_FishIdx_and_Comps.html">Setup_Mod_FishIdx_and_Comps</a>()</code>,
+<code><a href="Setup_Mod_Fishsel_and_Q.html">Setup_Mod_Fishsel_and_Q</a>()</code>,
+<code><a href="Setup_Mod_Movement.html">Setup_Mod_Movement</a>()</code>,
+<code><a href="Setup_Mod_SrvIdx_and_Comps.html">Setup_Mod_SrvIdx_and_Comps</a>()</code>,
+<code><a href="Setup_Mod_Srvsel_and_Q.html">Setup_Mod_Srvsel_and_Q</a>()</code>,
+<code><a href="Setup_Mod_Tagging.html">Setup_Mod_Tagging</a>()</code>,
+<code><a href="Setup_Mod_Weighting.html">Setup_Mod_Weighting</a>()</code></p></div>
+    </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>

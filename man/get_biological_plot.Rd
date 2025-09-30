@@ -24,3 +24,12 @@ Get Plots of Biological Quantities
 get_biological_plot(list(data1, data2), list(rep1, rep2), c("Model1", "Model2"))
 }
 }
+\seealso{
+Other Plotting: 
+\code{\link{get_data_fitted_plot}()},
+\code{\link{get_selex_plot}()},
+\code{\link{get_ts_plot}()},
+\code{\link{plot_all_basic}()},
+\code{\link{theme_sablefish}()}
+}
+\concept{Plotting}

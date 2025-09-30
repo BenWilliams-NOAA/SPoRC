@@ -18,7 +18,6 @@ Setup_Mod_Rec(
   max_bias_ramp_fct = 1,
   sigmaR_switch = 1,
   dont_est_recdev_last = 0,
-  sexratio = 1,
   init_age_strc = 0,
   equil_init_age_strc = 1,
   init_F_prop = 0,
@@ -27,6 +26,8 @@ Setup_Mod_Rec(
   RecDevs_spec = NULL,
   h_spec = NULL,
   t_spawn = 0,
+  sexratio_spec = "fix",
+  sexratio_blocks = c(paste("none_Region_", c(1:input_list$data$n_regions), sep = "")),
   ...
 )
 }
@@ -82,8 +83,6 @@ For example, with 65 years total, \code{c(21, 31, 60, 64)} means:
 
 \item{dont_est_recdev_last}{Integer specifying how many of the most recent recruitment deviations to not estimate. Default is 0.}
 
-\item{sexratio}{Numeric vector specifying recruitment sex ratio, dimensioned by number of sexes.}
-
 \item{init_age_strc}{Integer flag specifying initialization of initial age structure:
 \itemize{
   \item \code{0}: Initialize by iteration.
@@ -101,7 +100,7 @@ For example, with 65 years total, \code{c(21, 31, 60, 64)} means:
 
 \item{sigmaR_spec}{Character string specifying estimation of recruitment variability (\code{sigmaR}):
 \itemize{
-  \item \code{NULL}: Estimate separate \code{sigmaR} for early and late periods.
+  \item \code{NULL or "est_all"}: Estimate separate \code{sigmaR} for early and late periods.
   \item \code{"est_shared"}: Estimate one \code{sigmaR} shared across periods.
   \item \code{"fix"}: Fix both \code{sigmaR} values.
   \item \code{"fix_early_est_late"}: Fix early \code{sigmaR}, estimate late \code{sigmaR}.
@@ -131,8 +130,36 @@ For example, with 65 years total, \code{c(21, 31, 60, 64)} means:
 
 \item{t_spawn}{Numeric fraction specifying spawning timing within the year.}
 
+\item{sexratio_spec}{Character string specifying sex ratio estimation scheme:
+\itemize{
+  \item \code{"est_all"} estimates sex ratio for all blocks and regions independently
+  \item \code{"est_shared_r"} estimates sex ratio shared across regions but varying by block
+  \item \code{"fix"} fixes all sex ratio (no estimation)
+}}
+
+\item{sexratio_blocks}{Character vector specifying blocks of years and regions for sex ratio. Format examples:
+\itemize{
+  \item \code{"Block_1_Year_1-15_Region_1"}
+  \item \code{"Block_2_Year_16-terminal_Region_2"}
+  \item \code{"none_Region_3"} (means no block, constant for that region; this is the default option)
+}}
+
 \item{...}{Additional arguments specifying starting values for recruitment parameters such as \code{ln_global_R0}, \code{Rec_prop}, \code{h}, \code{ln_InitDevs}, \code{ln_RecDevs}, and \code{ln_sigmaR}.}
 }
 \description{
 Setup model objects for specifying recruitment module and associated processes
 }
+\seealso{
+Other Model Setup: 
+\code{\link{Setup_Mod_Biologicals}()},
+\code{\link{Setup_Mod_Catch_and_F}()},
+\code{\link{Setup_Mod_Dim}()},
+\code{\link{Setup_Mod_FishIdx_and_Comps}()},
+\code{\link{Setup_Mod_Fishsel_and_Q}()},
+\code{\link{Setup_Mod_Movement}()},
+\code{\link{Setup_Mod_SrvIdx_and_Comps}()},
+\code{\link{Setup_Mod_Srvsel_and_Q}()},
+\code{\link{Setup_Mod_Tagging}()},
+\code{\link{Setup_Mod_Weighting}()}
+}
+\concept{Model Setup}

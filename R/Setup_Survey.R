@@ -1,55 +1,181 @@
 #' Setup values for survey parameterization
 #'
-#' @param sigmaSrvIdx Survey index observation error, dimensioned by region and fleet
-#' @param base_srv_q Base survey catchability value, dimensioned by region and fleet
-#' @param srv_q_pattern Survey catchability pattern, dimensioned by region and fleet. Options include: constant
-#' @param sel_model Survey selectivity model dimensioned by region and fleet. Options include: logistic
-#' @param fixed_srv_sel_pars Fixed parameters of survey selectivity, dimensioned by region, sex, survey fleet, and the max number of parameters needed for
-#' for a defined survey selectivity functional form out of all defined functional forms for the survey.
-#' @param sim_list Simulation list object
+#' @param sim_list Simulation list object from `Setup_Sim_Dim()`
+#' @param ObsSrvIdx_SE Survey index observation error
+#'   [n_regions × n_yrs × n_srv_fleets]
+#'   (default: `0.2`)
+#' @param srv_sel_input Survey selectivity array
+#'   [n_regions × n_yrs × n_ages × n_sexes × n_srv_fleets × n_sims]
+#'   (no default, must be provided)
+#' @param srv_q_input Survey catchability array
+#'   [n_regions × n_yrs × n_srv_fleets × n_sims]
+#'   (default: `1`)
+#' @param t_srv Survey timing fraction
+#'   [n_regions × n_srv_fleets]
+#'   (default: `0`)
+#' @param srv_idx_type Vector of index types [n_srv_fleets]
+#'   (default: all `1` = biomass index)
+#'   \itemize{
+#'     \item \code{0}: Abundance index
+#'     \item \code{1}: Biomass index
+#'   }
+#'
+#' @section Survey age compositions:
+#' @param comp_srvage_like Vector [n_srv_fleets] specifying likelihood for simulating age comps
+#'   (default: all `0` = multinomial)
+#'   \itemize{
+#'     \item \code{0}: Multinomial
+#'     \item \code{1}: Dirichlet-Multinomial
+#'     \item \code{2}: Logistic Normal iid
+#'     \item \code{3}: Logistic Normal 1dar1
+#'     \item \code{4}: Logistic Normal 2d correlation (constant by sex, 1dar1 by age)
+#'   }
+#' @param ISS_SrvAgeComps Input sample sizes
+#'   [n_regions × n_yrs × n_sexes × n_srv_fleets × n_sims]
+#'   (default: `100`)
+#' @param ln_SrvAge_theta Overdispersion parameters
+#'   [n_regions × n_sexes × n_srv_fleets]
+#'   (default: `log(1)`)
+#' @param ln_SrvAge_theta_agg Overdispersion parameters for aggregated comps
+#'   [n_srv_fleets]
+#'   (default: `log(1)`)
+#' @param SrvAge_corr_pars_agg Correlation parameters (agg.) for options 3–4
+#'   [n_srv_fleets]
+#'   (default: `0.01`)
+#' @param SrvAge_corr_pars Correlation parameters
+#'   [n_regions × n_sexes × n_srv_fleets x 2]
+#'   (default: `0.01`)
+#' @param SrvAgeComps_Type Array [n_yrs × n_srv_fleets]
+#'   (default: `2` = joint by sex, split by region)
+#'   \itemize{
+#'     \item \code{0}: Aggregated
+#'     \item \code{1}: Split by sex and region
+#'     \item \code{2}: Joint by sex, split by region
+#'     \item \code{999}: Not simulated
+#'   }
+#'
+#' @section Survey length compositions:
+#'   (no default, must be provided)
+#' @param comp_srvlen_like Vector [n_srv_fleets] specifying likelihood for simulating length comps
+#'   (default: all `0` = multinomial)
+#'   \itemize{
+#'     \item \code{0}: Multinomial
+#'     \item \code{1}: Dirichlet-Multinomial
+#'     \item \code{2}: Logistic Normal iid
+#'     \item \code{3}: Logistic Normal 1dar1
+#'     \item \code{4}: Logistic Normal 2d correlation (constant by sex, 1dar1 by length)
+#'   }
+#' @param ISS_SrvLenComps Input sample sizes
+#'   [n_regions × n_yrs × n_sexes × n_srv_fleets × n_sims]
+#'   (default: `100`)
+#' @param ln_SrvLen_theta Overdispersion parameters
+#'   [n_regions × n_sexes × n_srv_fleets]
+#'   (default: `log(1)`)
+#' @param ln_SrvLen_theta_agg Overdispersion parameters for aggregated comps
+#'   [n_srv_fleets]
+#'   (default: `log(1)`)
+#' @param SrvLen_corr_pars_agg Correlation parameters (agg.) for options 3–4
+#'   [n_srv_fleets]
+#'   (default: `0.01`)
+#' @param SrvLen_corr_pars Correlation parameters
+#'   [n_regions × n_sexes × n_srv_fleets x 2]
+#'   (default: `0.01`)
+#' @param SrvLenComps_Type Array [n_yrs × n_srv_fleets]
+#'   (default: `2` = joint by sex, split by region)
+#'   \itemize{
+#'     \item \code{0}: Aggregated
+#'     \item \code{1}: Split by sex and region
+#'     \item \code{2}: Joint by sex, split by region
+#'     \item \code{999}: Not simulated
+#'   }
 #'
 #' @export Setup_Sim_Survey
-#'
-Setup_Sim_Survey <- function(sigmaSrvIdx,
-                             base_srv_q,
-                             srv_q_pattern,
-                             sel_model,
-                             fixed_srv_sel_pars,
-                             sim_list
+#' @family Simulation Setup
+Setup_Sim_Survey <- function(ObsSrvIdx_SE = array(0.2, dim = c(sim_list$n_regions, sim_list$n_yrs, sim_list$n_srv_fleets)),
+                             sim_list,
+                             srv_sel_input,
+                             srv_q_input = array(1, dim = c(sim_list$n_regions, sim_list$n_yrs, sim_list$n_srv_fleets, sim_list$n_sims)),
+                             t_srv = array(0, dim = c(sim_list$n_regions, sim_list$n_srv_fleets)),
+                             srv_idx_type = rep(1, sim_list$n_srv_fleets),
+                             comp_srvage_like = rep(0, sim_list$n_srv_fleets),
+                             ISS_SrvAgeComps = array(100, dim = c(sim_list$n_regions, sim_list$n_yrs, sim_list$n_sexes, sim_list$n_srv_fleets, sim_list$n_sims)),
+                             ln_SrvAge_theta = array(log(1), dim = c(sim_list$n_regions, sim_list$n_sexes, sim_list$n_srv_fleets)),
+                             ln_SrvAge_theta_agg = rep(log(1), sim_list$n_srv_fleets),
+                             SrvAge_corr_pars_agg = rep(0.01, sim_list$n_srv_fleets),
+                             SrvAge_corr_pars = array(0.01, dim = c(sim_list$n_regions, sim_list$n_sexes, sim_list$n_srv_fleets, 2)),
+                             SrvAgeComps_Type = array(2, dim = c(sim_list$n_yrs, sim_list$n_srv_fleets)),
+                             comp_srvlen_like = rep(0, sim_list$n_srv_fleets),
+                             ISS_SrvLenComps = array(100, dim = c(sim_list$n_regions, sim_list$n_yrs, sim_list$n_sexes, sim_list$n_srv_fleets, sim_list$n_sims)),
+                             ln_SrvLen_theta = array(log(1), dim = c(sim_list$n_regions, sim_list$n_sexes, sim_list$n_srv_fleets)),
+                             ln_SrvLen_theta_agg = rep(log(1), sim_list$n_srv_fleets),
+                             SrvLen_corr_pars_agg = rep(0.01, sim_list$n_srv_fleets),
+                             SrvLen_corr_pars = array(0.01, dim = c(sim_list$n_regions, sim_list$n_sexes, sim_list$n_srv_fleets, 2)),
+                             SrvLenComps_Type = array(2, dim = c(sim_list$n_yrs, sim_list$n_srv_fleets))
                              ) {
 
-  # otuput survey sigma into simulation list
-  sim_list$sigmaSrvIdx <- sigmaSrvIdx
+  # Validate dimensions of all input parameters
+  check_sim_dimensions(srv_sel_input, n_regions = sim_list$n_regions, n_years = sim_list$n_yrs,
+                       n_ages = sim_list$n_ages, n_sexes = sim_list$n_sexes,
+                       n_srv_fleets = sim_list$n_srv_fleets, n_sims = sim_list$n_sims, what = "srv_sel_input")
+  check_sim_dimensions(srv_q_input, n_regions = sim_list$n_regions, n_years = sim_list$n_yrs,
+                       n_srv_fleets = sim_list$n_srv_fleets, n_sims = sim_list$n_sims, what = "srv_q_input")
+  check_sim_dimensions(ObsSrvIdx_SE, n_regions = sim_list$n_regions, n_years = sim_list$n_yrs,
+                       n_srv_fleets = sim_list$n_srv_fleets, what = "ObsSrvIdx_SE")
+  check_sim_dimensions(srv_idx_type, n_srv_fleets = sim_list$n_srv_fleets, what = "srv_idx_type")
+  check_sim_dimensions(t_srv, n_regions = sim_list$n_regions, n_srv_fleets = sim_list$n_srv_fleets, what = "t_srv")
 
-  # create containers to loop through and populate
-  srv_sel <- array(0, dim = c(sim_list$n_regions, sim_list$n_yrs, sim_list$n_ages, sim_list$n_sexes, sim_list$n_srv_fleets, sim_list$n_sims)) # survey selectivity
-  srv_q <- array(1, dim = c(sim_list$n_regions, sim_list$n_yrs, sim_list$n_srv_fleets, sim_list$n_sims)) # survey catchability
+  # Validate survey age composition parameters
+  check_sim_dimensions(comp_srvage_like, n_srv_fleets = sim_list$n_srv_fleets, what = "comp_srvage_like")
+  check_sim_dimensions(ISS_SrvAgeComps, n_regions = sim_list$n_regions, n_years = sim_list$n_yrs,
+                       n_sexes = sim_list$n_sexes, n_srv_fleets = sim_list$n_srv_fleets,
+                       n_sims = sim_list$n_sims, what = "ISS_SrvAgeComps")
+  check_sim_dimensions(ln_SrvAge_theta, n_regions = sim_list$n_regions, n_sexes = sim_list$n_sexes,
+                       n_srv_fleets = sim_list$n_srv_fleets, what = "ln_SrvAge_theta")
+  check_sim_dimensions(ln_SrvAge_theta_agg, n_srv_fleets = sim_list$n_srv_fleets, what = "ln_SrvAge_theta_agg")
+  check_sim_dimensions(SrvAge_corr_pars_agg, n_srv_fleets = sim_list$n_srv_fleets, what = "SrvAge_corr_pars_agg")
+  check_sim_dimensions(SrvAge_corr_pars, n_regions = sim_list$n_regions, n_sexes = sim_list$n_sexes,
+                       n_srv_fleets = sim_list$n_srv_fleets, what = "SrvAge_corr_pars")
+  check_sim_dimensions(SrvAgeComps_Type, n_years = sim_list$n_yrs, n_srv_fleets = sim_list$n_srv_fleets,
+                       what = "SrvAgeComps_Type")
 
-  for(sim in 1:sim_list$n_sims) {
-    for(r in 1:sim_list$n_regions) {
-      for(y in 1:sim_list$n_yrs) {
-        for(sf in 1:sim_list$n_srv_fleets) {
-
-          # Survey catchability if constant
-          if(srv_q_pattern[r,sf] == 'constant') srv_q[r,y,sf,sim] <- base_srv_q[r,sf]
-
-          for(s in 1:sim_list$n_sexes) {
-
-            if(sel_model[r,sf] == 'logistic') {
-              a50 <- fixed_srv_sel_pars[r,s,sf,1] # get a50
-              k <- fixed_srv_sel_pars[r,s,sf,2] # get k
-              srv_sel[r,y,,s,sf,sim] <- 1 / (1 + exp(-k * (1:sim_list$n_ages - a50)))
-            } # end if logistic
-
-          }
-        } # end f loop
-      } # end y loop
-    } # end r loop
-  } # end sim loop
+  # Validate suvey length composition parameters
+  check_sim_dimensions(comp_srvlen_like, n_srv_fleets = sim_list$n_srv_fleets, what = "comp_srvlen_like")
+  check_sim_dimensions(ISS_SrvLenComps, n_regions = sim_list$n_regions, n_years = sim_list$n_yrs,
+                       n_sexes = sim_list$n_sexes, n_srv_fleets = sim_list$n_srv_fleets,
+                       n_sims = sim_list$n_sims, what = "ISS_SrvLenComps")
+  check_sim_dimensions(ln_SrvLen_theta, n_regions = sim_list$n_regions, n_sexes = sim_list$n_sexes,
+                       n_srv_fleets = sim_list$n_srv_fleets, what = "ln_SrvLen_theta")
+  check_sim_dimensions(ln_SrvLen_theta_agg, n_srv_fleets = sim_list$n_srv_fleets, what = "ln_SrvLen_theta_agg")
+  check_sim_dimensions(SrvLen_corr_pars_agg, n_srv_fleets = sim_list$n_srv_fleets, what = "SrvLen_corr_pars_agg")
+  check_sim_dimensions(SrvLen_corr_pars, n_regions = sim_list$n_regions, n_sexes = sim_list$n_sexes,
+                       n_srv_fleets = sim_list$n_srv_fleets, what = "SrvLen_corr_pars")
+  check_sim_dimensions(SrvLenComps_Type, n_years = sim_list$n_yrs, n_srv_fleets = sim_list$n_srv_fleets,
+                       what = "SrvLenComps_Type")
 
   # output into list
-  sim_list$srv_sel <- srv_sel
-  sim_list$srv_q <- srv_q
+  sim_list$srv_sel <- srv_sel_input
+  sim_list$srv_q <- srv_q_input
+  sim_list$ObsSrvIdx_SE <- ObsSrvIdx_SE
+  sim_list$t_srv <- t_srv
+  sim_list$srv_idx_type <- srv_idx_type
+
+  # Survey age compositions
+  sim_list$comp_srvage_like <- comp_srvage_like
+  sim_list$ISS_SrvAgeComps <- ISS_SrvAgeComps
+  sim_list$ln_SrvAge_theta <- ln_SrvAge_theta
+  sim_list$ln_SrvAge_theta_agg <- ln_SrvAge_theta_agg
+  sim_list$SrvAge_corr_pars_agg <- SrvAge_corr_pars_agg
+  sim_list$SrvAge_corr_pars <- SrvAge_corr_pars
+  sim_list$SrvAgeComps_Type <- SrvAgeComps_Type
+
+  # Survey length compositions
+  sim_list$comp_srvlen_like <- comp_srvlen_like
+  sim_list$ISS_SrvLenComps <- ISS_SrvLenComps
+  sim_list$ln_SrvLen_theta <- ln_SrvLen_theta
+  sim_list$ln_SrvLen_theta_agg <- ln_SrvLen_theta_agg
+  sim_list$SrvLen_corr_pars_agg <- SrvLen_corr_pars_agg
+  sim_list$SrvLen_corr_pars <- SrvLen_corr_pars
+  sim_list$SrvLenComps_Type <- SrvLenComps_Type
 
   return(sim_list)
 
@@ -378,23 +504,6 @@ do_SrvLen_corr_pars_mapping <- function(input_list) {
 #' (e.g., \code{"agg_Year_1-10_Fleet_1"}).
 #'
 #' @param SrvLenComps_Type Same as \code{SrvAgeComps_Type}, but for length compositions.
-#'
-#' @param SrvAge_comp_agg_type Optional integer vector of length \code{n_srv_fleets} specifying
-#' the order of operations for aggregating age compositions when \code{SrvAgeComps_Type == "agg"}.
-#' \itemize{
-#'   \item \code{0}: Normalize, then aggregate, then apply ageing error, then normalize again.
-#'   \item \code{1}: Aggregate first, normalize, then apply ageing error.
-#' }
-#' Default is \code{NULL}.
-#'
-#' @param SrvLen_comp_agg_type Optional integer vector of length \code{n_srv_fleets} specifying
-#' the order of operations for aggregating length compositions.
-#' \itemize{
-#'   \item \code{0}: Do not normalize before applying size–age transition.
-#'   \item \code{1}: Normalize before applying size–age transition.
-#' }
-#' Default is \code{NULL}.
-#'
 #' @param srv_idx_type Character vector of length \code{n_srv_fleets} specifying the type of index data.
 #' Options are \code{"abd"} for abundance, \code{"biom"} for biomass, and \code{"none"} if no index is available.
 #'
@@ -409,6 +518,7 @@ do_SrvLen_corr_pars_mapping <- function(input_list) {
 #'
 #' @export Setup_Mod_SrvIdx_and_Comps
 #' @importFrom stringr str_detect
+#' @family Model Setup
 Setup_Mod_SrvIdx_and_Comps <- function(input_list,
                                        ObsSrvIdx,
                                        ObsSrvIdx_SE,
@@ -418,14 +528,12 @@ Setup_Mod_SrvIdx_and_Comps <- function(input_list,
                                        UseSrvAgeComps,
                                        ObsSrvLenComps,
                                        UseSrvLenComps,
-                                       ISS_SrvAgeComps = NULL,
-                                       ISS_SrvLenComps  = NULL,
+                                       ISS_SrvAgeComps,
+                                       ISS_SrvLenComps,
                                        SrvAgeComps_LikeType,
                                        SrvLenComps_LikeType,
                                        SrvAgeComps_Type,
                                        SrvLenComps_Type,
-                                       SrvAge_comp_agg_type = NULL,
-                                       SrvLen_comp_agg_type = NULL,
                                        ...
                                        ) {
 
@@ -446,7 +554,7 @@ Setup_Mod_SrvIdx_and_Comps <- function(input_list,
   check_data_dimensions(ObsSrvAgeComps, n_regions = input_list$data$n_regions, n_years = length(input_list$data$years), n_sexes = input_list$data$n_sexes, n_srv_fleets = input_list$data$n_srv_fleets, what = 'ObsSrvAgeComps')
   check_data_dimensions(UseSrvAgeComps, n_regions = input_list$data$n_regions, n_years = length(input_list$data$years), n_srv_fleets = input_list$data$n_srv_fleets, what = 'UseSrvAgeComps')
   check_data_dimensions(UseSrvLenComps, n_regions = input_list$data$n_regions, n_years = length(input_list$data$years), n_srv_fleets = input_list$data$n_srv_fleets, what = 'UseSrvLenComps')
-  check_data_dimensions(ObsSrvLenComps, n_regions = input_list$data$n_regions, n_years = length(input_list$data$years), n_lens = length(input_list$data$lens), n_sexes = input_list$data$n_sexes, n_srv_fleets = input_list$data$n_srv_fleets, what = 'ObsSrvLenComps')
+  if(input_list$data$fit_lengths == 1) check_data_dimensions(ObsSrvLenComps, n_regions = input_list$data$n_regions, n_years = length(input_list$data$years), n_lens = length(input_list$data$lens), n_sexes = input_list$data$n_sexes, n_srv_fleets = input_list$data$n_srv_fleets, what = 'ObsSrvLenComps')
   if(!is.null(ISS_SrvAgeComps)) check_data_dimensions(ISS_SrvAgeComps, n_regions = input_list$data$n_regions, n_years = length(input_list$data$years), n_sexes = input_list$data$n_sexes, n_srv_fleets = input_list$data$n_srv_fleets, what = 'ISS_SrvAgeComps')
   if(!is.null(ISS_SrvLenComps)) check_data_dimensions(ISS_SrvLenComps, n_regions = input_list$data$n_regions, n_years = length(input_list$data$years), n_sexes = input_list$data$n_sexes, n_srv_fleets = input_list$data$n_srv_fleets, what = 'ISS_SrvLenComps')
   check_data_dimensions(SrvAgeComps_LikeType, n_srv_fleets = input_list$data$n_srv_fleets, what = 'SrvAgeComps_LikeType')
@@ -619,17 +727,6 @@ Setup_Mod_SrvIdx_and_Comps <- function(input_list,
   input_list$data$SrvAgeComps_Type <- SrvAgeComps_Type_Mat
   input_list$data$SrvLenComps_Type <- SrvLenComps_Type_Mat
   input_list$data$srv_idx_type <- srv_idx_type_vals
-
-  # initialize how to aggregate survey age comps
-  if(is.null(SrvAge_comp_agg_type)) {
-    input_list$data$SrvAge_comp_agg_type <- rep(NA, input_list$data$n_srv_fleets)
-  } else input_list$data$SrvAge_comp_agg_type <- SrvAge_comp_agg_type
-
-  # Initialize how to aggregate survey length comps
-  if(is.null(SrvLen_comp_agg_type)) {
-    input_list$data$SrvLen_comp_agg_type <- rep(NA, input_list$data$n_srv_fleets)
-  } else input_list$data$SrvLen_comp_agg_type <- SrvLen_comp_agg_type
-
 
   # Populate Parameter List -------------------------------------------------
 
@@ -1202,7 +1299,7 @@ do_srvsel_devs_mapping <- function(input_list, srv_sel_devs_spec) {
 #'
 #' Valid time variation types include:
 #' \itemize{
-#'   \item \code{"none"}: No continuous time variation.
+#'   \item \code{"none"}: No continuous time variation. (default)
 #'   \item \code{"iid"}: Independent and identically distributed deviations across years.
 #'   \item \code{"rw"}: Random walk in time.
 #'   \item \code{"3dmarg"}: 3D marginal time-varying selectivity.
@@ -1219,7 +1316,7 @@ do_srvsel_devs_mapping <- function(input_list, srv_sel_devs_spec) {
 #' \strong{Note:} If time-block-based selectivity (via \code{srv_sel_blocks}) is specified for a fleet, then its corresponding entry here must be \code{"none_Fleet_<fleet number>"}.
 #' @param srv_sel_blocks Character vector specifying the survey selectivity blocks for each region and fleet.
 #' Each element must follow the structure: `"Block_<block number>_Year_<start>-<end>_Fleet_<fleet number>"` or `"none_Fleet_<fleet number>"`.
-#' This allows users to define time-varying selectivity blocks for specific fleets within a region.
+#' This allows users to define time-varying selectivity blocks for specific fleets within a region. Default is "none_Fleet_x".
 #'
 #' For example:
 #' \itemize{
@@ -1409,16 +1506,18 @@ do_srvsel_devs_mapping <- function(input_list, srv_sel_devs_spec) {
 #'         two covariates.
 #'   \item \code{"Region_3_Fleet_2"} = \code{~ NULL} disables environmental covariates for that fleet-region.
 #' }
+#' @param t_srv Survey timing in fractions (n_regions * n_srv_fleets; default is 0.5)
 #'
 #' @export Setup_Mod_Srvsel_and_Q
 #' @importFrom stringr str_detect
+#' @family Model Setup
 Setup_Mod_Srvsel_and_Q <- function(input_list,
-                                   cont_tv_srv_sel,
-                                   srv_sel_blocks,
+                                   cont_tv_srv_sel = paste("none_Fleet_", 1:input_list$data$n_srv_fleets, sep = ''),
+                                   srv_sel_blocks = paste("none_Fleet_", 1:input_list$data$n_srv_fleets, sep = ''),
                                    srv_sel_model,
                                    Use_srv_q_prior = 0,
                                    srv_q_prior = NA,
-                                   srv_q_blocks,
+                                   srv_q_blocks = paste("none_Fleet_", 1:input_list$data$n_srv_fleets, sep = ''),
                                    srvsel_pe_pars_spec = NULL,
                                    srv_fixed_sel_pars_spec,
                                    srv_q_spec = NULL,
@@ -1428,6 +1527,7 @@ Setup_Mod_Srvsel_and_Q <- function(input_list,
                                    srv_q_cov_dat = NULL,
                                    Use_srv_selex_prior = 0,
                                    srv_selex_prior = NULL,
+                                   t_srv = array(0.5, dim = c(input_list$data$n_regions, input_list$data$n_srv_fleets)),
                                    ...
                                    ) {
 
@@ -1659,6 +1759,7 @@ Setup_Mod_Srvsel_and_Q <- function(input_list,
   input_list$data$srv_q_cov <- srv_q_cov
   input_list$data$Use_srv_selex_prior <- Use_srv_selex_prior
   input_list$data$srv_selex_prior <- srv_selex_prior
+  input_list$data$t_srv <- t_srv
 
 
   # Populate Parameter List -------------------------------------------------

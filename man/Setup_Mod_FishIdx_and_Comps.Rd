@@ -12,16 +12,14 @@ Setup_Mod_FishIdx_and_Comps(
   UseFishIdx,
   ObsFishAgeComps,
   UseFishAgeComps,
-  ISS_FishAgeComps = NULL,
+  ISS_FishAgeComps,
   ObsFishLenComps,
   UseFishLenComps,
-  ISS_FishLenComps = NULL,
+  ISS_FishLenComps,
   FishAgeComps_LikeType,
   FishLenComps_LikeType,
   FishAgeComps_Type,
   FishLenComps_Type,
-  FishAge_comp_agg_type = NULL,
-  FishLen_comp_agg_type = NULL,
   ...
 )
 }
@@ -78,25 +76,23 @@ Format each element as \code{"<type>_Year_<start>-<end>_Fleet_<fleet number>"}
 
 \item{FishLenComps_Type}{Same as \code{FishAgeComps_Type}, but for length compositions.}
 
-\item{FishAge_comp_agg_type}{Optional integer vector of length \code{n_fish_fleets} specifying
-the order of operations for aggregating age compositions when \code{FishAgeComps_Type == "agg"}.
-\itemize{
-  \item \code{0}: Normalize, then aggregate, then apply ageing error, then normalize again.
-  \item \code{1}: Aggregate first, normalize, then apply ageing error.
-}
-Default is \code{NULL}.}
-
-\item{FishLen_comp_agg_type}{Optional integer vector of length \code{n_fish_fleets} specifying
-the order of operations for aggregating length compositions.
-\itemize{
-  \item \code{0}: Do not normalize before applying size–age transition.
-  \item \code{1}: Normalize before applying size–age transition.
-}
-Default is \code{NULL}.}
-
 \item{...}{Additional arguments specifying starting values for overdispersion parameters
 (e.g., \code{ln_FishAge_theta}, \code{ln_FishLen_theta}, \code{ln_FishAge_theta_agg}, \code{ln_FishLen_theta_agg}).}
 }
 \description{
 Setup observed fishery indices and composition data (age and length comps)
 }
+\seealso{
+Other Model Setup: 
+\code{\link{Setup_Mod_Biologicals}()},
+\code{\link{Setup_Mod_Catch_and_F}()},
+\code{\link{Setup_Mod_Dim}()},
+\code{\link{Setup_Mod_Fishsel_and_Q}()},
+\code{\link{Setup_Mod_Movement}()},
+\code{\link{Setup_Mod_Rec}()},
+\code{\link{Setup_Mod_SrvIdx_and_Comps}()},
+\code{\link{Setup_Mod_Srvsel_and_Q}()},
+\code{\link{Setup_Mod_Tagging}()},
+\code{\link{Setup_Mod_Weighting}()}
+}
+\concept{Model Setup}

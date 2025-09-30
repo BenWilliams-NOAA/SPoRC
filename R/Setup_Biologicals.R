@@ -1,93 +1,134 @@
-#' Set up simulation stuff for biologicals
+#' Set up simulation containers and inputs for biological parameters
 #'
-#' @param base_M_value Base natural mortality value dimensioned by regions, ages, sexes
-#' @param M_pattern Natural mortality pattern. Options include: constant
-#' @param base_WAA_values Base weight-at-age values dimensioned by regions, ages, sexes
-#' @param base_WAA_fish_values Base weight-at-age values for the fishery dimensioned by regions, ages, sexes, fishery fleets
-#' @param WAA_pattern Weight-at-age pattern. Options include: constant
-#' @param base_Maturity_AA_values Base maturity values dimensioned by regions, ages, sexes
-#' @param Maturity_AA_pattern Maturity pattern. Options include: constant
-#' @param sim_list Simulation list objects
+#' @param sim_list Simulation list object from `Setup_Sim_Dim()`
+#' @param natmort_input Natural mortality array [n_regions × n_yrs × n_ages × n_sexes × n_sims]
+#' @param WAA_input Spawning weight-at-age array [n_regions × n_yrs × n_ages × n_sexes × n_sims]
+#' @param WAA_fish_input Fishery weight-at-age array [n_regions × n_yrs × n_ages × n_sexes × n_sims]
+#' @param WAA_srv_input Survey weight-at-age array [n_regions × n_yrs × n_ages × n_sexes × n_sims]
+#' @param MatAA_input Maturity-at-age array [n_regions × n_yrs × n_ages × n_sexes × n_sims]
+#' @param AgeingError_input Ageing error matrix [n_regions × n_model_ages × n_obs_ages × n_sims]
+#' @param SizeAgeTrans_input Size-age transition matrix [n_regions × n_yrs × n_lens × n_ages × n_sexes x n_sims]
 #'
 #' @export Setup_Sim_Biologicals
+#' @family Simulation Setup
 Setup_Sim_Biologicals <- function(
-                                  base_M_value,
-                                  M_pattern,
-                                  base_WAA_values,
-                                  base_WAA_fish_values,
-                                  WAA_pattern,
-                                  base_Maturity_AA_values,
-                                  Maturity_AA_pattern,
+                                  natmort_input,
+                                  WAA_input,
+                                  WAA_fish_input,
+                                  WAA_srv_input,
+                                  MatAA_input,
+                                  AgeingError_input = NULL,
+                                  SizeAgeTrans_input = NULL,
                                   sim_list
                                   ) {
 
-  # Create containers to store values
-  M <- array(0, dim = c(sim_list$n_regions, sim_list$n_yrs, sim_list$n_ages, sim_list$n_sexes, sim_list$n_sims))
-  WAA <- array(0, dim = c(sim_list$n_regions, sim_list$n_yrs, sim_list$n_ages, sim_list$n_sexes, sim_list$n_sims))
-  WAA_fish <- array(0, dim = c(sim_list$n_regions, sim_list$n_yrs, sim_list$n_ages, sim_list$n_sexes, sim_list$n_fish_fleets, sim_list$n_sims))
-  Maturity_AA <- array(0, dim = c(sim_list$n_regions, sim_list$n_yrs, sim_list$n_ages, sim_list$n_sexes, sim_list$n_sims))
-
-  for(sim in 1:sim_list$n_sims) {
-    for(r in 1:sim_list$n_regions) {
-      for(y in 1:sim_list$n_yrs) {
-        for(s in 1:sim_list$n_sexes) {
-
-          # Natural mortality constant
-          if(M_pattern == "constant") M[r,y,,s,sim] <- base_M_value[r,,s]
-
-          # WAA constant
-          if(WAA_pattern == "constant") WAA[r,y,,s,sim] <- base_WAA_values[r,,s]
-          if(WAA_pattern == "constant") for(f in 1:sim_list$n_fish_fleets) WAA_fish[r,y,,s,f,sim] <- base_WAA_fish_values[r,,s,f]
-
-          # Maturity constant
-          if(Maturity_AA_pattern == "constant") Maturity_AA[r,y,,s,sim] <- base_Maturity_AA_values[r,,s]
-
-        } # end s loop
-      } # end y loop
-    } # end r loop
-  } # end sim loop
+  check_sim_dimensions(natmort_input, n_regions = sim_list$n_regions, n_years = sim_list$n_yrs,
+                       n_ages = sim_list$n_ages, n_sexes = sim_list$n_sexes, n_sims = sim_list$n_sims, what = 'natmort_input')
+  check_sim_dimensions(WAA_input, n_regions = sim_list$n_regions, n_years = sim_list$n_yrs,
+                       n_ages = sim_list$n_ages, n_sexes = sim_list$n_sexes, n_sims = sim_list$n_sims, what = 'WAA_input')
+  check_sim_dimensions(WAA_fish_input, n_regions = sim_list$n_regions, n_years = sim_list$n_yrs,
+                       n_ages = sim_list$n_ages, n_sexes = sim_list$n_sexes, n_fish_fleets = sim_list$n_fish_fleets,
+                       n_sims = sim_list$n_sims, what = 'WAA_fish_input')
+  check_sim_dimensions(WAA_srv_input, n_regions = sim_list$n_regions, n_years = sim_list$n_yrs,
+                       n_ages = sim_list$n_ages, n_sexes = sim_list$n_sexes, n_srv_fleets = sim_list$n_srv_fleets,
+                       n_sims = sim_list$n_sims, what = 'WAA_srv_input')
+  check_sim_dimensions(MatAA_input, n_regions = sim_list$n_regions, n_years = sim_list$n_yrs,
+                       n_ages = sim_list$n_ages, n_sexes = sim_list$n_sexes, n_sims = sim_list$n_sims, what = 'MatAA_input')
+  if(!is.null(SizeAgeTrans_input)) check_sim_dimensions(SizeAgeTrans_input, n_regions = sim_list$n_regions, n_years = sim_list$n_yrs, n_lens = sim_list$n_lens,
+                                                        n_ages = sim_list$n_ages, n_sexes = sim_list$n_sexes, n_sims = sim_list$n_sims, what = 'SizeAgeTrans_input')
 
   # output into list
-  sim_list$M <- M
-  sim_list$WAA <- WAA
-  sim_list$WAA_fish <- WAA_fish
-  sim_list$Maturity_AA <- Maturity_AA
+  sim_list$natmort <- natmort_input
+  sim_list$WAA <- WAA_input
+  sim_list$WAA_fish <- WAA_fish_input
+  sim_list$WAA_srv <- WAA_srv_input
+  sim_list$MatAA <- MatAA_input
+  if(!is.null(SizeAgeTrans_input)) sim_list$SizeAgeTrans <- SizeAgeTrans_input
+  if(!is.null(AgeingError_input)) sim_list$AgeingError <- AgeingError_input
+  else {
+    # if null, create an identity matrix
+    identity_AgeingError <- array(0, dim = c(sim_list$n_yrs, sim_list$n_ages, sim_list$n_ages, sim_list$n_sims))
+    for(i in 1:sim_list$n_yrs) for(sim in 1:sim_list$n_sims) diag(identity_AgeingError[i,,,sim]) <- 1 # create identity matrix for each year
+    sim_list$AgeingError <- identity_AgeingError
+    warning("No ageing error matrix was provided. A default identity matrix was used, which assumes that the number and structure of modelled age bins exactly match the observed age bins. If the observed age composition data includes fewer age bins than the model (e.g., observed ages 2-10 while modelled ages are 1-10), this default assumption will cause a dimensional mismatch and potentially misalign the modelled and observed compositions. To avoid this, please provide an ageing error matrix of dimension n_model_ages x n_obs_ages that correctly maps modelled ages to observed age bins. For example, if observed ages are 2-10, supply a matrix that drops the first model age by using a shifted identity matrix: diag(1, 10)[, 2:10]. This will ensure the age bins are correctly aligned for likelihood calculations.")
+  }
 
   return(sim_list)
 
 }
 
-#' Helper function to do natural mortality mapping
+#' Helper function to map natural mortality blocks
 #'
-#' @param input_list Input list
-#' @param M_spec Character vector specifying M options
+#' This function maps natural mortality (\code{ln_M}) to a block structure across region, year, age, and sex dimensions.
+#' It assigns unique integer identifiers to each block defined by the user's specifications, which is stored in the \code{M_blocks}
+#' array in the input list.
+#'
+#' @param input_list A named list object containing model data, parameters, and mapping structures.
+#' @param M_spec Character string indicating whether to estimate or fix natural mortality.
+#'   Options are:
+#'   \itemize{
+#'     \item \code{"est_ln_M"}: Estimate natural mortality parameters.
+#'     \item \code{"fix"}: Fix all natural mortality parameters (requires them to be passed in the input list).
+#'   }
+#' @param M_regionblk_spec_vals A list of numeric vectors specifying the region indices grouped in each block.
+#' @param M_yearblk_spec_vals A list of numeric vectors specifying the year indices grouped in each block.
+#' @param M_ageblk_spec_vals A list of numeric vectors specifying the age indices grouped in each block.
+#' @param M_sexblk_spec_vals A list of numeric vectors specifying the sex indices grouped in each block.
+#'
+#' @return An updated \code{input_list} with mapped natural mortality blocks:
+#' \itemize{
+#'   \item \code{input_list$map$ln_M} is a factor indicating fixed or estimated mortality parameters.
+#'   \item \code{input_list$data$M_blocks} is a 4D array (region × year × age × sex) with unique block IDs.
+#' }
+#'
 #' @keywords internal
-do_M_mapping <- function(input_list, M_spec) {
+do_M_mapping <- function(input_list,
+                         M_spec,
+                         M_regionblk_spec_vals,
+                         M_yearblk_spec_vals,
+                         M_ageblk_spec_vals,
+                         M_sexblk_spec_vals) {
 
-  # fix sex-specific natural mortality offset if single sex
-  if(input_list$data$n_sexes == 1) input_list$map$M_offset <- factor(NA)
+  # Validate options
+  if(!M_spec %in% c('est_ln_M', 'fix')) stop("M_spec needs to be specified as either est_ln_M or fix")
 
-  if(!is.null(M_spec)) {
+  # set up whether fixing M or estimating
+  if(M_spec == 'est_ln_M') input_list$map$ln_M <- factor(1:length(input_list$par$ln_M))
+  if(M_spec == 'fix') input_list$map$ln_M <- factor(rep(NA, length(input_list$par$ln_M)))
 
-    # Validate options
-    if(!M_spec %in% c('est_ln_M_only', 'fix')) stop("M_spec needs to be specified as either est_ln_M_only (only for a single sex) or fix")
+  # create array for blocks
+  M_blocks <- array(0, dim = c(input_list$data$n_regions, length(input_list$data$years), length(input_list$data$ages), input_list$data$n_sexes))
 
-    # Estimate only 1 single natural mortality
-    if(M_spec == 'est_ln_M_only') {
-      input_list$map$M_offset <- factor(NA)
-    }
+  # loop through to get counters for blocking structure for indexing
+  counter <- 1
+  for (regionblk in 1:length(M_regionblk_spec_vals)) {
+    map_r <- M_regionblk_spec_vals[[regionblk]]
 
-    # Fix natural mortality rates for base value (ln_M) and offset (M_offset)
-    if(M_spec == "fix") {
-      input_list$map$ln_M <- factor(NA)
-      input_list$map$M_offset <- factor(NA)
-    }
+    for (yearblk in 1:length(M_yearblk_spec_vals)) {
+      map_y <- M_yearblk_spec_vals[[yearblk]]
 
-    collect_message("Natural Mortality specified as: ", M_spec)
+      for (ageblk in 1:length(M_ageblk_spec_vals)) {
+        map_a <- M_ageblk_spec_vals[[ageblk]]
 
-  } else {
-    collect_message("Natural Mortality is estimated for both all dimensions")
-  }
+        for (sexblk in 1:length(M_sexblk_spec_vals)) {
+          map_s <- M_sexblk_spec_vals[[sexblk]]
+
+          # Assign the current counter to this block
+          M_blocks[map_r, map_y, map_a, map_s] <- counter
+          counter <- counter + 1
+
+        } # end sexblk
+      } # end ageblk
+    } # end yearblk
+  } # end regionblk
+
+  collect_message("Natural Mortality specified as: ", M_spec)
+  collect_message("Natural Mortality Region Blocks is specified as: ", length(M_regionblk_spec_vals))
+  collect_message("Natural Mortality Year Blocks is specified as: ", length(M_yearblk_spec_vals))
+  collect_message("Natural Mortality Age Blocks is specified as: ", length(M_ageblk_spec_vals))
+  collect_message("Natural Mortality Sex Blocks is specified as: ", length(M_sexblk_spec_vals))
+
+  input_list$data$M_blocks <- M_blocks
 
   return(input_list)
 }
@@ -113,9 +154,9 @@ do_M_mapping <- function(input_list, M_spec) {
 #' @param M_prior Numeric vector of length two giving the mean (in normal space) and standard deviation of the natural mortality prior.
 #' @param fit_lengths Integer flag indicating whether to fit length data (\code{0} = no, \code{1} = yes).
 #' @param SizeAgeTrans Numeric array of size-at-age transition probabilities, dimensioned \code{[n_regions, n_years, n_lens, n_ages, n_sexes]}.
-#' @param M_spec Character string specifying natural mortality estimation approach. Defaults to \code{NULL}, which estimates mortality for each sex independently. Other options:
+#' @param M_spec Character string specifying natural mortality estimation approach. Defaults to \code{est_ln_M}, which estimates mortality to be invariant, if blocks are not specified. Options:
 #' \itemize{
-#'   \item \code{"est_ln_M_only"}: Estimate a single natural mortality rate shared across sexes (if \code{n_sexes == 2}).
+#'   \item \code{"est_ln_M"}: Estimates natural mortality across the defined natural mortality blocks.
 #'   \item \code{"fix"}: Fix all natural mortality parameters using the provided array.
 #' }
 #' @param Fixed_natmort Numeric array of fixed natural mortality values, dimensioned \code{[n_regions, n_years, n_ages, n_sexes]}. Required if \code{M_spec = "fix"}.
@@ -126,23 +167,42 @@ do_M_mapping <- function(input_list, M_spec) {
 #' }
 #' @param WAA_fish Numeric array of weight-at-age (fishery), dimensioned \code{[n_regions, n_years, n_ages, n_sexes, n_fish_fleets]}.
 #' @param WAA_srv Numeric array of weight-at-age (survey), dimensioned \code{[n_regions, n_years, n_ages, n_sexes, n_srv_fleets]}.
-#' @param addtocomp Numeric value for a constant to add to composition data. Default is 1e-3.
+#' @param M_ageblk_spec Specification of age blocking for natural mortality estimation.
+#'   Either a character string ("constant") or a list of index vectors, e.g., \code{list(1:10, 11:30)}, which specifies 2 age blocks for M.
+#' @param M_regionblk_spec Specification of regional blocking for natural mortality.
+#'   Either a character string ("constant") or a list of index vectors, e.g., \code{list(1:3, 4:5)}, which specifies 2 region blocks for M.
+#' @param M_yearblk_spec Specification of year blocking for natural mortality.
+#'   Either a character string ("constant") or a list of index vectors, e.g., \code{list(1:10, 11:30)}, which specifies 2 year blocks for M.
+#' @param M_sexblk_spec Specification of sex blocking for natural mortality.
+#'   Either a character string ("constant") or a list of index vectors, e.g., \code{list(1:2)}, which specifies sex-invariant M.
 #' @param ... Additional arguments for starting values such as \code{ln_M} and \code{M_offset.} These are ignored if \code{M_spec = fix}.
+#' @param addtocomp Numeric value for a constant to add to composition data. Default is 1e-3. Not used if logistic normal likelihoods are utilized.
+#' @param addtofishidx Numeric value for a constant to add to composition data. Default is 1e-4.
+#' @param addtosrvidx Numeric value for a constant to add to composition data. Default is 1e-4.
+#' @param addtotag Numeric value for a constant to add to composition data. Default is 1e-10
 #'
 #' @export Setup_Mod_Biologicals
+#' @family Model Setup
 Setup_Mod_Biologicals <- function(input_list,
                                   WAA,
                                   WAA_fish = NULL,
                                   WAA_srv = NULL,
                                   MatAA,
                                   addtocomp = 1e-3,
+                                  addtofishidx = 1e-4,
+                                  addtosrvidx = 1e-4,
+                                  addtotag = 1e-10,
                                   AgeingError = NULL,
                                   Use_M_prior = 0,
                                   M_prior = NA,
                                   fit_lengths = 0,
                                   SizeAgeTrans = NA,
                                   Selex_Type = 'age',
-                                  M_spec = NULL,
+                                  M_spec = "est_ln_M",
+                                  M_ageblk_spec = 'constant',
+                                  M_regionblk_spec = 'constant',
+                                  M_yearblk_spec = 'constant',
+                                  M_sexblk_spec = 'constant',
                                   Fixed_natmort = NULL,
                                   ...
                                   ) {
@@ -175,6 +235,11 @@ Setup_Mod_Biologicals <- function(input_list,
       check_data_dimensions(Fixed_natmort, n_regions = input_list$data$n_regions, n_years = length(input_list$data$years), n_ages = length(input_list$data$ages), n_sexes = input_list$data$n_sexes, what = 'Fixed_natmort')
     }
   }
+
+  # Check M blocks
+  if(!is.null(M_ageblk_spec)) if(!typeof(M_ageblk_spec) %in% c("list", "character", NULL)) stop("M fixed effects age blocks are not correctly specified, it needs to be either a list object or set at 'constant'. For example, if we had 10 ages and wanted 2 age blocks, this would be list(c(1:5), c(6:10)) such that ages 1 - 5 are a block, and ages 6 - 10 are a block.")
+  if(!is.null(M_yearblk_spec)) if(!typeof(M_yearblk_spec) %in% c("list", "character", NULL)) stop("M fixed effects year blocks are not correctly specified, it needs to be either a list object or set at 'constant'. For example, if we had 10 years and wanted 2 year blocks, this would be list(c(1:5), c(6:10)) such that years 1 - 5 are a block, and years 6 - 10 are a block.")
+  if(!is.null(M_sexblk_spec)) if(!typeof(M_sexblk_spec) %in% c("list", "character", NULL)) stop("M fixed effects sex blocks are not correctly specified, it needs to be either a list object or set at 'constant'. For example, if we had 2 sexes and wanted sex-specific M, this would be list(1, 2).")
 
   # Natural Mortality prior checking
   if(!Use_M_prior %in% c(0,1)) stop("Values for Use_M_prior are not valid. They are == 0 (don't use prior), or == 1 (use prior)")
@@ -244,7 +309,7 @@ Setup_Mod_Biologicals <- function(input_list,
 
   # Natural Mortality Options -----------------------------------------------
   # Input indicator for estimating or not estimating M
-  if(is.null(M_spec) || M_spec == "est_ln_M_only") input_list$data$use_fixed_natmort <- 0
+  if(is.null(M_spec) || M_spec == "est_ln_M") input_list$data$use_fixed_natmort <- 0
   else if(M_spec == "fix") input_list$data$use_fixed_natmort <- 1
 
   # Populate Data List ------------------------------------------------------
@@ -261,17 +326,39 @@ Setup_Mod_Biologicals <- function(input_list,
   input_list$data$Fixed_natmort <- Fixed_natmort
   input_list$data$Selex_Type <- Selex_Type
   input_list$data$addtocomp <- addtocomp
+  input_list$data$addtofishidx <- addtofishidx
+  input_list$data$addtosrvidx <- addtosrvidx
+  input_list$data$addtotag <- addtotag
 
   # Populate Parameter List -------------------------------------------------
 
-  if("ln_M" %in% names(starting_values)) input_list$par$ln_M <- starting_values$ln_M
-  else input_list$par$ln_M <- log(0.5)
+  # If M is constant for ages
+  if(is.character(M_ageblk_spec)){
+    if(M_ageblk_spec == "constant") M_ageblk_spec_vals <- list(1:length(input_list$data$ages))
+  } else M_ageblk_spec_vals <- M_ageblk_spec
 
-  if("M_offset" %in% names(starting_values)) input_list$par$M_offset <- starting_values$M_offset
-  else input_list$par$M_offset <- 0
+  # If M is constant across years
+  if(is.character(M_yearblk_spec)){
+    if(M_yearblk_spec == "constant") M_yearblk_spec_vals = list(1:length(input_list$data$years))
+  } else M_yearblk_spec_vals = M_yearblk_spec
+
+  # If M is constant across sexes
+  if(is.character(M_sexblk_spec)){
+    if(M_sexblk_spec == "constant") M_sexblk_spec_vals <- list(1:input_list$data$n_sexes)
+  } else M_sexblk_spec_vals <- M_sexblk_spec
+
+  # If M is constant across regions
+  if(is.character(M_regionblk_spec)){
+    if(M_regionblk_spec == "constant") M_regionblk_spec_vals <- list(1:input_list$data$n_regions)
+  } else M_regionblk_spec_vals <- M_regionblk_spec
+
+  if("ln_M" %in% names(starting_values)) input_list$par$ln_M <- starting_values$ln_M
+  else input_list$par$ln_M <- array(log(0.5), dim = c(length(M_regionblk_spec_vals), length(M_yearblk_spec_vals),
+                                                      length(M_ageblk_spec_vals), length(M_sexblk_spec_vals)))
 
   # Mapping Options ---------------------------------------------------------
-  input_list <- do_M_mapping(input_list, M_spec) # natural mortality mapping
+  input_list <- do_M_mapping(input_list, M_spec, M_regionblk_spec_vals,
+                             M_yearblk_spec_vals, M_ageblk_spec_vals, M_sexblk_spec_vals) # natural mortality mapping
 
   # Print Messages ----------------------------------------------------------
   if(input_list$verbose) for(msg in messages_list) message(msg)

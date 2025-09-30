@@ -14,7 +14,7 @@
 #' @importFrom stats rnorm nlminb optimHess
 #' @returns MCMC list object from rtmbstan
 #' @export do_mcmc
-#'
+#' @family Model Diagnostics
 #' @examples
 #' \dontrun{
 #' obj <- RTMB::MakeADFun(cmb(SPoRC_rtmb, data), parameters = parameters, map = mapping)
@@ -74,7 +74,7 @@ do_mcmc <- function(obj,
 #' @importFrom rstan extract
 #' @returns Returns a character vector of parameter names
 #' @export mcmc_par_names
-#'
+#' @family Model Diagnostics
 #' @examples
 #' \dontrun{
 #' par_names <- mcmc_par_names(mcmc_obj)
@@ -99,7 +99,7 @@ mcmc_par_names <- function(mcmc_obj) {
 #'
 #' @returns A list of plots with traditional MCMC diagnostics
 #' @export mcmc_diag
-#'
+#' @family Model Diagnostics
 #' @examples
 #' \dontrun{
 #' diagnostic_plots <- mcmc_diag(mcmc_obj, tmb_sdrep, TRUE, pars = 'ln_M')
@@ -231,7 +231,7 @@ mcmc_diag <- function(mcmc_obj,
 #' @importFrom data.table rbindlist
 #' @returns returns a dataframe of recruitment and ssb posterior samples and a plot of ssb and recruitment with mean, lwr 95 quantile, and upr 95 quantile.
 #' @export get_mcmc_ssb_rec
-#'
+#' @family Model Diagnostics
 get_mcmc_ssb_rec <- function(mcmc_obj,
                              tmb_obj
                              ) {

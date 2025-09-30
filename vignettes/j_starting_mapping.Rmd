@@ -88,7 +88,6 @@ input_list <- Setup_Mod_Rec(
   sigmaR_switch = as.integer(length(1960:1975)),  # switch from early to late sigmaR
   dont_est_recdev_last = 1,       # do not estimate last recruitment deviate
   rec_model = "mean_rec",         # recruitment model type
-  sexratio = c(0.5, 0.5),         # recruitment sex ratio
   init_age_strc = 1,              # geometric series for initial age structure
   
   # Specify starting values
@@ -108,7 +107,6 @@ input_list <- Setup_Mod_Rec(input_list = input_list, # input data list from abov
                             sigmaR_switch = as.integer(length(1960:1975)), # when to switch from early to late sigmaR
                             dont_est_recdev_last = 1, # don't estimate last recruitment deviate
                             rec_model = "mean_rec", # recruitment model
-                            sexratio = as.vector(c(0.5, 0.5)),  # recruitment sex ratio
                             init_age_strc = 1 # geometric series to derive age structure
                             )
 
@@ -135,7 +133,6 @@ input_list <- Setup_Mod_Rec(input_list = input_list, # input data list from abov
                             sigmaR_switch = as.integer(length(1960:1975)), # when to switch from early to late sigmaR
                             dont_est_recdev_last = 1, # don't estimate last recruitment deviate
                             rec_model = "mean_rec", # recruitment model
-                            sexratio = as.vector(c(0.5, 0.5)),  # recruitment sex ratio
                             init_age_strc = 1, # geometric series to derive age structure
                             
                             # Parameter Fixing
@@ -155,7 +152,6 @@ input_list <- Setup_Mod_Rec(input_list = input_list, # input data list from abov
                             sigmaR_switch = as.integer(length(1960:1975)), # when to switch from early to late sigmaR
                             dont_est_recdev_last = 1, # don't estimate last recruitment deviate
                             rec_model = "mean_rec", # recruitment model
-                            sexratio = as.vector(c(0.5, 0.5)),  # recruitment sex ratio
                             init_age_strc = 1, # geometric series to derive age structure
                             
                             # Parameter Fixing
@@ -176,7 +172,6 @@ input_list <- Setup_Mod_Rec(input_list = input_list, # input data list from abov
                             sigmaR_switch = as.integer(length(1960:1975)), # when to switch from early to late sigmaR
                             dont_est_recdev_last = 1, # don't estimate last recruitment deviate
                             rec_model = "mean_rec", # recruitment model
-                            sexratio = as.vector(c(0.5, 0.5)),  # recruitment sex ratio
                             init_age_strc = 1, # geometric series to derive age structure
                             )
 

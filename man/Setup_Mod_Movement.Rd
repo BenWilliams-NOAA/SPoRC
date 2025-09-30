@@ -11,9 +11,9 @@ Setup_Mod_Movement(
   Fixed_Movement = NA,
   Use_Movement_Prior = 0,
   Movement_prior = NULL,
-  Movement_ageblk_spec = NULL,
-  Movement_yearblk_spec = NULL,
-  Movement_sexblk_spec = NULL,
+  Movement_ageblk_spec = "constant",
+  Movement_yearblk_spec = "constant",
+  Movement_sexblk_spec = "constant",
   cont_vary_movement = "none",
   Movement_cont_pe_pars_spec = "none",
   ...
@@ -39,7 +39,7 @@ If a vector, a constant prior is applied across all dimensions.}
 
 \item{Movement_ageblk_spec}{Either:
 \itemize{
-  \item Character string \code{"constant"} for age-invariant movement, or
+  \item Character string \code{"constant"} for age-invariant movement (default), or
   \item A list of numeric vectors specifying age blocks sharing parameters.
 }
 For example, \code{list(c(1:6), c(7:10), c(11:n_ages))} defines three age blocks where:
@@ -52,13 +52,13 @@ To specify age-invariant movement, use either \code{"constant"} or \code{list(c(
 
 \item{Movement_yearblk_spec}{Either:
 \itemize{
-  \item Character string \code{"constant"} for time-invariant movement, or
+  \item Character string \code{"constant"} for time-invariant movement (default), or
   \item A list of numeric vectors specifying year blocks sharing movement parameters.
 }}
 
 \item{Movement_sexblk_spec}{Either:
 \itemize{
-  \item Character string \code{"constant"} for sex-invariant movement, or
+  \item Character string \code{"constant"} for sex-invariant movement (default), or
   \item A list of numeric vectors specifying sex blocks sharing movement parameters.
 }}
 
@@ -96,3 +96,17 @@ Default is \code{"none"}.}
 \description{
 Setup Movement Processes for SPoRC
 }
+\seealso{
+Other Model Setup: 
+\code{\link{Setup_Mod_Biologicals}()},
+\code{\link{Setup_Mod_Catch_and_F}()},
+\code{\link{Setup_Mod_Dim}()},
+\code{\link{Setup_Mod_FishIdx_and_Comps}()},
+\code{\link{Setup_Mod_Fishsel_and_Q}()},
+\code{\link{Setup_Mod_Rec}()},
+\code{\link{Setup_Mod_SrvIdx_and_Comps}()},
+\code{\link{Setup_Mod_Srvsel_and_Q}()},
+\code{\link{Setup_Mod_Tagging}()},
+\code{\link{Setup_Mod_Weighting}()}
+}
+\concept{Model Setup}

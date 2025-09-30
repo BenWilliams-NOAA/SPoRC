@@ -122,7 +122,8 @@ which is freely estimated (although should be fixed).</li>
 framework,</li>
 <li>Recruitment deviations are estimated for all years, except for the
 terminal year,</li>
-<li>Recruitment sex-ratios are fixed at 0.5 for each sex,</li>
+<li>Recruitment sex-ratios are fixed at 0.5 for each sex (as
+default),</li>
 <li>Initial age structure is derived by assuming a geometric series
 (<code>init_age_strc = 1</code>; the alternative is iterating age
 structure to some equilibrium <code>init_age_strc = 0</code>), and</li>
@@ -152,8 +153,6 @@ initalizing the age structure.</li>
 <span>                            rec_model <span class="op">=</span> <span class="st">"mean_rec"</span>, <span class="co"># recruitment model</span></span>
 <span>                            sigmaR_spec <span class="op">=</span> <span class="st">"fix_early_est_late"</span>, </span>
 <span>                            <span class="co"># fix early sigmaR, estiamte late sigmaR</span></span>
-<span>                            sexratio <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span>, </span>
-<span>                            <span class="co"># recruitment sex ratio</span></span>
 <span>                            init_age_strc <span class="op">=</span> <span class="fl">1</span>, <span class="co"># how to derive inital age strc</span></span>
 <span>                            init_F_prop <span class="op">=</span> <span class="fl">0.1</span> <span class="co"># fraction of mean F from </span></span>
 <span>                            <span class="co"># dominant fleet to apply to initial age strc</span></span>
@@ -176,48 +175,33 @@ matrix for the ageing-error for age-composition data. Additionally, a
 size-age transition matrix can be supplied if length data are being fit
 to <code>fit_lengths = 1</code>, which are dimensioned by
 <code>n_regions</code>, <code>n_years</code>, <code>n_lens</code>,
-<code>n_ages</code>, <code>n_sexes</code>. Because natural mortality is
-often poorly estimated, Alaska sablefish utilizes priors for natural
-mortality, which can be specifed using the <code>Use_M_prior = 1</code>
-argument in conjunction with the <code>M_prior</code> argument. The
-<code>M_prior</code> argument expects a vector of length 2, where the
-first value represents the mean prior value and the second value
-represents the standard deviation of the prior (lognormal). The
-<code>M_spec</code> argument specifies how natural mortality should be
-estimated, where several options are included. In this case, we are
-estimating the log natural mortality for females, and fixing the natural
-mortlaity offset parameter for males (accidentally jittered in the
-original assessment). Starting values and fixed parameters can be
-specified using the <code>...</code>, where the parameter name is
-supplied, and the values provided to the parameter name represent the
-starting value.</p>
+<code>n_ages</code>, <code>n_sexes</code>. Although the Alaska sablefish
+assessment utilizes priors for natural mortality, it is not possible to
+get an exact match with the 2024 assessment, given differences in the
+parameterization of natural mortality. Thus, for demonstration purposes,
+M will be fixed in this case. The <code>M_spec</code> argument specifies
+that natural mortality should be fixed and an array of fixed values is
+provided <code>Fixed_natmort = fixed_natmort</code>. Starting values and
+fixed parameters can be specified using the <code>...</code>, where the
+parameter name is supplied, and the values provided to the parameter
+name represent the starting value.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">input_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/Setup_Mod_Biologicals.html">Setup_Mod_Biologicals</a></span><span class="op">(</span>input_list <span class="op">=</span> <span class="va">input_list</span>,</span>
-<span>                                    </span>
+<code class="sourceCode R"><span><span class="co"># Specificying natural mortality fixed array</span></span>
+<span><span class="va">fixed_natmort</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="fl">0</span>, dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">input_list</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">n_regions</span>, <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">input_list</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">years</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">input_list</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">ages</span><span class="op">)</span>, <span class="va">input_list</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">n_sexes</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">fixed_natmort</span><span class="op">[</span>,,,<span class="fl">1</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">0.1134156</span> <span class="co"># fix female M</span></span>
+<span><span class="va">fixed_natmort</span><span class="op">[</span>,,,<span class="fl">2</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">0.1052175</span> <span class="co"># fix male M</span></span>
+<span></span>
+<span><span class="va">input_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/Setup_Mod_Biologicals.html">Setup_Mod_Biologicals</a></span><span class="op">(</span>input_list <span class="op">=</span> <span class="va">input_list</span>,</span>
 <span>                                    <span class="co"># Data inputs</span></span>
-<span>                                    WAA <span class="op">=</span> <span class="va">sgl_rg_sable_data</span><span class="op">$</span><span class="va">WAA</span>, </span>
-<span>                                    <span class="co"># weight-at-age</span></span>
-<span>                                    MatAA <span class="op">=</span> <span class="va">sgl_rg_sable_data</span><span class="op">$</span><span class="va">MatAA</span>, </span>
-<span>                                    <span class="co"># maturity at age</span></span>
-<span>                                    AgeingError <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">sgl_rg_sable_data</span><span class="op">$</span><span class="va">age_error</span><span class="op">)</span>,</span>
-<span>                                    <span class="co"># ageing error</span></span>
-<span>                                    SizeAgeTrans <span class="op">=</span> <span class="va">sgl_rg_sable_data</span><span class="op">$</span><span class="va">SizeAgeTrans</span>, </span>
-<span>                                    <span class="co"># size age transition matrix</span></span>
-<span>                                    </span>
+<span>                                    WAA <span class="op">=</span> <span class="va">rtmb_data</span><span class="op">$</span><span class="va">WAA</span>, <span class="co"># weight-at-age</span></span>
+<span>                                    MatAA <span class="op">=</span> <span class="va">rtmb_data</span><span class="op">$</span><span class="va">MatAA</span>, <span class="co"># maturity at age</span></span>
+<span>                                    AgeingError <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">ageing_dat</span><span class="op">$</span><span class="va">age_error</span><span class="op">)</span>, <span class="co"># ageing error</span></span>
+<span>                                    SizeAgeTrans <span class="op">=</span> <span class="va">rtmb_data</span><span class="op">$</span><span class="va">SizeAgeTrans</span>, <span class="co"># size age transition matrix</span></span>
 <span>                                    <span class="co"># Model options</span></span>
-<span>                                    fit_lengths <span class="op">=</span> <span class="fl">1</span>, </span>
-<span>                                    <span class="co"># fitting length compositions</span></span>
-<span>                                    Use_M_prior <span class="op">=</span> <span class="fl">1</span>, </span>
-<span>                                    <span class="co"># use natural mortality prior</span></span>
-<span>                                    M_prior <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.1</span><span class="op">)</span>,</span>
-<span>                                    <span class="co"># mean and sd for M prior</span></span>
-<span>                                    M_spec <span class="op">=</span> <span class="st">"est_ln_M_only"</span>,</span>
-<span>                                    ln_M <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">0.1143034</span><span class="op">)</span>, <span class="co"># starting value for M</span></span>
-<span>                                    M_offset <span class="op">=</span> <span class="op">-</span><span class="fl">0.00819813327864</span> </span>
-<span>                                    <span class="co"># starting value / </span></span>
-<span>                                    <span class="co"># fixing Male M offset (accidently jittered </span></span>
-<span>                                    <span class="co"># from original assessment)</span></span>
-<span>                                    <span class="op">)</span></span></code></pre></div>
+<span>                                    Use_M_prior <span class="op">=</span> <span class="fl">0</span>, <span class="co"># use natural mortality prior</span></span>
+<span>                                    fit_lengths <span class="op">=</span> <span class="fl">1</span>, <span class="co"># fitting length compositions</span></span>
+<span>                                    M_spec <span class="op">=</span> <span class="st">"fix"</span>,</span>
+<span>                                    Fixed_natmort <span class="op">=</span> <span class="va">fixed_natmort</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="setup-movement-and-tagging-dynamics">Setup Movement and Tagging Dynamics<a class="anchor" aria-label="anchor" href="#setup-movement-and-tagging-dynamics"></a>
@@ -272,13 +256,8 @@ of fishing mortality deviations for those partitions. Additional model
 options specified for this case study include: 1) whether fishing
 mortality penalties are utilized to help estimate deviations
 <code>Use_F_pen = 1</code>, to fix the standard deviation for catches
-(<code>sigmaC_spec = 'fix'</code>), and any constants to add to catch
-<code>Catch_Constant = c(0.01, 0.8)</code>, which has a length of
-<code>n_fish_fleets</code>. Ideally, the <code>Catch_Constant</code>
-argument is not needed, since it is not necessary to fit to catch values
-of 0. In such cases, users can leave this argument as NULL, and the
-function will automatically populate this with
-<code>Catch_Constant &lt;- rep(0, input_list$data$n_fish_fleets)</code>.</p>
+and fishing mortality (<code>sigmaC_spec = 'fix'</code>,
+<code>sigmaF_spec = 'fix'</code>).</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">input_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/Setup_Mod_Catch_and_F.html">Setup_Mod_Catch_and_F</a></span><span class="op">(</span>input_list <span class="op">=</span> <span class="va">input_list</span>,</span>
 <span>                                    <span class="co"># Data inputs</span></span>
@@ -291,7 +270,11 @@ function will automatically populate this with
 <span>                                    Use_F_pen <span class="op">=</span> <span class="fl">1</span>, </span>
 <span>                                    <span class="co"># whether to use f penalty, == 0 don't use, == 1 use</span></span>
 <span>                                    sigmaC_spec <span class="op">=</span> <span class="st">'fix'</span>,</span>
-<span>                                    Catch_Constant <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.01</span>, <span class="fl">0.8</span><span class="op">)</span></span>
+<span>                                    sigmaF_spec <span class="op">=</span> <span class="st">"fix"</span>,</span>
+<span></span>
+<span>                                    <span class="co"># Fixing sigma C and F</span></span>
+<span>                                    ln_sigmaC <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fl">1</span><span class="op">/</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span>, dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">input_list</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">n_regions</span>, <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">input_list</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">years</span><span class="op">)</span>, <span class="va">input_list</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">n_fish_fleets</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>                                    ln_sigmaF <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fl">1</span><span class="op">/</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span>, dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">input_list</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">n_regions</span>, <span class="va">input_list</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">n_fish_fleets</span><span class="op">)</span><span class="op">)</span></span>
 <span>                                    <span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -366,15 +349,13 @@ as
 because both fleets have length composition data that are sex-specific.
 Here, the <code>spltRspltS</code> character indicates to the model that
 these data sum to 1 for each sex and each region, and no implicit
-sex-ratios can be inferred using these composition data from the model.
-Lastly, there are some ADMB aggregation quirks specific to Alaska
-sablefish that can be ignored by the user (and will be removed in later
-version of the model).</p>
+sex-ratios can be inferred using these composition data from the
+model.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">input_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/Setup_Mod_FishIdx_and_Comps.html">Setup_Mod_FishIdx_and_Comps</a></span><span class="op">(</span>input_list <span class="op">=</span> <span class="va">input_list</span>,</span>
 <span>                                          <span class="co"># data inputs</span></span>
 <span>                                          ObsFishIdx <span class="op">=</span> <span class="va">sgl_rg_sable_data</span><span class="op">$</span><span class="va">ObsFishIdx</span>,</span>
-<span>                                          ObsFishIdx_SE <span class="op">=</span> <span class="va">sgl_rg_sable_data</span><span class="op">$</span><span class="va">ObsFishIdx_SE</span>,</span>
+<span>                                          ObsFishIdx_SE <span class="op">=</span> <span class="va">sgl_rg_sable_data</span><span class="op">$</span><span class="va">ObsFishIdx_SE</span> <span class="op">/</span> <span class="va">sgl_rg_sable_data</span><span class="op">$</span><span class="va">ObsFishIdx</span>,</span>
 <span>                                          UseFishIdx <span class="op">=</span>  <span class="va">sgl_rg_sable_data</span><span class="op">$</span><span class="va">UseFishIdx</span>,</span>
 <span>                                          ObsFishAgeComps <span class="op">=</span> <span class="va">sgl_rg_sable_data</span><span class="op">$</span><span class="va">ObsFishAgeComps</span>,</span>
 <span>                                          UseFishAgeComps <span class="op">=</span> <span class="va">sgl_rg_sable_data</span><span class="op">$</span><span class="va">UseFishAgeComps</span>,</span>
@@ -399,25 +380,21 @@ version of the model).</p>
 <span>                                          <span class="co"># age comp structure for fishery fleet 1 and 2</span></span>
 <span>                                          FishLenComps_Type <span class="op">=</span>  </span>
 <span>                                            <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"spltRspltS_Year_1-terminal_Fleet_1"</span>,</span>
-<span>                                              <span class="st">"spltRspltS_Year_1-terminal_Fleet_2"</span><span class="op">)</span>,  </span>
+<span>                                              <span class="st">"spltRspltS_Year_1-terminal_Fleet_2"</span><span class="op">)</span></span>
 <span>                                          <span class="co"># length comp structure for fishery fleet 1 and 2</span></span>
-<span>                                          FishAge_comp_agg_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="cn">NA</span><span class="op">)</span>, </span>
-<span>                                          <span class="co"># ADMB aggregation quirks, ideally get rid of this</span></span>
-<span>                                          FishLen_comp_agg_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">1</span><span class="op">)</span> </span>
-<span>                                          <span class="co"># ADMB aggregation quirks, ideally get rid of this</span></span>
 <span>                                          <span class="op">)</span></span></code></pre></div>
 <p>The same arguments are expected for survey indices and compositions.
 Here, 3 survey fleets are specified, where they are abundance based for
 survey fleet 1 and 3, and biomass based for survey fleet 2. Age
 compositions are aggregated by sex for survey fleet 1 and 3, and are not
-availiable for survey fleet 2, while length compositions are split by
-sex for all survey fleets. All compositions for the survey fleets assume
-a Mulinomial likelihood.</p>
+available for survey fleet 2, while length compositions are split by sex
+for all survey fleets. All compositions for the survey fleets assume a
+Multinomial likelihood.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">input_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/Setup_Mod_SrvIdx_and_Comps.html">Setup_Mod_SrvIdx_and_Comps</a></span><span class="op">(</span>input_list <span class="op">=</span> <span class="va">input_list</span>,</span>
 <span>                                         <span class="co"># data inputs</span></span>
 <span>                                         ObsSrvIdx <span class="op">=</span> <span class="va">sgl_rg_sable_data</span><span class="op">$</span><span class="va">ObsSrvIdx</span>,</span>
-<span>                                         ObsSrvIdx_SE <span class="op">=</span> <span class="va">sgl_rg_sable_data</span><span class="op">$</span><span class="va">ObsSrvIdx_SE</span>,</span>
+<span>                                         ObsSrvIdx_SE <span class="op">=</span> <span class="va">sgl_rg_sable_data</span><span class="op">$</span><span class="va">ObsSrvIdx_SE</span> <span class="op">/</span> <span class="va">sgl_rg_sable_data</span><span class="op">$</span><span class="va">ObsSrvIdx</span>,</span>
 <span>                                         UseSrvIdx <span class="op">=</span>  <span class="va">sgl_rg_sable_data</span><span class="op">$</span><span class="va">UseSrvIdx</span>,</span>
 <span>                                         ObsSrvAgeComps <span class="op">=</span> <span class="va">sgl_rg_sable_data</span><span class="op">$</span><span class="va">ObsSrvAgeComps</span>,</span>
 <span>                                         ISS_SrvAgeComps <span class="op">=</span> <span class="va">sgl_rg_sable_data</span><span class="op">$</span><span class="va">ISS_SrvAgeComps</span>,</span>
@@ -443,12 +420,8 @@ a Mulinomial likelihood.</p>
 <span>                                         <span class="co"># survey age comp type</span></span>
 <span>                                         SrvLenComps_Type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"spltRspltS_Year_1-terminal_Fleet_1"</span>,</span>
 <span>                                                              <span class="st">"spltRspltS_Year_1-terminal_Fleet_2"</span>,</span>
-<span>                                                              <span class="st">"spltRspltS_Year_1-terminal_Fleet_3"</span><span class="op">)</span>, </span>
+<span>                                                              <span class="st">"spltRspltS_Year_1-terminal_Fleet_3"</span><span class="op">)</span></span>
 <span>                                         <span class="co"># survey length comp type</span></span>
-<span>                                         SrvAge_comp_agg_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="cn">NA</span>,<span class="fl">1</span><span class="op">)</span>, </span>
-<span>                                         <span class="co"># ADMB aggregation quirks, ideally get rid of this</span></span>
-<span>                                         SrvLen_comp_agg_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">0</span>,<span class="fl">0</span><span class="op">)</span></span>
-<span>                                         <span class="co"># ADMB aggregation quirks, ideally get rid of this</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -615,56 +588,18 @@ sharing to help facilitate model stability.</p>
 <h2 id="setup-model-weighting">Setup Model Weighting<a class="anchor" aria-label="anchor" href="#setup-model-weighting"></a>
 </h2>
 <p>The last helper function that needs to be utilized to setup and run
-the model is the <code>Setup_Mod_Weighting</code> function. This
-function helps specify how the different data sources are weighted and
-whether ADMB (<code>likelihoods = 0</code>) or TMB-style likelihoods are
-used (<code>likelihoods = 1</code>). In general, if ADMB-style
-likelihoods are used, data sources are weighted with a combination of
+the model is the <code>Setup_Mod_Weighting</code> function. Data sources
+can be weighted with a combination of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>λ</mi><annotation encoding="application/x-tex">\lambda</annotation></semantics></math>
-(which weights the entiree data source likelihood, e.g.,
+(which weights the entire data source likelihood, e.g.,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi><mo>*</mo><mi>C</mi><mi>a</mi><mi>t</mi><mi>c</mi><msub><mi>h</mi><mrow><mi>n</mi><mi>L</mi><mi>L</mi></mrow></msub></mrow><annotation encoding="application/x-tex">\lambda*Catch_{nLL}</annotation></semantics></math>)
-and the specified “observed” standard errors / input sample sizes . In
-the context of composition data, these
+and the specified “observed” standard errors / input sample sizes
+(defined in previous functions). In the context of composition data,
+these
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>λ</mi><annotation encoding="application/x-tex">\lambda</annotation></semantics></math>
 values are determined using Francis reweighting to right-weight these
 data. If Francis-reweighting is not used, then values of 1 can be input
-for the weights of these data. Moreover, when using ADMB-style
-likelihoods, standard errors of indices are expected to be
-(i.e.,<code>ObsFishIdx_SE</code> and <code>ObsSrvIdx_SE</code>):
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mn>2</mn><mo>*</mo><msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>S</mi><msub><mi>E</mi><mrow><mi>r</mi><mo>,</mo><mi>y</mi><mo>,</mo><mi>f</mi></mrow></msub><mi>/</mi><mi>O</mi><mi>b</mi><mi>s</mi><mi>I</mi><mi>d</mi><msub><mi>x</mi><mrow><mi>r</mi><mo>,</mo><mi>y</mi><mo>,</mo><mi>f</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">(2 * (SE_{r,y,f}/ ObsIdx_{r,y,f})^2</annotation></semantics></math>.
-Fitting to catch data using ADMB-style likelihoods assumes a sum of
-squares calculation between observed and predicted catch, following a
-large
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>λ</mi><annotation encoding="application/x-tex">\lambda</annotation></semantics></math>
-value applied to the overall catch data source to ensure that these data
-closely fit to.</p>
-<p>In the context of TMB-style likelihoods
-(<code>likelihoods = 1</code>), data sources should ideally only be
-weighted using
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>σ</mi><annotation encoding="application/x-tex">\sigma</annotation></semantics></math>
-values, and not in conjunction with
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>λ</mi><annotation encoding="application/x-tex">\lambda</annotation></semantics></math>
-values. Thus, users can leave the arguments <code>Wt_Catch</code>,
-<code>Wt_FishIdx</code>, <code>Wt_SrvIdx</code>, <code>Wt_Rec</code>,
-and <code>Wt_F</code> blank (NULL), which get automatically filled in as
-1. If Francis-reweighting is conducted using TMB-style likelihoods, it
-is the same process described above, where users will need to fill in
-the weights determined by Francis-reweighitng. If not, users can specify
-a value of 1. Thus, in contrast to ADMB-style likelihoods, indices are
-weighted as:
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mrow><mo stretchy="true" form="prefix">(</mo><mn>2</mn><mo>*</mo><mi>S</mi><msub><mi>E</mi><mrow><mi>r</mi><mo>,</mo><mi>y</mi><mo>,</mo><mi>f</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup><annotation encoding="application/x-tex">(2 * SE_{r,y,f})^2</annotation></semantics></math>.
-Moreover, it is not recommended to fit to catch data with a high
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>λ</mi><annotation encoding="application/x-tex">\lambda</annotation></semantics></math>
-value when using TMB-style likelihoods (i.e., <code>Wt_Catch</code>
-should be set to 1) and users should weight catch data using the
-<code>sigmaC_spec</code> and <code>ln_sigmaC</code> arguments in the
-<code>Setup_Mod_Catch_and_F</code> function. The single region pollock
-vignette demonstrates use of TMB-style likelihoods. Finally,
-<code>sablefish_ADMB</code> is specific to Alaska sablefish and
-specifies the order of operations for size-age transition matrices, as
-well as how indices should be calculated (e.g., using mid-year mortality
-vs not). In the following iterations of this package, this option will
-most likely be removed.</p>
+for the weights of these data.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># set up data weighting stuff</span></span>
 <span><span class="va">Wt_FishAgeComps</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="cn">NA</span>, dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">input_list</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">n_regions</span>,</span>
@@ -719,8 +654,6 @@ most likely be removed.</p>
 <span><span class="co"># Weight for coop jp ll survey len comps males</span></span>
 <span></span>
 <span><span class="va">input_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/Setup_Mod_Weighting.html">Setup_Mod_Weighting</a></span><span class="op">(</span>input_list <span class="op">=</span> <span class="va">input_list</span>,</span>
-<span>                                  sablefish_ADMB <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>                                  likelihoods <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>                                  Wt_Catch <span class="op">=</span> <span class="fl">50</span>,</span>
 <span>                                  Wt_FishIdx <span class="op">=</span> <span class="fl">0.448</span>,</span>
 <span>                                  Wt_SrvIdx <span class="op">=</span> <span class="fl">0.448</span>,</span>
@@ -787,14 +720,6 @@ the two models.</p>
 <span></span>
 <span><span class="va">ts_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="va">ssb_series</span>,<span class="va">rec_series</span><span class="op">)</span> <span class="co"># bind together</span></span></code></pre></div>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">ts_df</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">Year</span>, y <span class="op">=</span> <span class="op">(</span><span class="op">(</span><span class="va">RTMB</span> <span class="op">-</span> <span class="va">ADMB</span><span class="op">)</span> <span class="op">/</span> <span class="va">ADMB</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_hline</a></span><span class="op">(</span>yintercept <span class="op">=</span> <span class="fl">0</span>, lty <span class="op">=</span> <span class="fl">2</span>, size <span class="op">=</span> <span class="fl">1.3</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">Par</span>, scales <span class="op">=</span> <span class="st">"free_y"</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>y <span class="op">=</span> <span class="st">"Relative difference (%)"</span><span class="op">)</span>  <span class="op">+</span></span>
-<span>  <span class="fu">SPoRC</span><span class="fu">::</span><span class="fu"><a href="../reference/theme_sablefish.html">theme_sablefish</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="figures/e_ts_comparison_re.png"></p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="va">ts_df</span>, mapping <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">Year</span>, y <span class="op">=</span> <span class="va">RTMB</span>, color <span class="op">=</span> <span class="st">'RTMB'</span><span class="op">)</span>, size <span class="op">=</span> <span class="fl">1.3</span>, lty <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="va">ts_df</span>, mapping <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">Year</span>, y <span class="op">=</span> <span class="va">ADMB</span>, color <span class="op">=</span> <span class="st">'ADMB'</span><span class="op">)</span>, size <span class="op">=</span> <span class="fl">1.3</span>, lty <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">+</span></span>

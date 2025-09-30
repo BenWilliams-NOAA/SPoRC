@@ -2,36 +2,51 @@
 % Please edit documentation in R/Setup_Biologicals.R
 \name{Setup_Sim_Biologicals}
 \alias{Setup_Sim_Biologicals}
-\title{Set up simulation stuff for biologicals}
+\title{Set up simulation containers and inputs for biological parameters}
 \usage{
 Setup_Sim_Biologicals(
-  base_M_value,
-  M_pattern,
-  base_WAA_values,
-  base_WAA_fish_values,
-  WAA_pattern,
-  base_Maturity_AA_values,
-  Maturity_AA_pattern,
+  natmort_input,
+  WAA_input,
+  WAA_fish_input,
+  WAA_srv_input,
+  MatAA_input,
+  AgeingError_input = NULL,
+  SizeAgeTrans_input = NULL,
   sim_list
 )
 }
 \arguments{
-\item{base_M_value}{Base natural mortality value dimensioned by regions, ages, sexes}
+\item{natmort_input}{Natural mortality array [n_regions × n_yrs × n_ages × n_sexes × n_sims]}
 
-\item{M_pattern}{Natural mortality pattern. Options include: constant}
+\item{WAA_input}{Spawning weight-at-age array [n_regions × n_yrs × n_ages × n_sexes × n_sims]}
 
-\item{base_WAA_values}{Base weight-at-age values dimensioned by regions, ages, sexes}
+\item{WAA_fish_input}{Fishery weight-at-age array [n_regions × n_yrs × n_ages × n_sexes × n_sims]}
 
-\item{base_WAA_fish_values}{Base weight-at-age values for the fishery dimensioned by regions, ages, sexes, fishery fleets}
+\item{WAA_srv_input}{Survey weight-at-age array [n_regions × n_yrs × n_ages × n_sexes × n_sims]}
 
-\item{WAA_pattern}{Weight-at-age pattern. Options include: constant}
+\item{MatAA_input}{Maturity-at-age array [n_regions × n_yrs × n_ages × n_sexes × n_sims]}
 
-\item{base_Maturity_AA_values}{Base maturity values dimensioned by regions, ages, sexes}
+\item{AgeingError_input}{Ageing error matrix [n_regions × n_model_ages × n_obs_ages × n_sims]}
 
-\item{Maturity_AA_pattern}{Maturity pattern. Options include: constant}
+\item{SizeAgeTrans_input}{Size-age transition matrix [n_regions × n_yrs × n_lens × n_ages × n_sexes x n_sims]}
 
-\item{sim_list}{Simulation list objects}
+\item{sim_list}{Simulation list object from `Setup_Sim_Dim()`}
 }
 \description{
-Set up simulation stuff for biologicals
+Set up simulation containers and inputs for biological parameters
 }
+\seealso{
+Other Simulation Setup: 
+\code{\link{Setup_Sim_Containers}()},
+\code{\link{Setup_Sim_Dim}()},
+\code{\link{Setup_Sim_Fishing}()},
+\code{\link{Setup_Sim_Rec}()},
+\code{\link{Setup_Sim_Survey}()},
+\code{\link{Setup_Sim_Tagging}()},
+\code{\link{Setup_sim_env}()},
+\code{\link{Simulate_Pop_Static}()},
+\code{\link{run_annual_cycle}()},
+\code{\link{simulation_data_to_SPoRC}()},
+\code{\link{simulation_self_test}()}
+}
+\concept{Simulation Setup}

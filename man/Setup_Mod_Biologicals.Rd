@@ -11,13 +11,20 @@ Setup_Mod_Biologicals(
   WAA_srv = NULL,
   MatAA,
   addtocomp = 0.001,
+  addtofishidx = 1e-04,
+  addtosrvidx = 1e-04,
+  addtotag = 1e-10,
   AgeingError = NULL,
   Use_M_prior = 0,
   M_prior = NA,
   fit_lengths = 0,
   SizeAgeTrans = NA,
   Selex_Type = "age",
-  M_spec = NULL,
+  M_spec = "est_ln_M",
+  M_ageblk_spec = "constant",
+  M_regionblk_spec = "constant",
+  M_yearblk_spec = "constant",
+  M_sexblk_spec = "constant",
   Fixed_natmort = NULL,
   ...
 )
@@ -33,7 +40,13 @@ Setup_Mod_Biologicals(
 
 \item{MatAA}{Numeric array of maturity-at-age, dimensioned \code{[n_regions, n_years, n_ages, n_sexes]}.}
 
-\item{addtocomp}{Numeric value for a constant to add to composition data. Default is 1e-3.}
+\item{addtocomp}{Numeric value for a constant to add to composition data. Default is 1e-3. Not used if logistic normal likelihoods are utilized.}
+
+\item{addtofishidx}{Numeric value for a constant to add to composition data. Default is 1e-4.}
+
+\item{addtosrvidx}{Numeric value for a constant to add to composition data. Default is 1e-4.}
+
+\item{addtotag}{Numeric value for a constant to add to composition data. Default is 1e-10}
 
 \item{AgeingError}{Numeric matrix or array representing the ageing error transition matrix.
   If a matrix (2D), dimensions should be \code{[number of modeled ages, number of observed composition ages]}
@@ -62,11 +75,23 @@ Setup_Mod_Biologicals(
   \item \code{"age"}: Age-based selectivity
 }}
 
-\item{M_spec}{Character string specifying natural mortality estimation approach. Defaults to \code{NULL}, which estimates mortality for each sex independently. Other options:
+\item{M_spec}{Character string specifying natural mortality estimation approach. Defaults to \code{est_ln_M}, which estimates mortality to be invariant, if blocks are not specified. Options:
 \itemize{
-  \item \code{"est_ln_M_only"}: Estimate a single natural mortality rate shared across sexes (if \code{n_sexes == 2}).
+  \item \code{"est_ln_M"}: Estimates natural mortality across the defined natural mortality blocks.
   \item \code{"fix"}: Fix all natural mortality parameters using the provided array.
 }}
+
+\item{M_ageblk_spec}{Specification of age blocking for natural mortality estimation.
+Either a character string ("constant") or a list of index vectors, e.g., \code{list(1:10, 11:30)}, which specifies 2 age blocks for M.}
+
+\item{M_regionblk_spec}{Specification of regional blocking for natural mortality.
+Either a character string ("constant") or a list of index vectors, e.g., \code{list(1:3, 4:5)}, which specifies 2 region blocks for M.}
+
+\item{M_yearblk_spec}{Specification of year blocking for natural mortality.
+Either a character string ("constant") or a list of index vectors, e.g., \code{list(1:10, 11:30)}, which specifies 2 year blocks for M.}
+
+\item{M_sexblk_spec}{Specification of sex blocking for natural mortality.
+Either a character string ("constant") or a list of index vectors, e.g., \code{list(1:2)}, which specifies sex-invariant M.}
 
 \item{Fixed_natmort}{Numeric array of fixed natural mortality values, dimensioned \code{[n_regions, n_years, n_ages, n_sexes]}. Required if \code{M_spec = "fix"}.}
 
@@ -75,3 +100,17 @@ Setup_Mod_Biologicals(
 \description{
 Setup biological inputs for estimation model
 }
+\seealso{
+Other Model Setup: 
+\code{\link{Setup_Mod_Catch_and_F}()},
+\code{\link{Setup_Mod_Dim}()},
+\code{\link{Setup_Mod_FishIdx_and_Comps}()},
+\code{\link{Setup_Mod_Fishsel_and_Q}()},
+\code{\link{Setup_Mod_Movement}()},
+\code{\link{Setup_Mod_Rec}()},
+\code{\link{Setup_Mod_SrvIdx_and_Comps}()},
+\code{\link{Setup_Mod_Srvsel_and_Q}()},
+\code{\link{Setup_Mod_Tagging}()},
+\code{\link{Setup_Mod_Weighting}()}
+}
+\concept{Model Setup}

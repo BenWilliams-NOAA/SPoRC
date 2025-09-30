@@ -22,7 +22,7 @@
 #' @importFrom parallel detectCores
 #' @returns Returns a list of likelihood profiled values for each data component with their respective dimensions (e.g., likelihood profiles by fleet, region, year, etc.) as well likelihood profiles for each data component, aggregated across all their respective dimensions.
 #' @export do_likelihood_profile
-#'
+#' @family Model Diagnostics
 do_likelihood_profile <- function(data,
                                   parameters,
                                   mapping,

@@ -34,3 +34,12 @@ plot_all_basic(
 )
 }
 }
+\seealso{
+Other Plotting: 
+\code{\link{get_biological_plot}()},
+\code{\link{get_data_fitted_plot}()},
+\code{\link{get_selex_plot}()},
+\code{\link{get_ts_plot}()},
+\code{\link{theme_sablefish}()}
+}
+\concept{Plotting}

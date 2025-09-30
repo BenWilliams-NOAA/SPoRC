@@ -1,26 +1,44 @@
-#' Set up simulation dimensions
+#' Initialize Simulation Dimension Settings
 #'
-#' @param n_sims Number of simulations
-#' @param n_yrs Number of years
-#' @param n_regions Number of regions
-#' @param n_ages Number of ages
-#' @param n_sexes Number of sexes
-#' @param n_fish_fleets Number of fishery fleets
-#' @param n_srv_fleets Number of survey fleets
-#' @param run_feedback Boolean for whether to run or not run feedback management loop
-#' @param feedback_start_yr If MSE is run, when is the first year feedback starts
+#' Creates and returns a list of key dimension values used to set up a
+#' simulation or management strategy evaluation (MSE). This list provides
+#' structural information such as number of simulations, years, regions,
+#' ages, fleets, and whether to include a feedback loop.
+#'
+#' @param n_sims Integer. Number of simulation replicates.
+#' @param n_yrs Integer. Number of years in the simulation.
+#' @param n_regions Integer. Number of modeled regions.
+#' @param n_ages Integer. Number of modeled age classes.
+#' @param n_lens Integer. Number of modeled length bins.
+#' @param n_obs_ages Integer. Number of observed age classes (can differ from \code{n_ages}, default = \code{n_ages}).
+#' @param n_sexes Integer. Number of sexes.
+#' @param n_fish_fleets Integer. Number of fishery fleets.
+#' @param n_srv_fleets Integer. Number of survey fleets.
+#' @param run_feedback Logical. Whether to include a feedback management loop (default = \code{FALSE}).
+#' @param feedback_start_yr Integer. First year that feedback is applied (only used if \code{run_feedback = TRUE}).
+#'
+#' @return
+#' A list containing the specified dimension values, with elements:
+#' \itemize{
+#'   \item \code{n_sims}, \code{n_yrs}, \code{n_regions}, \code{n_ages}, \code{n_lens},
+#'   \code{n_obs_ages}, \code{n_sexes}, \code{n_fish_fleets}, \code{n_srv_fleets}
+#'   \item \code{init_iter} (set internally to \code{n_ages * 10})
+#'   \item \code{feedback_start_yr}, \code{run_feedback}
+#' }
 #'
 #' @export Setup_Sim_Dim
-#'
+#' @family Simulation Setup
 Setup_Sim_Dim <- function(n_sims,
                           n_yrs,
                           n_regions,
                           n_ages,
+                          n_lens,
+                          n_obs_ages = n_ages,
                           n_sexes,
                           n_fish_fleets,
                           n_srv_fleets,
-                          run_feedback,
-                          feedback_start_yr
+                          run_feedback = FALSE,
+                          feedback_start_yr = NULL
                           ) {
 
   sim_list <- list() # setup empty list
@@ -30,6 +48,8 @@ Setup_Sim_Dim <- function(n_sims,
   sim_list$n_yrs <- n_yrs
   sim_list$n_regions <- n_regions
   sim_list$n_ages <- n_ages
+  sim_list$n_lens <- n_lens
+  sim_list$n_obs_ages <- n_obs_ages
   sim_list$n_sexes <- n_sexes
   sim_list$n_fish_fleets <- n_fish_fleets
   sim_list$n_srv_fleets <- n_srv_fleets
@@ -59,7 +79,7 @@ Setup_Sim_Dim <- function(n_sims,
 #'   \item{\code{map}}{List of parameter mappings for model fitting.}
 #' }
 #' @export Setup_Mod_Dim
-#'
+#' @family Model Setup
 Setup_Mod_Dim <- function(years,
                           ages,
                           lens,
@@ -79,7 +99,7 @@ Setup_Mod_Dim <- function(years,
   input_list$data$years <- years
   input_list$data$n_regions <- n_regions
   input_list$data$ages <- ages
-  input_list$data$lens <- lens
+  input_list$data$lens <- if(is.null(lens)) 1 else lens
   input_list$data$n_sexes <- n_sexes
   input_list$data$n_fish_fleets <- n_fish_fleets
   input_list$data$n_srv_fleets <- n_srv_fleets

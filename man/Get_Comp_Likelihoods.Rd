@@ -23,7 +23,8 @@ Get_Comp_Likelihoods(
   AgeingError,
   use,
   comp_agg_type,
-  addtocomp
+  addtocomp,
+  sim = FALSE
 )
 }
 \arguments{
@@ -65,6 +66,8 @@ Get_Comp_Likelihoods(
 \item{comp_agg_type}{How to aggregate data (if aggregating)}
 
 \item{addtocomp}{Small constant to add to composition data}
+
+\item{sim}{Boolean on whether or not to simualte values from a given specification of the likelihood}
 }
 \value{
 Returns negative log likelihood for composition data (age and/or length)

@@ -156,8 +156,6 @@ structure to some equilibrium <code>init_age_strc = 0</code>), and</li>
 <span>    <span class="co"># fixing steepness</span></span>
 <span>    sigmaR_spec <span class="op">=</span> <span class="st">"fix"</span>,</span>
 <span>    <span class="co"># fix early sigmaR and late sigmaR</span></span>
-<span>    sexratio <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1.0</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>    <span class="co"># recruitment sex ratio</span></span>
 <span>    init_age_strc <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>    ln_global_R0 <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>    t_spawn <span class="op">=</span> <span class="fl">0.25</span>,</span>
@@ -275,7 +273,7 @@ at.</p>
 <span>    <span class="co"># whether to use f penalty, == 0 don't use, == 1 use</span></span>
 <span>    sigmaC_spec <span class="op">=</span> <span class="st">"fix"</span>,</span>
 <span>    <span class="co"># fixing catch standard deviation</span></span>
-<span>    ln_sigmaC <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">0.05</span><span class="op">)</span>, <span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span></span>
+<span>    ln_sigmaC <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">0.05</span><span class="op">)</span>, dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">input_list</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">years</span><span class="op">)</span>,<span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
 <span>    <span class="co"># starting / fixed value for catch standard deviation</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
 </div>
@@ -320,12 +318,8 @@ sexes (because this is a single-region single-sex model).</p>
 <span>    <span class="co"># length comp likelihoods for fishery</span></span>
 <span>    FishAgeComps_Type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"agg_Year_1-terminal_Fleet_1"</span><span class="op">)</span>,</span>
 <span>    <span class="co"># age comp structure for fishery</span></span>
-<span>    FishLenComps_Type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none_Year_1-terminal_Fleet_1"</span><span class="op">)</span>,</span>
+<span>    FishLenComps_Type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none_Year_1-terminal_Fleet_1"</span><span class="op">)</span></span>
 <span>    <span class="co"># length comp structure for fishery</span></span>
-<span>    FishAge_comp_agg_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span>,</span>
-<span>    <span class="co"># ADMB aggregation quirks, ideally get rid of this</span></span>
-<span>    FishLen_comp_agg_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span></span>
-<span>    <span class="co"># ADMB aggregation quirks, ideally get rid of this</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -381,13 +375,8 @@ not fit to (and hence specified at none).</p>
 <span>      <span class="st">"none_Year_1-terminal_Fleet_1"</span>,</span>
 <span>      <span class="st">"none_Year_1-terminal_Fleet_2"</span>,</span>
 <span>      <span class="st">"none_Year_1-terminal_Fleet_3"</span></span>
-<span>    <span class="op">)</span>,</span>
+<span>    <span class="op">)</span></span>
 <span>    <span class="co"># survey length comp type</span></span>
-<span></span>
-<span>    SrvAge_comp_agg_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>,</span>
-<span>    <span class="co"># ADMB aggregation quirks, ideally get rid of this</span></span>
-<span>    SrvLen_comp_agg_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span></span>
-<span>    <span class="co"># ADMB aggregation quirks, ideally get rid of this</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -481,15 +470,12 @@ semi-parametric deviations collapse to an iid formulation
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>λ</mi><annotation encoding="application/x-tex">\lambda</annotation></semantics></math>
 in this model. Here, all
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>λ</mi><annotation encoding="application/x-tex">\lambda</annotation></semantics></math>
-values are set at 1 and TMB likelihoods are utilized. Thus, all data
-sources are weighted either using specified input sample sizes (for
-composition data) or specified variances (catch and abundance
-indices).</p>
+values are set at 1. Thus, all data sources are weighted either using
+specified input sample sizes (for composition data) or specified
+variances (catch and abundance indices).</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">input_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/Setup_Mod_Weighting.html">Setup_Mod_Weighting</a></span><span class="op">(</span></span>
 <span>  input_list <span class="op">=</span> <span class="va">input_list</span>,</span>
-<span>  sablefish_ADMB <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>  likelihoods <span class="op">=</span> <span class="fl">1</span>, <span class="co"># using TMB likelihoods</span></span>
 <span>  Wt_Catch <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  Wt_FishIdx <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  Wt_SrvIdx <span class="op">=</span> <span class="fl">1</span>,</span>

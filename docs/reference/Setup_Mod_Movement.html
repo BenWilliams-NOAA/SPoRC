@@ -45,9 +45,9 @@
 <span>  Fixed_Movement <span class="op">=</span> <span class="cn">NA</span>,</span>
 <span>  Use_Movement_Prior <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  Movement_prior <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  Movement_ageblk_spec <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  Movement_yearblk_spec <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  Movement_sexblk_spec <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  Movement_ageblk_spec <span class="op">=</span> <span class="st">"constant"</span>,</span>
+<span>  Movement_yearblk_spec <span class="op">=</span> <span class="st">"constant"</span>,</span>
+<span>  Movement_sexblk_spec <span class="op">=</span> <span class="st">"constant"</span>,</span>
 <span>  cont_vary_movement <span class="op">=</span> <span class="st">"none"</span>,</span>
 <span>  Movement_cont_pe_pars_spec <span class="op">=</span> <span class="st">"none"</span>,</span>
 <span>  <span class="va">...</span></span>
@@ -88,7 +88,7 @@ If a vector, a constant prior is applied across all dimensions.</p></dd>
 
 
 <dt id="arg-movement-ageblk-spec">Movement_ageblk_spec<a class="anchor" aria-label="anchor" href="#arg-movement-ageblk-spec"></a></dt>
-<dd><p>Either:</p><ul><li><p>Character string <code>"constant"</code> for age-invariant movement, or</p></li>
+<dd><p>Either:</p><ul><li><p>Character string <code>"constant"</code> for age-invariant movement (default), or</p></li>
 <li><p>A list of numeric vectors specifying age blocks sharing parameters.</p></li>
 </ul><p>For example, <code>list(c(1:6), c(7:10), c(11:n_ages))</code> defines three age blocks where:</p><ul><li><p>ages 1 to 6 share parameters,</p></li>
 <li><p>ages 7 to 10 share parameters,</p></li>
@@ -97,13 +97,13 @@ If a vector, a constant prior is applied across all dimensions.</p></dd>
 
 
 <dt id="arg-movement-yearblk-spec">Movement_yearblk_spec<a class="anchor" aria-label="anchor" href="#arg-movement-yearblk-spec"></a></dt>
-<dd><p>Either:</p><ul><li><p>Character string <code>"constant"</code> for time-invariant movement, or</p></li>
+<dd><p>Either:</p><ul><li><p>Character string <code>"constant"</code> for time-invariant movement (default), or</p></li>
 <li><p>A list of numeric vectors specifying year blocks sharing movement parameters.</p></li>
 </ul></dd>
 
 
 <dt id="arg-movement-sexblk-spec">Movement_sexblk_spec<a class="anchor" aria-label="anchor" href="#arg-movement-sexblk-spec"></a></dt>
-<dd><p>Either:</p><ul><li><p>Character string <code>"constant"</code> for sex-invariant movement, or</p></li>
+<dd><p>Either:</p><ul><li><p>Character string <code>"constant"</code> for sex-invariant movement (default), or</p></li>
 <li><p>A list of numeric vectors specifying sex blocks sharing movement parameters.</p></li>
 </ul></dd>
 
@@ -139,6 +139,20 @@ Available options:</p><ul><li><p><code>"est_shared_r"</code></p></li>
 <dd><p>Additional parameters such as starting values for <code>move_pars</code>, <code>logit_move_devs</code>, and <code>move_pe_pars</code>.</p></dd>
 
 </dl></div>
+    <div class="section level2">
+    <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
+    <div class="dont-index"><p>Other Model Setup:
+<code><a href="Setup_Mod_Biologicals.html">Setup_Mod_Biologicals</a>()</code>,
+<code><a href="Setup_Mod_Catch_and_F.html">Setup_Mod_Catch_and_F</a>()</code>,
+<code><a href="Setup_Mod_Dim.html">Setup_Mod_Dim</a>()</code>,
+<code><a href="Setup_Mod_FishIdx_and_Comps.html">Setup_Mod_FishIdx_and_Comps</a>()</code>,
+<code><a href="Setup_Mod_Fishsel_and_Q.html">Setup_Mod_Fishsel_and_Q</a>()</code>,
+<code><a href="Setup_Mod_Rec.html">Setup_Mod_Rec</a>()</code>,
+<code><a href="Setup_Mod_SrvIdx_and_Comps.html">Setup_Mod_SrvIdx_and_Comps</a>()</code>,
+<code><a href="Setup_Mod_Srvsel_and_Q.html">Setup_Mod_Srvsel_and_Q</a>()</code>,
+<code><a href="Setup_Mod_Tagging.html">Setup_Mod_Tagging</a>()</code>,
+<code><a href="Setup_Mod_Weighting.html">Setup_Mod_Weighting</a>()</code></p></div>
+    </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>

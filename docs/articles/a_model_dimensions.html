@@ -171,55 +171,56 @@ recruitment deviations. Specify as 0 if sigmaR early is equal to sigmaR
 late.</td>
 </tr>
 <tr class="even">
-<td><code>sexratio</code></td>
-<td>Vector specifying the recruitment sex ratio</td>
-</tr>
-<tr class="odd">
 <td><code>init_age_strc</code></td>
 <td>Value specifying how the population age structure should be
 initialized. 0: Initialize via iteration to equilibrium, 1: Initialize
 with geometric series solution.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>equil_init_age_strc</code></td>
 <td>Value specifying how intial age deviations arise. 0 == equilibrium,
 1 == stochastic except for plus group, 2 == stochastic for all ages
 (including the plus group)</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>init_F_prop</code></td>
 <td>Value specifying the proportion of fishing mortality to apply to the
 initial age deviations relative to the mean fishing mortality parameter
 for fishery fleet 1 (the dominant fleet)</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>rec_model</code></td>
 <td>Value specifying the recruitment model. 0 == Mean Recruitment, 1 ==
 Beverton-Holt with steepness parameterization</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>rec_dd</code></td>
 <td>Value specifying the recruitment density dependence (only used when
 there is a stock recruitment relationship) 0 == local density, 1 ==
 global density, 999 == no density dependent stock recruitment form is
 used</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>t_spawn</code></td>
 <td>Fraction of year in which spawning occurs</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>Use_Rec_prop_Prior</code></td>
 <td>Value specifying whether recruitment proportion priors are used. 0:
 Don’t use priors, 1: Use Priors. Recruitment proportion priors are
 applied using a Dirichlet distribution.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>Rec_prop_prior</code></td>
 <td>Prior values defined for recruitment proportions if used (i.e., the
 Dirichlet concentration parameters) dimensioned by
 <code>n_regions</code>
 </td>
+</tr>
+<tr class="even">
+<td><code>sexratio_blocks</code></td>
+<td>Matrix specifying sexratio blocks
+(<code>n_regions x n_years</code>)</td>
 </tr>
 </tbody>
 </table>
@@ -279,31 +280,46 @@ are not fit</td>
 <td>Constant to add to all composition data.</td>
 </tr>
 <tr class="odd">
+<td><code>addtofishidx</code></td>
+<td>Constant to add to all fishery index data.</td>
+</tr>
+<tr class="even">
+<td><code>addtosrvidx</code></td>
+<td>Constant to add to all survey index data.</td>
+</tr>
+<tr class="odd">
+<td><code>addtotag</code></td>
+<td>Constant to add to all tagging data.</td>
+</tr>
+<tr class="even">
 <td><code>Use_M_prior</code></td>
 <td>Value specifying whether natural mortality priors are used. 0: Don’t
 use prior, 1: Use prior</td>
 </tr>
-<tr class="even">
-<td><code>M_prior</code></td>
-<td>Vector specifying the mean and standard deviation of natural
-mortality in normal space. Element 1 should be the mean and element 2
-should be the standard deviation. The prior is applied to the M
-parameter and not the offset</td>
-</tr>
 <tr class="odd">
+<td><code>M_prior</code></td>
+<td>A dataframe specifying how natural mortality priors should be
+applied.</td>
+</tr>
+<tr class="even">
 <td><code>Selex_Type</code></td>
 <td>Value specifying whether age or length-based selectivity is used. 0:
 Age-based, 1: Length-based</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>use_fixed_natmort</code></td>
 <td>Value specifying whether a fixed mortality array is used. 0: Don’t
 use and estimate M, 1: Use</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>Fixed_natmort</code></td>
 <td>Natural mortality array dimensioned by n_regions, n_years, n_ages,
 and n_sexes.</td>
+</tr>
+<tr class="odd">
+<td><code>M_blocks</code></td>
+<td>Array that specifies the dimensions in which natural mortality is
+blocked (n_regions, n_years, n_ages, and n_sexes)</td>
 </tr>
 </tbody>
 </table>
@@ -553,11 +569,6 @@ are spatially explicit, irrespective of whether catch is aggregated
 across regions in certain periods</td>
 </tr>
 <tr class="odd">
-<td><code>Catch_Constant</code></td>
-<td>Vector dimensioned by n_fish_fleets specifying robustifying
-constants to add to catch data</td>
-</tr>
-<tr class="even">
 <td><code>Use_F_pen</code></td>
 <td>Value specifying whether to use a fishing mortality penalty to
 regularize fishing mortality deviations. 0: Don’t use regularity
@@ -803,6 +814,11 @@ split by region, 999: None Available. More options and details can be
 found in <code>Get_Comp_Likelihoods.R</code>
 </td>
 </tr>
+<tr class="even">
+<td><code>t_srv</code></td>
+<td>Matrixum dimensioned by n_years, n_srv_fleets specifying survey
+timing as a proportion of the year.</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -1033,19 +1049,6 @@ prior N(log(mu), sd) for one selectivity parameter.</td>
 <th>Description</th>
 </tr></thead>
 <tbody>
-<tr class="odd">
-<td><code>sablefish_ADMB</code></td>
-<td>Value specific to bridging exercise for sablefish ADMB assessment.
-0: Don’t mimic sablefish ADMB assessment for calculating and normalizing
-length composition data, 1: Mimic sablefish ADMB assessment</td>
-</tr>
-<tr class="even">
-<td><code>likelihoods</code></td>
-<td>Value specifying the type of likelihoods to use. 0: Use ADMB
-likelihoods (with associated weights), 1: Use TMB likelihoods (without
-any associated weights; weighted using standard deviation or input
-sample size values)</td>
-</tr>
 <tr class="odd">
 <td><code>Wt_Catch</code></td>
 <td>Weight applied to fishery catch likelihoods. Either a numeric scalar

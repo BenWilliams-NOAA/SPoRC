@@ -26,3 +26,12 @@ Get Time Series Plots
   get_ts_plot(list(rep1, rep2), list(sd_rep1, sd_rep2), c("Model1", "Model2"), do_ci = TRUE)
 }
 }
+\seealso{
+Other Plotting: 
+\code{\link{get_biological_plot}()},
+\code{\link{get_data_fitted_plot}()},
+\code{\link{get_selex_plot}()},
+\code{\link{plot_all_basic}()},
+\code{\link{theme_sablefish}()}
+}
+\concept{Plotting}

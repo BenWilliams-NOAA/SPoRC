@@ -14,12 +14,12 @@ knitr::opts_chunk$set(
 )
 ```
 
-In addition to being an estimation model, `SPoRC` also has the capacity to conduct closed loop simulations to evaluate the impacts of estimation model assumptions and harvest strategies on different operating models. These closed loop simulations can be conducted on either spatially-explicit or panmicitic populations. In this vignette, we will demonstrate how a spatially-explicit closed-loop simulation by outlining the following steps:
+In addition to being an estimation model, `SPoRC` also has the capacity to conduct closed loop simulations to evaluate the impacts of estimation model assumptions and harvest strategies on different operating models. These closed loop simulations can be conducted on either spatially-explicit or panmicitic populations. In this vignette, we will demonstrate how to setup a single region, model conditioned (Dusky rockfish) closed loop simulation. Closed loop simulations can also be setup without any explicit conditioning on a given model (see Simulation Testing vignette Cross Testing example) The vignette will generally follow these steps:
 
-1. Define an operating model (the truth),
+1. Define a conditioned operating model (the truth),
 2. Define an estimation model to use in the closed-loop simulation,
 3. Setup the simulation loop to run an operating and estimation model,
-4. Derive reference points and management advice using estimates from the estimation model, and
+4. Derive reference points and management advice (catch projections) using estimates from the estimation model, and
 5. Return management advice back into the annual cycle, completing the closed loop simulation.
 
 Let us first load in the `SPoRC` package.
@@ -30,510 +30,457 @@ library(ggplot2)
 ```
 
 # Define Operating Model
-We can then define an operating model we want to condition a population on. Parameter estimates used here are purely hypothetical and generally represents a short-lived species. Operating model simulation can be defined with the following code:
+We can then define an operating model we want to condition a population on. Here, parameter estiamtes will be based on model results from Dusky rockfish. We will first load in the model list for Dusky rockfish and redefine variables for use to condition the closed loop simulation.
 
 ```{r, eval = FALSE}
-# Set up model dimensions
-sim_list <- Setup_Sim_Dim(n_sims = 5, # number of simulations to conduct
-                          n_yrs = 50, # number of years
-                          n_regions = 2, # number of regions
-                          n_ages = 8, # number of ages
-                          n_sexes = 1, # number of sexes
-                          n_fish_fleets = 1, # number of fishery fleets
-                          n_srv_fleets = 1, # number of survey fleets
-                          run_feedback = T, # specifies whether to run this as a closed-loop
-                          feedback_start_yr = 25 # when the closed loop starts
-                          )
+data("dusky_rtmb_model") # load in dusky rtmb model for conditioning
+# define variables for use in setting up simulation
+data <- dusky_rtmb_model$data
+rep <- dusky_rtmb_model$rep
+parameters <- dusky_rtmb_model$parameters
+mapping <- dusky_rtmb_model$mapping
+sd_rep <- dusky_rtmb_model$sdrep
 ```
 
-We can then create a variety of simulation objects to store results in:
+Next, we condition the closed-loop simulation using the `condition_closed_loop_simulations` function. The simulation will run for 30 additional closed-loop years, with the initial model years serving as a burn-in period. A total of 50 simulations will be executed, assuming that data are available every fifth year. Accordingly, assessments will be conducted every five years, with catch advice set five years in advance. Future recruitment will be sampled from the burn-in period, while uncertainty in the composition data (input sample sizes) will follow the fishing mortality pattern.
 ```{r, eval = FALSE}
-# set up containers
-sim_list <- Setup_Sim_Containers(sim_list)
+closed_loop_yrs <- 30 # number of closed loop years to do
+burnin_years <- 1:length(data$years) # number of conditioning years
+n_sims <- 50 # number of simulations to do
+assess_freq <- 5 # assessments every 5 years
+data_yr_freq <- 5 # data year frequency
+
+# setup simulation list to condition closed loop simulations
+set.seed(123) # seed for resampling
+sim_list <- condition_closed_loop_simulations(closed_loop_yrs = closed_loop_yrs,
+                                              n_sims =  n_sims,
+                                              data =  data,
+                                              parameters = parameters,
+                                              mapping = mapping,
+                                              sd_rep = sd_rep,
+                                              rep = rep,
+                                              random = NULL,
+                                              recruitment_opt = 'resample_from_input',
+                                              ISS_FishAgeComps_fill = "F_pattern",
+                                              ISS_FishLenComps_fill = "F_pattern",
+                                              )
+
+assessment_years <- seq(sim_list$feedback_start_yr, sim_list$n_yrs, assess_freq) # assessment years
+years_to_use <- c(burnin_years, seq(sim_list$feedback_start_yr, sim_list$n_yrs, data_yr_freq)) # data years
 ```
 
-Initial values for fishing mortality need to then be supplied. In this case, an array `Fmort` gets populated with values according to the specified fishing mortality patterns, and the remaining values following `feedback_start_yr = 25` are left as zeros, which will be populated in the closed-loop simulation. 
+# Define Management Options
+Following the conditioning process, we define how reference points are used to set catch advice and specify assumptions for catch projections. Reference points are based on the most recent year's demographic rates and a single-region spawning potential ratio (SPR, $F_{40%}$). Projections follow a threshold harvest control rule (HCR) that sets fishing mortality according to stock status. Future recruitment is assumed to be deterministic at the mean, and projections extend over the assessment interval.
 ```{r, eval = FALSE}
-# Setup fishing mortality
-sim_list <- Setup_Sim_FishMort(sim_list = sim_list, # simulation list defined from above
-                               sigmaC = 1e-3, # observation error for catch
-                               init_F_vals = matrix(0, nrow = sim_list$n_regions, ncol = sim_list$n_fish_fleets), # initial F values to impose on initial age structure
-                               Fmort_pattern = matrix(c('one-way', "one-way"), nrow = sim_list$n_regions, ncol = sim_list$n_fish_fleets), # fishing mortality pattern
-                               Fmort_start = matrix(c(0.01, 0.01), nrow = sim_list$n_regions, ncol = sim_list$n_fish_fleets), # start value of fishing mortality
-                               Fmort_fct = matrix(c(50, 50), nrow = sim_list$n_regions, ncol = sim_list$n_fish_fleets), # factor to multiply fmort_start by to reach apicial F
-                               proc_error = FALSE, # whether or not to have fishing mortality process error
-                               proc_error_sd = 0 # process error on fishing mortality
-)
-```
-
-Fishery selectivity dynamics can then be specified with the following function:
-```{r, eval = FALSE}
-sim_list <- Setup_Sim_FishSel(sel_model = matrix(c('logistic', "logistic"), nrow = sim_list$n_regions, ncol = sim_list$n_fish_fleets), # selex model
-                              # a50, k for logistic shared across regions
-                              fixed_fish_sel_pars = array(c(3,3,1,1), dim = c(sim_list$n_regions, sim_list$n_sexes, sim_list$n_fish_fleets, 2)),
-                              sim_list = sim_list # simulation list from previous code chunk
-)
-```
-
-Similarly, survey dynamics can be defined, where a user can define the observation error of the survey, survey catchability, and survey selectivity:
-```{r, eval = FALSE}
-sim_list <- Setup_Sim_Survey(sim_list = sim_list,
-                             sigmaSrvIdx = array(0.05, dim = c(sim_list$n_regions, sim_list$n_srv_fleets)), # survey observation error
-                             base_srv_q = array(1, dim = c(sim_list$n_regions, sim_list$n_srv_fleets)), # base survey catchability value
-                             srv_q_pattern = matrix(c('constant', "constant"), nrow = sim_list$n_regions, ncol = sim_list$n_srv_fleets), # catchability pattern
-                             sel_model = matrix(c('logistic', "logistic"), nrow = sim_list$n_regions, ncol = sim_list$n_srv_fleets), # selectivity model
-                             # a50, k, for logistic shared across regions
-                             fixed_srv_sel_pars = array(c(3,3,1,1), dim = c(sim_list$n_regions, sim_list$n_sexes, sim_list$n_srv_fleets, 2))
-)
-```
-
-Recruitment dynamics can be defined with the code chunk below, where various options are available, including whether recruits move, the recruitment sex-ratio, recruitment parameters and recruitment functional forms, as well as whether recruitment occurs globally or locally (only applicable in a spatial context). Here, region 1 is assumed to be more productive than region 2.
-```{r, eval = FALSE}
-# Setup recruitment stuff
-sim_list <- Setup_Sim_Rec(
-  sim_list = sim_list,
-  do_recruits_move = "dont_move", # == 0, recruits don't move , == 1 recruits move
-  base_rec_sexratio = 1, # single sex
-  rec_sexratio_vary = "constant", # sex ratio type
-  base_r0 = c(100, 50),
-  r0_vary = "constant", # R0 type
-  base_h = c(0.8, 0.8), # base steepness values
-  init_sigmaR = 0.5, # inital deviations variability
-  sigmaR = 0.5, # sigma R
-  recruitment_opt = "bh_rec", # recruitment option
-  rec_dd = "global", # recruitment deviations density dependence
-  init_dd = "global", # initial age deviations density dependence
-  rec_lag = 1 # recruitment ssb lag
+# reference points options
+reference_points_opt <- list(
+  n_avg_yrs = 1,           # number of years over which to average demographic rates
+  SPR_x = 0.4,             # target spawning potential ratio
+  calc_rec_st_yr = 20,     # year used for recruitment in bx% calculations
+  rec_age = 4,             # age at recruitment
+  type = 'single_region',  # reference points calculated for a single region
+  what = "SPR"             # method for reference points calculation (SPR)
 )
 
-```
-
-Biological features of the population can then be defined with the code chunk below, with ability to define natural mortality values, weight-at-age, maturity-at-age, and patterns for these biological dynamics.
-```{r, eval = FALSE}
-sim_list <- Setup_Sim_Biologicals(
-  sim_list = sim_list,
-  base_M_value = array(0.5, dim = c(sim_list$n_regions, sim_list$n_ages, sim_list$n_sims)), # base M value
-  M_pattern = "constant", # M pattern
-  base_WAA_values = array(rep(5 / (1 + exp(-1 * (1:sim_list$n_ages - 5))), each = sim_list$n_regions * sim_list$n_sexes),
-                          dim = c(sim_list$n_regions, sim_list$n_ages, sim_list$n_sexes)), # weight-at-age values
-  base_WAA_fish_values = array(rep(5 / (1 + exp(-1 * (1:sim_list$n_ages - 5))), each = sim_list$n_regions * sim_list$n_sexes),
-                             dim = c(sim_list$n_regions, sim_list$n_ages, sim_list$n_sexes, sim_list$n_fish_fleets)), # weight at age fishery
-  WAA_pattern = "constant", # weight-at-age patterns
-  base_Maturity_AA_values = array(rep(1 / (1 + exp(-2 * (1:sim_list$n_ages - 5))), each = sim_list$n_regions * sim_list$n_sexes),
-                                  dim = c(sim_list$n_regions, sim_list$n_ages, sim_list$n_sexes)), # matrutiy at age values
-  Maturity_AA_pattern = "constant" # maturity at age patterns
+# projection options
+proj_opt <- list(
+  n_proj_yrs = assess_freq + 1,  # number of years to project (assessment interval + 1)
+  HCR_function = function(x, frp, brp, alpha = 0.05) {
+    stock_status <- x / brp  # calculate stock status
+    # Determine fishing mortality based on stock status
+    if(stock_status >= 1) {
+      f <- frp  # full F if stock is above reference
+    } else if(stock_status > alpha && stock_status < 1) {
+      f <- frp * (stock_status - alpha) / (1 - alpha)  # scaled F if stock is between alpha and reference
+    } else {
+      f <- 0  # no fishing if stock is below threshold
+    }
+    return(f)
+  },
+  recruitment_opt = 'mean_rec',  # deterministic mean recruitment
+  fmort_opt = 'HCR',             # fishing mortality follows the HCR
+  bh_rec_opt = NULL               # no Beverton-Holt recruitment
 )
 ```
-
-Because movement dynamics can be incredibly complex, we have designed it such that users supply their own defined movement "matrix". This matrix then needs to be input into the `sim_list` object for use. Here, we are defining movement such that individuals move from the more productive region (region 1) to the less  
-```{r, eval = FALSE}
-ref <- 1
-movement_matrix <- array(0, dim = c(sim_list$n_regions, sim_list$n_regions, sim_list$n_yrs, sim_list$n_ages, sim_list$n_sexes, sim_list$n_sims)) # From, To
-base <- matrix(c(0, 1), sim_list$n_regions, sim_list$n_regions, byrow = TRUE)
-
-# Plug in movement process error
-for(sim in 1:sim_list$n_sims) {
-  for(a in 1:sim_list$n_ages) {
-    for(s in 1:sim_list$n_sexes) {
-      for(y in 1:sim_list$n_yrs) {
-        for(r in 1:sim_list$n_regions) {
-          tmp_move <- base[r,]
-          tmp_move[-ref] <- tmp_move[-ref]
-          movement_matrix[r,,y,a,s,sim] <- exp(tmp_move) / sum(exp(tmp_move))
-        } # end r loop
-      } # end y loop
-    } # end s loop
-  } # end a loop
-} # end sim loop
-
-sim_list$movement_matrix <- movement_matrix
-```
-
-Lastly, observation processes need to be defined for the simulation, which includes observations for tagging data, survey indices, fishery and survey age compositions. This is done with the following functions:
-```{r, eval = FALSE}
-sim_list <- Setup_Sim_Tagging(
-  sim_list = sim_list,
-  n_tags = 5000, # number of total tags to release in a year
-  max_liberty = 30, # maximum number of years to track a cohort
-  tag_years = seq(1, sim_list$n_yrs, 1), # number of years tagging occurs
-  t_tagging = 0.5, # time of tagging
-  base_Tag_Reporting = c(0.2, 0.2), # base tag reporting rates
-  Tag_Reporting_pattern = "constant", # tag reporting rate pattern
-  Tag_Ind_Mort = 0, # initial tag induced mortality
-  Tag_Shed = 0 # chronic tag shedding
-)
-
-# Setup observation processes
-sim_list <- Setup_Sim_Observation_Proc(
-  sim_list = sim_list,
-  Comp_Structure = "spltR_jntS", # how compositions should be structured
-  Comp_Srv_Like = "Multinomial", # survey comp likelihood
-  Comp_Fish_Like = "Multinomial", # fishery comp likelihood
-  ISS_FishAge_Pattern = 'constant', # input sample size pattern (should be constant in closed loop)
-  FishAgeTheta = NA, # optional parameters for dirichlet-multinomial
-  SrvAgeTheta = NA, # optional parameters for dirichlet-multinomial
-  Srv_Like_Pars = NA, # optional parameters for dirichlet-multinomial
-  base_ISS_FishAge = 500, # base sample size for fishery ages
-  base_ISS_SrvAge = 500, # base sample size for survey ages
-  Tag_Like = "Poisson", # tag likelihood
-  Tag_Like_Pars = NA # tag likelihood parameters
-)
-```
-
-All operating model specifications are now saved in `sim_list`, which can then be later used within the closed-loop simulation. Following the operating model specification, we can then define what we want our estimation model to be. For demonstration purposes, we will be directly mimicking the operating model specification (a self-test).
 
 # Define Estimation Model
-To define the estimation model, we will be creating skeleton data, parameter, and mapping lists using the maximum number of years in the simulation (int this case, this is specified as 100), which will get truncated each year up until the total number of simulation years using the `Get_Feedback_Data` function. Note that in all the specifications described below, almost all data objects are specified either as 0s or NAs. These will get replaced later on, using the `Get_Feedback_Data` function. Again, we will first set up the general model dimensions:
+Next, we specify an estimation model (EM) function that uses simulated data to construct a SPoRC model. The helper function `simulation_data_to_SPoRC` extracts and transforms the simulated data into the dimensions required by `SPoRC.` For Dusky rockfish, a single-region model is used with one fishery and one survey fleet. The model assumes single-sex dynamics with 30 ages and directly fits length compositions. Most demographic rates are fixed, consistent with the operational assessment, and both fishery and survey selectivities are modeled as logistic. No stock-recruitment relationship is assumed, and annual recruitment is set to the mean value with annual deviations constrained by `sigmaR.`
 ```{r, eval = FALSE}
-# Initialize model dimensions and data list
-input_list <- Setup_Mod_Dim(years = 1:sim_list$n_yrs, # vector of years
-                            ages = 1:sim_list$n_ages, # vector of ages
-                            lens = 1, # number of lengths
-                            n_regions = sim_list$n_regions, # number of regions
-                            n_sexes = sim_list$n_sexes, # number of sexes
-                            n_fish_fleets = sim_list$n_fish_fleets, # number of fishery fleet
-                            n_srv_fleets = sim_list$n_srv_fleets, # number of survey fleets
-                            verbose = F # whether or not to return messages
-                            )
-```
+#' Setup Estimation Model (EM) Inputs for SPoRC
+#'
+#' Prepares the estimation model input list for a given simulation year
+#' and replicate within the SPoRC closed-loop simulation framework.
+#'
+#' @param sim_env Simulation environment generated by `Setup_sim_env()`.
+#' @param y Integer. Current simulation year index.
+#' @param sim Integer. Simulation replicate index.
+#'
+#' @return A fully configured EM input list suitable for fitting with `fit_model()`.
+setup_em <- function(sim_env, y, sim) {
 
-We can then setup our modeled recruitment dynamics. Here, we will be specifying a Beverton-Holt stock recruitment function, with global density-dependence. Moreover, we will be fixing steepness at the values specified for the operating model.
-```{r, eval = FALSE}
-# helper to define steepness starting values
-inv_steepness <- function(s) qlogis((s - 0.2) / 0.8)
+  # Extract simulation data for current year and replicate
+  sim_data <- simulation_data_to_SPoRC(sim_env, y, sim)
 
-# Setup recruitment stuff (using defaults for other stuff)
-input_list <- Setup_Mod_Rec(input_list = input_list, # input data list from above
-                            # Model options
-                            ln_sigmaR = log(c(0.5, 0.5)), # sigmaR for model
-                            rec_model = "bh_rec", # recruitment model
-                            sigmaR_spec = "fix", # fix sigmaR
-                            InitDevs_spec = "est_shared_r", # estimated global initial deviations
-                            RecDevs_spec = "est_shared_r", # estimate global recruitment deviations
-                            rec_dd = "global", # global recruitment density dependence
-                            rec_lag = 1, # recruitment ssb lag
-                            h_spec = "fix", # fixing steepness
-                            steepness_h = inv_steepness(c(0.8, 0.8)) # steepness values in bounded logit space
-                            )
-```
+  # Model dimensions
+  input_list <- Setup_Mod_Dim(years = 1:y, # vector of years
+                              ages = 1:sim_env$n_ages, # vector of ages
+                              lens = 1:sim_env$n_lens, # number of lengths
+                              n_regions = sim_env$n_regions, # number of regions
+                              n_sexes = sim_env$n_sexes, # number of sexes
+                              n_fish_fleets = sim_env$n_fish_fleets, # number of fishery fleet
+                              n_srv_fleets = sim_env$n_srv_fleets, # number of survey fleets
+                              verbose = F
+                              )
 
-Biological values are similarly specified at the same values defined for the operating model with the following function. Here, weight-at-age and maturity-at-age are fixed at the true values, while natural mortality is freely estimated. 
-```{r, eval = FALSE}
-input_list <- Setup_Mod_Biologicals(input_list = input_list,
-                                    WAA = array(NA, dim = c(input_list$data$n_regions, length(input_list$data$years), length(input_list$data$ages), input_list$data$n_sexes)), # weight at age 
-                                    MatAA = array(NA, dim = c(input_list$data$n_regions, length(input_list$data$years), length(input_list$data$ages), input_list$data$n_sexes)), # maturity at age 
-                                    ln_M = log(0.5) # natural mortality value
-                                    )
+  # Recruitment setup
+  input_list <- Setup_Mod_Rec(
+    input_list = input_list,
+    do_rec_bias_ramp = 1, # Doing bias ramp, but basically setting it so that no lognormal bias correction happens (as in the dusky model)
+    bias_year = rep(length(input_list$data$years), 4),
+    sigmaR_switch = 1, # when to switch from early to late sigmaR (switch in first year)
+    ln_sigmaR = rep(-0.1068576 , 2), # 2 values for early and late sigma
+    # Starting values for early and late sigmaR
+    rec_model = "mean_rec",
+    sigmaR_spec = "fix", # fix early sigmaR and late sigmaR
+    init_age_strc = 1, # geometric series to derive initial age structure
+    ln_global_R0 = log(2.7), # starting value for mean_rec
+    t_spawn = 0 # spawn timing
+  )
 
-```
+  # Biological setup
+  input_list <- Setup_Mod_Biologicals(
+    input_list = input_list,
+    # Data inputs
+    WAA = sim_data$WAA,
+    MatAA = sim_data$MatAA,
+    # Model options
+    fit_lengths = 1,
+    SizeAgeTrans = sim_data$SizeAgeTrans,
+    AgeingError = sim_data$AgeingError,
+    M_spec = "fix",     # fixing natural mortality
+    Fixed_natmort = array(0.07, dim = c(input_list$data$n_regions, length(input_list$data$years),
+                                        length(input_list$data$ages), input_list$data$n_sexes)),
+    addtocomp = 0.00001
+  )
 
-We will also estimate movement, given that tagging data are simulated. Movement here is specified to be constant across ages, years, and sexes. 
-```{r, eval = FALSE}
-input_list <- Setup_Mod_Movement(input_list = input_list,
-                                 # Model options
-                                 Movement_ageblk_spec = 'constant', # constant age movement
-                                 Movement_yearblk_spec = 'constant', # constant year movement
-                                 Movement_sexblk_spec = "constant", # constant sex movement
-                                 do_recruits_move = 0, # recruits dont move
-                                 cont_vary_movement = 'none' # no continously varying movement
-                                 )
-```
+  # Movement and tagging
+  input_list <- Setup_Mod_Tagging(input_list = input_list, UseTagging = 0)
+  input_list <- Setup_Mod_Movement(
+    input_list = input_list,
+    use_fixed_movement = 1,
+    Fixed_Movement = NA,
+    do_recruits_move = 0
+  )
 
-Fishery and survey data, along with associated observation processes then need to be specified. This includes catch and composition data. **Note that for both fishery and survey composition data, an input sample size is provided and is not left as NA or 0s**. 
-```{r, eval = FALSE}
-input_list <- Setup_Mod_Catch_and_F(input_list = input_list,
-                                    ObsCatch = array(NA, dim = c(input_list$data$n_regions, length(input_list$data$years), input_list$data$n_fish_fleets)), # observed catches
-                                    Catch_Type = array(1, dim = c(length(input_list$data$years), input_list$data$n_fish_fleets)), # catch type
-                                    UseCatch = array(1, dim = c(input_list$data$n_regions, length(input_list$data$years), input_list$data$n_fish_fleets)), # whether catch is used
+  # Fishery catch & fishing mortality
+  input_list <- Setup_Mod_Catch_and_F(
+    input_list = input_list,
+    # Data inputs
+    ObsCatch = sim_data$ObsCatch,
+    Catch_Type = array(1, dim = c(length(input_list$data$years), input_list$data$n_fish_fleets)),
+    UseCatch = sim_data$UseCatch,
+    # Model options
+    Use_F_pen = 1,
+    sigmaC_spec = "fix",
+    # Fixing sigma C and F
+    ln_sigmaC = sim_data$ln_sigmaC,
+    ln_sigmaF = array(log(sqrt(1/2)), dim = c(input_list$data$n_regions, input_list$data$n_fish_fleets))
+  )
 
-                                    # Model options
-                                    sigmaC_spec = 'fix', # sigma catch specification
-                                    sigmaF_spec = "fix" # sigma for F specification
-)
+  # Survey selectivity and catchability
+  input_list <- Setup_Mod_FishIdx_and_Comps(
+    input_list = input_list,
+    # Data inputs
+    ObsFishIdx = sim_data$ObsFishIdx,
+    ObsFishIdx_SE = sim_data$ObsFishIdx_SE,
+    UseFishIdx = sim_data$UseFishIdx,
+    ObsFishAgeComps = sim_data$ObsFishAgeComps,
+    ObsFishLenComps = sim_data$ObsFishLenComps,
+    UseFishAgeComps = sim_data$UseFishAgeComps,
+    UseFishLenComps = sim_data$UseFishLenComps,
+    ISS_FishAgeComps = sim_data$ISS_FishAgeComps,
+    ISS_FishLenComps = sim_data$ISS_FishLenComps,
+    # Model options
+    fish_idx_type = c("none"),
+    FishAgeComps_LikeType = c("Multinomial"),
+    FishLenComps_LikeType = c("Multinomial"),
+    FishAgeComps_Type = c("agg_Year_1-terminal_Fleet_1"),
+    FishLenComps_Type = c("agg_Year_1-terminal_Fleet_1")
+  )
 
-# Setup fishery indices and compositions
-input_list <- Setup_Mod_FishIdx_and_Comps(input_list = input_list,
-                                          ObsFishIdx = array(NA, c(input_list$data$n_regions, length(input_list$data$years), input_list$data$n_fish_fleets)), # fishery index (not used)
-                                          ObsFishIdx_SE = array(NA, c(input_list$data$n_regions, length(input_list$data$years), input_list$data$n_fish_fleets)), # fishery index SE (not used)
-                                          UseFishIdx = array(0, c(input_list$data$n_regions, length(input_list$data$years), input_list$data$n_fish_fleets)), # whether fishery index is used
-                                          ObsFishAgeComps = array(NA, dim = c(input_list$data$n_regions, length(input_list$data$years), length(input_list$data$ages), input_list$data$n_sexes, input_list$data$n_fish_fleets)), # observed fishery age comps
-                                          UseFishAgeComps = array(1, dim = c(input_list$data$n_regions, length(input_list$data$years), input_list$data$n_fish_fleets)), # whether fishery ages are used
-                                          ObsFishLenComps = array(NA, dim = c(input_list$data$n_regions, length(input_list$data$years), length(input_list$data$lens), input_list$data$n_sexes, input_list$data$n_fish_fleets)), # observed fishery lengths
-                                          UseFishLenComps = array(0, dim = c(input_list$data$n_regions, length(input_list$data$years), input_list$data$n_fish_fleets)), # whether fishery lengths are used
-                                          ISS_FishAgeComps = array(500, dim = c(input_list$data$n_regions, length(input_list$data$years), input_list$data$n_sexes, input_list$data$n_fish_fleets)),
-# fishery input sample size. NOTE: This is specified at 500, as in the OM, and is not left blank!
+  # Survey indices and compositions
+  input_list <- Setup_Mod_SrvIdx_and_Comps(
+    input_list = input_list,
+    # Data inputs
+    ObsSrvIdx = sim_data$ObsSrvIdx,
+    ObsSrvIdx_SE = sim_data$ObsSrvIdx_SE,
+    UseSrvIdx = sim_data$UseSrvIdx,
+    ObsSrvAgeComps = sim_data$ObsSrvAgeComps,
+    ObsSrvLenComps = sim_data$ObsSrvLenComps,
+    UseSrvAgeComps = sim_data$UseSrvAgeComps,
+    UseSrvLenComps = sim_data$UseSrvLenComps,
+    ISS_SrvAgeComps = sim_data$ISS_SrvAgeComps,
+    ISS_SrvLenComps = sim_data$ISS_SrvLenComps,
+    # Model options
+    srv_idx_type = c("biom"),
+    SrvAgeComps_LikeType = c("Multinomial"),
+    SrvLenComps_LikeType = c("Multinomial"),
+    SrvAgeComps_Type = c("agg_Year_1-terminal_Fleet_1"),
+    SrvLenComps_Type = c("agg_Year_1-terminal_Fleet_1")
+  )
 
-                                          # Model options
-                                          fish_idx_type = "none", # fishery index type
-                                          FishAgeComps_LikeType = "Multinomial", # composition likelihood
-                                          FishLenComps_LikeType = "none", # composition likelihood
-                                          FishAgeComps_Type =  "spltRjntS_Year_1-terminal_Fleet_1", # age composition type
-                                          FishLenComps_Type =  "none_Year_1-terminal_Fleet_1" # length composition type
-                                          )
 
-# Setup survey indices and compositions
-input_list <- Setup_Mod_SrvIdx_and_Comps(input_list = input_list,
-                                         ObsSrvIdx = array(NA, dim = c(input_list$data$n_regions, length(input_list$data$years), input_list$data$n_srv_fleets)), # observed survey index
-                                         ObsSrvIdx_SE = array(0.05, dim = c(input_list$data$n_regions, length(input_list$data$years), input_list$data$n_srv_fleets)), # observed susrvey index SE
-                                         UseSrvIdx =  array(1, dim = c(input_list$data$n_regions, length(input_list$data$years), input_list$data$n_fish_fleets)), # whether survey indices are used
-                                         ObsSrvAgeComps = array(NA,  dim = c(input_list$data$n_regions, length(input_list$data$years), length(input_list$data$ages), input_list$data$n_sexes, input_list$data$n_srv_fleets)), # observed survey ages
-                                         UseSrvAgeComps = array(1, dim = c(input_list$data$n_regions, length(input_list$data$years), input_list$data$n_fish_fleets)), # whether survey ages are used
-                                         ObsSrvLenComps = array(NA, dim = c(input_list$data$n_regions, length(input_list$data$years), length(input_list$data$lens), input_list$data$n_sexes, input_list$data$n_srv_fleets)), # survey length comps
-                                         UseSrvLenComps = array(0, dim = c(input_list$data$n_regions, length(input_list$data$years), input_list$data$n_srv_fleets)), # whether survey lengths are used
-                                         ISS_SrvAgeComps = array(500, dim = c(input_list$data$n_regions, length(input_list$data$years), input_list$data$n_sexes, input_list$data$n_srv_fleets)),
-# survey input sample size. NOTE: This is specified at 500, as in the OM, and is not left blank!
+  # Fishery selectivity and catchability
+  input_list <- Setup_Mod_Fishsel_and_Q(
+    input_list = input_list,
+    # Model options
+    fish_sel_model = c("logist2_Fleet_1"), # fishery selex model
+    fish_fixed_sel_pars_spec = c("est_all"), # whether to estiamte all fixed effects for fishery selectivity
+    fish_q_spec = c("fix") # whether to estiamte all fixed effects for fishery catchability
+  )
 
-                                         # Model options
-                                         srv_idx_type = "abd", # survey index type
-                                         SrvAgeComps_LikeType = "Multinomial", # composition likelihood
-                                         SrvLenComps_LikeType = "none", # composition likelihood
-                                         SrvAgeComps_Type = "spltRjntS_Year_1-terminal_Fleet_1", # age composition type
-                                         SrvLenComps_Type = "none_Year_1-terminal_Fleet_1" # length composition type
-                                         )
-```
+  # Survey selectivity and catchability
+  srv_q_prior <- data.frame(
+    region = 1,
+    block = 1,
+    fleet = 1,
+    mu = 1,
+    sd = 0.447213595
+  )
 
-We are almost there! We then need to specify fishery and survey selectivity and catchability processes. In this case, a single fishery and survey fleet operates, where selectivity is specified as logistic for both the fishery and survey. Selectivity here is time-and spatially-invariant. Catchability is only estimated for the survey (since there isn't a fishery index simulated) and is also time- and spatially-invariant.
-```{r, eval = FALSE}
-# Setup fishery selectivity and catchability
-input_list <- Setup_Mod_Fishsel_and_Q(input_list = input_list,
-                                      # Model options
-                                      cont_tv_fish_sel = "none_Fleet_1", # whether selex is continously varying
-                                      fish_sel_blocks = "none_Fleet_1", # fishery selex blocks
-                                      fish_sel_model = "logist1_Fleet_1", # fishery selex model
-                                      fish_q_blocks = "none_Fleet_1", # fishery catchability blocks
-                                      fish_fixed_sel_pars_spec = "est_shared_r", # whether parameters are spatially varying
-                                      fish_q_spec = "fix" # fixing fishery q, because not simulated
-)
+  input_list <- Setup_Mod_Srvsel_and_Q(
+    input_list = input_list,
+    # Model options
+    srv_sel_model = c("logist2_Fleet_1"), # survey selectivity form
+    srv_fixed_sel_pars_spec = c("est_all"), # whether to estimate all fixed effects for survey selectivity
+    srv_q_spec = c("est_all"),  # whether to estiamte all fixed effects for survey catchability
+    Use_srv_q_prior = 1, # Use catchability prior
+    srv_q_prior = srv_q_prior, # Use catchability prior
+    # survey timing
+    t_srv = array(0, dim = c(input_list$data$n_regions, input_list$data$n_srv_fleets))
+  )
 
-# Setup survey selectivity and catchability
-input_list <- Setup_Mod_Srvsel_and_Q(input_list = input_list,
-                                     cont_tv_srv_sel = "none_Fleet_1",  # whether selex is continously varying
-                                     srv_sel_blocks = "none_Fleet_1", # survey selex blocks
-                                     srv_sel_model = "logist1_Fleet_1", # survey selex model
-                                     srv_q_blocks = "none_Fleet_1", # survey catchability blocks
-                                     srv_fixed_sel_pars_spec = "est_shared_r", # whether parameters are spatially varying
-                                     srv_q_spec = "est_shared_r" # estimate survey q, and spatially-invariant
-                                     )
-```
+  # Data weighting
+  input_list <- Setup_Mod_Weighting(
+    input_list = input_list,
+    Wt_Catch = 1,
+    Wt_FishIdx = 1,
+    Wt_SrvIdx = 1,
+    Wt_Rec = 1,
+    Wt_F = 1,
+    Wt_Tagging = 0,
+    Wt_FishAgeComps = array(1, dim = c(input_list$data$n_regions, length(input_list$data$years),
+                                       input_list$data$n_sexes, input_list$data$n_fish_fleets)),
+    Wt_FishLenComps = array(1, dim = c(input_list$data$n_regions, length(input_list$data$years),
+                                       input_list$data$n_sexes, input_list$data$n_fish_fleets)),
+    Wt_SrvAgeComps = array(1, dim = c(input_list$data$n_regions,length(input_list$data$years),
+                                      input_list$data$n_sexes, input_list$data$n_srv_fleets)),
+    Wt_SrvLenComps = array(0, dim = c(input_list$data$n_regions, length(input_list$data$years),
+                                      input_list$data$n_sexes, input_list$data$n_srv_fleets))
+  )
 
-Observation processes for tagging data then need to be defined. Here, we are assuming a Poisson tag likelihood (as in the operating model), with constant tag reporting rates freely estimated. Note that the tag release indicator must be defined (indicates the tag cohort (rows), by tag region (first column), and tag release year (second column)).
-```{r, eval = FALSE}
-# Setup tagging stuff
-input_list <- Setup_Mod_Tagging(input_list = input_list,
-                                tag_release_indicator = as.matrix(sim_list$tag_rel_indicator), # tag release indicator (this MUST BE DEFINED!)
-                                Tagged_Fish = array(NA, dim = c(dim(sim_list$Tag_Fish[1:nrow(as.matrix(sim_list$tag_rel_indicator)),,,1]), input_list$data$n_sexes)), # tagged fish
-                                Obs_Tag_Recap = array(NA, dim = c(dim(sim_list$Obs_Tag_Recap[,1:nrow(as.matrix(sim_list$tag_rel_indicator)),,,,1]), input_list$data$n_sexes)), # tag recaptures
-
-                                # Model options
-                                UseTagging = 1, # whether tagging are used
-                                t_tagging = 0.5, # time tagging occurs
-                                max_tag_liberty = 30, # max tag liberty to track ohorts
-                                Tag_LikeType = 'Poisson', # possion likelihood
-                                tag_selex = "SexSp_DomFleet", # sex-specific and weighted sum of fleet selex
-                                tag_natmort = "AgeSp_SexSp", # age and sex-specific natural mortailty
-                                move_age_tag_pool = "all", # pooling all tag age data to fit
-                                move_sex_tag_pool = "all", # pooling all sex data tp fit
-                                Init_Tag_Mort_spec = "fix", # don't estimate inital tag mortliaty
-                                Tag_Shed_spec = "fix", # don't estimate tag shedding
-                                TagRep_spec = "est_shared_r", # spatially-invariant tag reporting
-                                Tag_Reporting_blocks = c("none_Region_1", "none_Region_2") # no tag reporting time blocks
-)
-```
-
-Lastly, we can then set up the model weights for our estimation model with the following function. Here, no $\lambda$ weights are used, and thus are all specified at a value of 1. 
-```{r, eval = FALSE}
-# setup model weighting
-input_list <- Setup_Mod_Weighting(input_list = input_list,
-                                  sablefish_ADMB = 0, # not using sablefish weirdness
-                                  likelihoods = 1, # tmb likelihoods
-                                  Wt_Catch = 1, # catch weight
-                                  Wt_FishIdx = 1, # fishery idx weight
-                                  Wt_SrvIdx = 1, # survey idx weight
-                                  Wt_Rec = 1, # recruitment penatly weight
-                                  Wt_F = 1, # fishing mortality weight
-                                  Wt_Tagging = 1, # tagging weight
-                                  
-                                  # composition data weights
-                                  Wt_FishAgeComps = array(1, dim = c(input_list$data$n_regions, length(input_list$data$years), input_list$data$n_sexes, input_list$data$n_fish_fleets)),
-                                  Wt_FishLenComps = array(1, dim = c(input_list$data$n_regions, length(input_list$data$years), input_list$data$n_sexes, input_list$data$n_fish_fleets)),
-                                  Wt_SrvAgeComps = array(1, dim = c(input_list$data$n_regions, length(input_list$data$years), input_list$data$n_sexes, input_list$data$n_srv_fleets)),
-                                  Wt_SrvLenComps = array(1, dim = c(input_list$data$n_regions, length(input_list$data$years), input_list$data$n_sexes, input_list$data$n_srv_fleets))
-)
-
-```
-
-Now, we can create skeleton data, parameters, and mapping lists, which define our estimationg model. The dimensions of these lists will get adjusted, which will get adjusted later on.
-```{r, eval = FALSE}
-skeleton_data <- input_list$data
-skeleton_parameters <- input_list$par
-skeleton_mapping <- input_list$map
-```
-
-After defining the operating and estimation model, we can now setup our closed-loop simulation. The closed-loop simulation requires a harvest control rule to be defined by the user. In this case, we are using a threshold control rule, but any type of rule can be defined. Note that the harvest control rule defined must be a function that has the arguments `x` which takes spawning biomass as an input, `frp`, which takes a fishery reference point, and `brp`, which takes a biological reference point. Any additional arguments should be specified with defaults if they are to be used. 
-```{r, eval = FALSE}
-HCR_function <- function(x, frp, brp, alpha = 0.05) {
-  stock_status <- x / brp # define stock status
-  # If stock status is > 1
-  if(stock_status >= 1) f <- frp
-  # If stock status is between brp and alpha
-  if(stock_status > alpha && stock_status < 1) f <- frp * (stock_status - alpha) / (1 - alpha)
-  # If stock status is less than alpha
-  if(stock_status < alpha) f <- 0
-  return(f)
+  return(input_list)
 }
 ```
 
-We can then setup a simulation environment (external from the global) that can be used to store all simulation outputs with the `Setup_sim_env` function. 
-```{r, eval = FALSE}
-sim_env <- Setup_sim_env(sim_list)
-```
 
-# Run Closed Loop
-Our closed loop can then be defined with the following code chunk. The first loop characterizes a given simulation, while the second loop characterizes the a given year and simulation. The `run_annual_cycle` function is then utilized to run population dynamics for a given year. Following that, if we are in a year where we want to begin management feedback, we first obtain the necessary data from years `1:y` for a given simulation using the function `Get_Feedback_Data`, which truncates the skeleton data, parameters, and mapping list to the correct years. We then feed these lists to the estimation model using the `fit_model` function. Next, we will extract the necessary inputs into the reference point functions and projection functions. Reference points can then derived using `Get_Reference_Points` and the associated catch from said reference point is then derived using a 1 year population projection using the `Do_Population_Projection` function. Lastly, the catch associated with the reference point is then input back into the simulated population. This is then by converting the estimated catch to fishing mortality rates using the `bisection_F` function, which is based on the true underlying population dynamics simulated from the operating model. 
+# Define and Run Closed-Loop Simulation
+
+Once the Operating Model (OM), Estimation Model (EM), and management options are specified, the closed-loop simulation can be implemented using iterative loops.  
+> **Note:** This example is not parallelized, but parallelization over the simulation loop (`n_sims`) can improve computational efficiency. The simulation is also **not wrapped in a single function**, which allows flexibility for different management strategies (e.g., empirical harvest control rules, combinations of empirical and model-based rules, or using assessment-based catch advice in some years and empirical indicators in others).
+
+The simulation generally includes the following components:
+1. **Simulation Loop**  
+   Iterates over each simulation (`sim in 1:n_sims`).  
+2. **Year Loop**  
+   Iterates over each modelled year (`y in 1:n_yrs`).  
+3. **Annual Dynamics**  
+   Within these loops, `run_annual_cycle(y, sim, sim_env)` updates population dynamics, natural mortality, growth, maturity, and movement.  
+4. **Management Feedback (optional)**  
+   Begins from a specified feedback year (`feedback_start_yr`). During these years, assessments can be conducted.  
+5. **Assessment Model (optional)**  
+   If an assessment is run:  
+   - Use `setup_em(sim_env, y, sim)` to prepare EM inputs.  
+   - Optionally exclude certain years using `set_data_indicator_unused()` (all years are still simulated in `run_annual_cycle`).  
+6. **Reference Points (optional)**  
+   Compute reference points via `get_closed_loop_reference_points()`, using either EM estimates or true OM values.  
+7. **Catch Projections (optional)**  
+   Project the population forward to determine catch advice using either true OM values or EM estimates.  
+8. **Convert Catch Advice to Fishing Mortality**  
+   TACs are converted to fishing mortality rates for the simulation to use in the next year, completing the feedback loop.
 ```{r, eval = FALSE}
-set.seed(123) # to reproduce
+set.seed(123) # set seed
+sim_env <- Setup_sim_env(sim_list) # Setup simulation environment using conditioned values
+
 # Start Simulation
 for (sim in 1:sim_env$n_sims) {
   for (y in 1:sim_env$n_yrs) {
 
-    ### Run Annual Cycle --------------------------------------------------------
+    # Run Annual Dynamics -----------------------------------------------------
     run_annual_cycle(y, sim, sim_env)
 
-    # Start Feedback Loop
+    # Start Management Feedback -----------------------------------------------
     if(y >= sim_env$feedback_start_yr) {
 
-      # Get feedback data (aligning year index)
-      feedback <- Get_Feedback_Data(sim_env = sim_env, sim_list = sim_list,
-                                    y = y, sim = sim,
-                                    skeleton_data = skeleton_data,
-                                    skeleton_parameters = skeleton_parameters,
-                                    skeleton_mapping = skeleton_mapping
-                                    )
+      if(y %in% assessment_years) {
 
-      # Extract out data, parameters, and mapping
-      data <- feedback$retro_data
-      parameters <- feedback$retro_parameters
-      mapping <- feedback$retro_mapping
+        dusky_input_list <- setup_em(sim_env, y, sim) # setup model EM inputs for each year
 
-      ### Run Assessment ----------------------------------------------------------
-      obj <- fit_model(data,
-                       parameters,
-                       mapping,
-                       random = NULL,
-                       newton_loops = 3,
-                       silent = T
-                       )
+        # Extract out data, parameters, and mapping
+        asmt_data <- dusky_input_list$data
+        parameters <- dusky_input_list$par
+        mapping <- dusky_input_list$map
 
-      # Get necessary data inputs for later functions
-      n_proj_yrs <- 2
-      tmp_terminal_NAA <- array(obj$rep$NAA[,y,,], dim = c(sim_env$n_regions, sim_env$n_ages, sim_env$n_sexes)) # terminal numbers at age
-      tmp_WAA <- array(rep(data$WAA[,y,,], each = n_proj_yrs), dim = c(sim_env$n_regions, n_proj_yrs, sim_env$n_ages, sim_env$n_sexes)) # weight at age spawning
-      tmp_WAA_fish <- array(rep(data$WAA_fish[,y,,,], each = n_proj_yrs), dim = c(sim_env$n_regions, n_proj_yrs, sim_env$n_ages, sim_env$n_sexes, sim_env$n_fish_fleets)) # weight at age fishery
-      tmp_MatAA <- array(rep(data$MatAA[,y,,], each = n_proj_yrs), dim = c(sim_env$n_regions, n_proj_yrs, sim_env$n_ages, sim_env$n_sexes)) # maturity at age
-      tmp_fish_sel <- array(rep(obj$rep$fish_sel[,y,,,], each = n_proj_yrs), dim = c(sim_env$n_regions, n_proj_yrs, sim_env$n_ages, sim_env$n_sexes, sim_env$n_fish_fleets)) # selectivity
-      tmp_Movement <- array(rep(obj$rep$Movement[,,y,,,drop=FALSE], n_proj_yrs), dim = c(sim_env$n_regions, sim_env$n_regions, n_proj_yrs, sim_env$n_ages, sim_env$n_sexes))
-      tmp_terminal_F <- array(obj$rep$Fmort[,y,], dim = c(sim_env$n_regions, sim_env$n_fish_fleets)) # terminal fishing mortality
-      tmp_natmort <- array(obj$rep$natmort[,y,,], dim = c(sim_env$n_regions, n_proj_yrs, sim_env$n_ages, sim_env$n_sexes)) # natural mortality
-      tmp_recruitment <- array(obj$rep$Rec[,1:(y - 1)], dim = c(sim_env$n_regions, length(1:(y - 1)))) # recruitment to use for projections
+        # set data to 0 (assuming assessments are not conducted if no new data are availiable)
+        asmt_data <- set_data_indicator_unused(data = asmt_data,
+                                               unused_years = setdiff(1:sim_env$n_yrs, years_to_use),
+                                               what = c("FishIdx", "FishAgeComps", "SrvIdx", "SrvAgeComps", "FishLenComps", "SrvLenComps"))
 
-      ### Run reference point module ----------------------------------------------
-      reference_points <- Get_Reference_Points(data = data,
-                                               rep = obj$rep,
-                                               SPR_x = 0.4, 
-                                               t_spwn = 0,
-                                               sex_ratio_f = 0.5,
-                                               calc_rec_st_yr = 1,
-                                               rec_age = 1,
-                                               type = 'multi_region',
-                                               what = 'independent_SPR'
-                                               )
+        ### Run Assessment ----------------------------------------------------------
+        obj <- fit_model(asmt_data,
+                         parameters,
+                         mapping,
+                         random = NULL,
+                         newton_loops = 1,
+                         silent = T
+        )
+      }
 
-      # extract fishery and biological reference points
-      tmp_f_ref_pt <- array(reference_points$f_ref_pt, dim = c(sim_env$n_regions, n_proj_yrs)) # fishery reference points
-      tmp_b_ref_pt <- array(reference_points$b_ref_pt, dim = c(sim_env$n_regions, n_proj_yrs)) # biological reference points
+     if(y %in% assessment_years) {
 
-     ### Run Projection Module ---------------------------------------------------
+       ### Get Reference Points ----------------------------------------------------
+       reference_points <- get_closed_loop_reference_points(
+         use_true_values = FALSE,
+         sim_env = sim_env,
+         asmt_data = asmt_data,
+         asmt_rep = obj$rep,
+         y = y,
+         sim = sim,
+         reference_points_opt = reference_points_opt,
+         n_proj_yrs = proj_opt$n_proj_yrs
+       )
 
-     # Do projection to get TAC
-     proj <- Do_Population_Projection(n_proj_yrs = 2,
-                                      n_regions = sim_env$n_regions,
-                                      n_ages = sim_env$n_ages,
-                                      n_sexes = sim_env$n_sexes,
-                                      sexratio = 1,
-                                      n_fish_fleets = sim_env$n_fish_fleets,
-                                      do_recruits_move = 0,
-                                      recruitment = tmp_recruitment,
-                                      terminal_NAA = tmp_terminal_NAA,
-                                      terminal_F = tmp_terminal_F,
-                                      natmort = tmp_natmort,
-                                      WAA = tmp_WAA,
-                                      WAA_fish = tmp_WAA_fish,
-                                      MatAA = tmp_MatAA,
-                                      fish_sel = tmp_fish_sel,
-                                      Movement = tmp_Movement,
-                                      f_ref_pt = tmp_f_ref_pt,
-                                      b_ref_pt = tmp_b_ref_pt,
-                                      HCR_function = HCR_function,
-                                      recruitment_opt = "mean_rec",
-                                      fmort_opt = "HCR",
-                                      t_spawn = 0
-                                      )
+       ### Run Projections to Determine Catch Advice ---------------------------------------------------
+       # Get inputs for projection
+       tmp_terminal_NAA <- array(obj$rep$NAA[,y,,], dim = c(asmt_data$n_regions, length(asmt_data$ages), asmt_data$n_sexes)) # terminal numbers at age
+       tmp_WAA <- array(rep(asmt_data$WAA[,y,,], each = proj_opt$n_proj_yrs), dim = c(asmt_data$n_regions, proj_opt$n_proj_yrs, length(asmt_data$ages), asmt_data$n_sexes)) # weight at age
+       tmp_WAA_fish <- array(rep(asmt_data$WAA_fish[,y,,,], each = proj_opt$n_proj_yrs), dim = c(asmt_data$n_regions, proj_opt$n_proj_yrs, length(asmt_data$ages), asmt_data$n_sexes, asmt_data$n_fish_fleets)) # weight at age fishery
+       tmp_MatAA <- array(rep(asmt_data$MatAA[,y,,], each = proj_opt$n_proj_yrs), dim = c(asmt_data$n_regions, proj_opt$n_proj_yrs, length(asmt_data$ages), asmt_data$n_sexes)) # maturity at age
+       tmp_fish_sel <- array(rep(obj$rep$fish_sel[,y,,,], each = proj_opt$n_proj_yrs), dim = c(asmt_data$n_regions, proj_opt$n_proj_yrs, length(asmt_data$ages), asmt_data$n_sexes, asmt_data$n_fish_fleets)) # selectivity
+       tmp_terminal_F <- array(obj$rep$Fmort[,y,], dim = c(asmt_data$n_regions, asmt_data$n_fish_fleets)) # terminal fishing mortality
+       tmp_natmort <- array(rep(obj$rep$natmort[,y,,], each = proj_opt$n_proj_yrs), dim = c(asmt_data$n_regions, proj_opt$n_proj_yrs, length(asmt_data$ages), asmt_data$n_sexes)) # natural mortality
+       tmp_recruitment <- array(obj$rep$Rec[,1:y], dim = c(asmt_data$n_regions, length(1:y))) # recruitment to use for projections
+       tmp_sexratio <- array(replicate(n = proj_opt$n_proj_yrs, obj$rep$sexratio[,y,]), dim = c(asmt_data$n_regions, proj_opt$n_proj_yrs, asmt_data$n_sexes)) # recruitment sex ratio
+       tmp_Movement <- array(dim = c(asmt_data$n_regions, asmt_data$n_regions, proj_opt$n_proj_yrs, length(asmt_data$ages), asmt_data$n_sexes))
+       for(proj_yr in 1:proj_opt$n_proj_yrs) tmp_Movement[,,proj_yr,,] <- obj$rep$Movement[,,y,,] # Movement projections
 
-      # Get TAC
-      tmp_TAC <- proj$proj_Catch[,2,,drop = FALSE] # get TAC from projected year
+       # Do projection to get TAC
+       proj <- Do_Population_Projection(
+         n_proj_yrs = proj_opt$n_proj_yrs,
+         n_regions = sim_env$n_regions,
+         n_ages = sim_env$n_ages,
+         n_sexes = sim_env$n_sexes,
+         sexratio = tmp_sexratio,
+         n_fish_fleets = sim_env$n_fish_fleets,
+         do_recruits_move = sim_env$do_recruits_move,
+         recruitment = tmp_recruitment,
+         terminal_NAA = tmp_terminal_NAA,
+         terminal_F = tmp_terminal_F,
+         natmort = tmp_natmort,
+         WAA = tmp_WAA,
+         WAA_fish = tmp_WAA_fish,
+         MatAA = tmp_MatAA,
+         fish_sel = tmp_fish_sel,
+         Movement = tmp_Movement,
+         f_ref_pt = reference_points$f_ref_pt,
+         b_ref_pt = reference_points$b_ref_pt,
+         HCR_function = proj_opt$HCR_function,
+         recruitment_opt = proj_opt$recruitment_opt,
+         fmort_opt = proj_opt$fmort_opt,
+         t_spawn = sim_env$t_spawn,
+         bh_rec_opt = proj_opt$bh_rec_opt
+       )
+
+       # Get TAC
+       tmp_TAC <- proj$proj_Catch[,-1,,drop = FALSE] # get catch advice from projected year
+     }
 
       ### TAC to Fishing Mortality ------------------------------------------------
-      # Only run till last year
       if(y < sim_env$n_yrs) {
-        for(r in 1:sim_env$n_regions) {
-          for(f in 1:sim_env$n_fish_fleets) {
-
-            # Go from TAC to Fishing mortality (using true values from simulation)
-            tmp_F <- bisection_F(f_guess = 0.05,
-                                 catch = tmp_TAC[r,1,f],
-                                 NAA = sim_env$NAA[r,y+1,,,sim],
-                                 WAA = sim_env$WAA[r,y+1,,,sim], 
-                                 natmort = sim_env$M[r,y+1,,,sim],
-                                 fish_sel = sim_env$fish_sel[r,y+1,,,f,sim]
-                                 )
-
-            sim_env$Fmort[r,y+1,f,sim] <- tmp_F
-
-          } # end r loop
-        } # end f loop
+        last_assess_year <- max(assessment_years[assessment_years <= y]) # get last assessment year
+        tac_year_index <- y - last_assess_year + 1 # get years to index TACs
+        rf_grid <- expand.grid(r = seq_len(sim_env$n_regions), f = seq_len(sim_env$n_fish_fleets)) # set up region, fleet grid to bisection across
+        tmp_f <- mapply(function(r, f) { # do bisection to go from region and fleet specific catch to region and fleet specific F rates
+          bisection_F(
+            f_guess = 0.05, # guess for fishing mortality rate
+            catch = tmp_TAC[r, tac_year_index, f], # catch values to use
+            NAA = sim_env$NAA[r, y+1, , , sim], # numbers at age in simulation (truth)
+            WAA = sim_env$WAA[r, y+1, , , sim], # weight-at-age in simulation (truth)
+            natmort  = sim_env$natmort[r, y+1, , , sim], # natural mortality in simulation (truth)
+            fish_sel = sim_env$fish_sel[r, y+1, , , f, sim] # fishery selectivity in simulation (truth)
+          )
+        }, r = rf_grid$r, f = rf_grid$f)
+        sim_env$Fmort[,y+1,,sim] <- array(tmp_f, dim = c(sim_env$n_regions, sim_env$n_fish_fleets)) # assign bisection values back into simulation
       } # end if
 
-    } # end if for feedback loop
-
+    } # feedback year
   } # end y loop
 } # end sim loop
 ```
 
-We can then inspect some outputs from the MSE. Plotted below are trajectories of regional fishing mortality and spawning stock biomass for a given simulation. The dotted vertical line indicates when the feedback loop first started.
+
+We can then inspect some outputs from the closed loop simulation. Note that all results are now saved in the `sim_env` environment object. Plotted below are trajectories of catch, fishing mortality, and spawning stock biomass for a given simulation. 
 ```{r, eval = FALSE}
 # Trajectories of spawning biomass
 reshape2::melt(sim_env$SSB) %>%
-  dplyr::rename(Region = Var1, Year = Var2, Sim = Var3) %>%
-  ggplot(aes(x = Year, y = value, group = Sim)) +
+  filter(value != 0) %>%
+  rename(Region = Var1, Year = Var2, Sim = Var3) %>%
+  group_by(Region, Year) %>%
+  summarize(median = median(value),
+            lwr = quantile(value, 0.025),
+            upr = quantile(value, 0.975)) %>%
+  ggplot(aes(x = Year, y = median, ymin = lwr, ymax = upr)) +
   geom_line() +
-  geom_vline(xintercept = sim_env$feedback_start_yr, lty = 2) +
-  facet_wrap(~Region) +
+  geom_ribbon(alpha = 0.3) +
+  coord_cartesian(ylim = c(0,NA)) +
   theme_bw(base_size = 15) +
-  labs(y = 'SSB') +
-  ylim(0, NA)
+  labs(y = 'SSB')
 
-# Trajectories of observed catches
-reshape2::melt(sim_env$Obs_Catch) %>%
-  dplyr::rename(Region = Var1, Year = Var2, Fleet = Var3, Sim = Var4) %>%
-  dplyr::filter(Year != 36) %>%
-  ggplot(aes(x = Year, y = value, group = Sim)) +
+# Trajectories of catches
+reshape2::melt(sim_env$TrueCatch) %>%
+  filter(value != 0) %>%
+  group_by(Var2, Var4, Var1) %>%
+  summarize(value = sum(value)) %>%
+  group_by(Var1, Var2) %>%
+  summarize(median = median(value),
+            lwr = quantile(value, 0.025),
+            upr = quantile(value, 0.975)) %>%
+  rename(Region = Var1, Year = Var2) %>% 
+  ggplot(aes(x = Year, y = median, ymin = lwr, ymax = upr)) +
   geom_line() +
-  geom_vline(xintercept = sim_env$feedback_start_yr, lty = 2) +
-  facet_wrap(~Region) +
+  geom_ribbon(alpha = 0.3) +
+  coord_cartesian(ylim = c(0,NA)) +
   theme_bw(base_size = 15) +
-  labs(y = 'Catch') +
-  ylim(0, NA)
+  labs(x = 'Year', y = 'Catch')
+
+# Trajectories of fishing mortality
+reshape2::melt(sim_env$Fmort) %>%
+  filter(value != 0) %>%
+  group_by(Var2, Var4, Var1) %>%
+  summarize(value = sum(value)) %>%
+  group_by(Var1, Var2) %>%
+  summarize(median = median(value),
+            lwr = quantile(value, 0.025),
+            upr = quantile(value, 0.975)) %>%
+  rename(Region = Var1, Year = Var2) %>%
+  ggplot(aes(x = Year, y = median, ymin = lwr, ymax = upr)) +
+  geom_line() +
+  geom_ribbon(alpha = 0.3) +
+  coord_cartesian(ylim = c(0,NA)) +
+  theme_bw(base_size = 15) +
+  labs(y = 'Fishing Mortality', x = 'Year')
 ```
 
 ![](figures/h_ssb_closed_loop.png)
 ![](figures/h_catch_closed_loop.png)
+![](figures/h_fmort_closed_loop.png)

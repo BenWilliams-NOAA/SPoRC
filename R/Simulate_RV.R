@@ -3,9 +3,9 @@
 #' @param exp Expected values
 #' @param pars Parameters for a logistic normal (iid == 1 parameter, AR1 == 2 parameters, 2D, by age and sex == 3 parameters, 3D, by age, sex, and region == 4 parameters)
 #' @param comp_like Likelihood structure (iid == 2, ar1 == 3, 2d == 4, 3d == 5)
+#'
 #' @importFrom MASS mvrnorm
 #' @keywords internal
-#'
 rlogistnormal <- function(exp,
                           pars,
                           comp_like
@@ -20,23 +20,15 @@ rlogistnormal <- function(exp,
     diag(Sigma) <- pars[1]^2 # input parameter
   } # end if iid logistic normal
 
-  # if logistic normal, AR1 by age
+  # if logistic normal, AR1 by bin
   if(comp_like == 3) {
-    Sigma <- get_AR1_CorrMat(n_ages, pars[2]) * pars[1]^2
+    Sigma <- get_AR1_CorrMat(length(exp), pars[2]) * pars[1]^2
     Sigma <- Sigma[-nrow(Sigma), -ncol(Sigma)] # remove last row and column
   } # end if iid logistic normal
 
-  # if logistic normal, AR1 by age, constant correlation by sex
+  # if logistic normal, AR1 by bin, constant correlation by sex
   if(comp_like == 4) {
-    Sigma <- kronecker(get_AR1_CorrMat(n_ages, pars[2]),
-                       get_Constant_CorrMat(n_sexes, pars[3])) * pars[1]^2
-    Sigma <- Sigma[-nrow(Sigma), -ncol(Sigma)] # remove last row and column
-  }
-
-  # if logistic normal, AR1 by age, constant correlation by sex and constant correlation by region
-  if(comp_like == 5) {
-    Sigma <- kronecker(kronecker(get_AR1_CorrMat(n_ages, pars[2]), get_Constant_CorrMat(n_sexes, pars[3])),
-                       get_Constant_CorrMat(n_regions, pars[4])) * pars[1]^2
+    Sigma <- kronecker(get_AR1_CorrMat(length(exp) / n_sexes, pars[2]), get_Constant_CorrMat(n_sexes, pars[3])) * pars[1]^2
     Sigma <- Sigma[-nrow(Sigma), -ncol(Sigma)] # remove last row and column
   }
 
@@ -84,12 +76,12 @@ rinvgauss_rec <- function(sims,
                           recruitment
                           ) {
 
-  AMeanRec <- mean(recruitment) # get arithmetic mean recruitment
-  HMeanRec <- 1 / mean(1 / recruitment) # get harmonic mean recruitment
+  a_meanRec <- mean(recruitment) # get arithmetic mean recruitment
+  h_meanRec <- 1 / mean(1 / recruitment) # get harmonic mean recruitment
 
   # define parameters for inverse gaussian
-  gamma <- AMeanRec / HMeanRec
-  gi_beta <- AMeanRec
+  gamma <- a_meanRec / h_meanRec
+  gi_beta <- a_meanRec
   delta <- 1 / (gamma - 1)
   cvrec <- sqrt(1 / delta)
 

@@ -45,7 +45,6 @@
 <span>  <span class="va">UseCatch</span>,</span>
 <span>  Use_F_pen <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  est_all_regional_F <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  Catch_Constant <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  sigmaC_spec <span class="op">=</span> <span class="st">"fix"</span>,</span>
 <span>  sigmaC_agg_spec <span class="op">=</span> <span class="st">"fix"</span>,</span>
 <span>  sigmaF_spec <span class="op">=</span> <span class="st">"fix"</span>,</span>
@@ -90,23 +89,25 @@
 </ul></dd>
 
 
-<dt id="arg-catch-constant">Catch_Constant<a class="anchor" aria-label="anchor" href="#arg-catch-constant"></a></dt>
-<dd><p>Numeric vector of length <code>n_fish_fleets</code> specifying constants to add to catch observations.</p></dd>
-
-
 <dt id="arg-sigmac-spec">sigmaC_spec<a class="anchor" aria-label="anchor" href="#arg-sigmac-spec"></a></dt>
-<dd><p>Character string specifying observation error structure for catch data. Default behavior fixes <code>sigmaC</code> at a starting value of <code>1e-3</code> (log-scale <code>ln_sigmaC = log(1e-3)</code>) for all regions and fleets. Other options include:</p><ul><li><p><code>"est_shared_f"</code>: Estimate <code>sigmaC</code> shared across fishery fleets.</p></li>
-<li><p><code>"est_shared_r"</code>: Estimate <code>sigmaC</code> shared across regions but unique by fleet.</p></li>
-<li><p><code>"est_shared_r_f"</code>: Estimate <code>sigmaC</code> shared across regions and fleets.</p></li>
+<dd><p>Character string specifying observation error structure for catch data. Default behavior fixes <code>sigmaC</code> at a starting value of <code>1e-3</code> (log-scale <code>ln_sigmaC = log(1e-3)</code>) for all regions, years, and fleets. Other options include:</p><ul><li><p><code>"est_shared_f"</code>: Estimate <code>sigmaC</code> shared across fishery fleets, unique by region and year.</p></li>
+<li><p><code>"est_shared_r"</code>: Estimate <code>sigmaC</code> shared across regions, unique by fleet and year.</p></li>
+<li><p><code>"est_shared_y"</code>: Estimate <code>sigmaC</code> shared across years, unique by region and fleet.</p></li>
+<li><p><code>"est_shared_r_f"</code>: Estimate <code>sigmaC</code> shared across regions and fleets, unique by year.</p></li>
+<li><p><code>"est_shared_f_y"</code>: Estimate <code>sigmaC</code> shared across fleets and years, unique by region.</p></li>
+<li><p><code>"est_shared_r_y"</code>: Estimate <code>sigmaC</code> shared across regions and years, unique by fleet.</p></li>
+<li><p><code>"est_shared_r_y_f"</code>: Estimate single <code>sigmaC</code> shared across regions, years, and fleets.</p></li>
 <li><p><code>"fix"</code>: Fix <code>sigmaC</code> at the starting value.</p></li>
-<li><p><code>"est_all"</code>: Estimate separate <code>sigmaC</code> for each region and fleet.</p></li>
+<li><p><code>"est_all"</code>: Estimate separate <code>sigmaC</code> for each region, year, and fleet combination.</p></li>
 </ul></dd>
 
 
 <dt id="arg-sigmac-agg-spec">sigmaC_agg_spec<a class="anchor" aria-label="anchor" href="#arg-sigmac-agg-spec"></a></dt>
-<dd><p>Character string specifying process error structure for aggregated catch observation error. Default fixes <code>sigmaC_agg</code> at the starting value (log-scale <code>sigmaC_agg</code>). Other options include:</p><ul><li><p><code>"est_shared_f"</code>: Estimate <code>sigmaC_agg</code> shared across fishery fleets.</p></li>
+<dd><p>Character string specifying process error structure for aggregated catch observation error. Default fixes <code>sigmaC_agg</code> at the starting value (log-scale <code>sigmaC_agg</code>). Other options include:</p><ul><li><p><code>"est_shared_f"</code>: Estimate <code>sigmaC_agg</code> shared across fishery fleets, unique by year.</p></li>
+<li><p><code>"est_shared_y"</code>: Estimate <code>sigmaC_agg</code> shared across years, unique by fleet.</p></li>
+<li><p><code>"est_shared_y_f"</code>: Estimate single <code>sigmaC_agg</code> shared across years and fleets.</p></li>
 <li><p><code>"fix"</code>: Fix at the starting value.</p></li>
-<li><p><code>"est_all"</code>: Estimate separate parameters for each fishery fleet.</p></li>
+<li><p><code>"est_all"</code>: Estimate separate parameters for each year and fleet combination.</p></li>
 </ul></dd>
 
 
@@ -130,6 +131,20 @@
 <dd><p>Additional arguments specifying starting values for <code>ln_sigmaC</code>, <code>ln_sigmaF</code>, and <code>ln_sigmaF_agg</code>.</p></dd>
 
 </dl></div>
+    <div class="section level2">
+    <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
+    <div class="dont-index"><p>Other Model Setup:
+<code><a href="Setup_Mod_Biologicals.html">Setup_Mod_Biologicals</a>()</code>,
+<code><a href="Setup_Mod_Dim.html">Setup_Mod_Dim</a>()</code>,
+<code><a href="Setup_Mod_FishIdx_and_Comps.html">Setup_Mod_FishIdx_and_Comps</a>()</code>,
+<code><a href="Setup_Mod_Fishsel_and_Q.html">Setup_Mod_Fishsel_and_Q</a>()</code>,
+<code><a href="Setup_Mod_Movement.html">Setup_Mod_Movement</a>()</code>,
+<code><a href="Setup_Mod_Rec.html">Setup_Mod_Rec</a>()</code>,
+<code><a href="Setup_Mod_SrvIdx_and_Comps.html">Setup_Mod_SrvIdx_and_Comps</a>()</code>,
+<code><a href="Setup_Mod_Srvsel_and_Q.html">Setup_Mod_Srvsel_and_Q</a>()</code>,
+<code><a href="Setup_Mod_Tagging.html">Setup_Mod_Tagging</a>()</code>,
+<code><a href="Setup_Mod_Weighting.html">Setup_Mod_Weighting</a>()</code></p></div>
+    </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>

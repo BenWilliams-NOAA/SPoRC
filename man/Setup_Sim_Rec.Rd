@@ -5,48 +5,93 @@
 \title{Set up recruitment dynamics for simulation}
 \usage{
 Setup_Sim_Rec(
-  do_recruits_move,
-  base_rec_sexratio,
-  rec_sexratio_vary,
-  base_r0,
-  r0_vary,
-  base_h,
-  init_sigmaR,
-  sigmaR,
-  recruitment_opt,
-  rec_dd,
-  init_dd,
+  do_recruits_move = 0,
+  sexratio_input = array(if (sim_list$n_sexes == 1) 1 else 0.5, dim =
+    c(sim_list$n_regions, sim_list$n_yrs, sim_list$n_sexes, sim_list$n_sims)),
+  R0_input = array(10, dim = c(sim_list$n_regions, sim_list$n_yrs, sim_list$n_sims)),
+  h_input = array(0.8, dim = c(sim_list$n_regions, sim_list$n_yrs, sim_list$n_sims)),
+  ln_sigmaR = log(c(1, 1)),
+  recruitment_opt = "bh_rec",
+  rec_dd = "global",
+  init_dd = "global",
   sim_list,
-  rec_lag
+  init_age_strc = 0,
+  t_spawn = 0,
+  rec_lag = 1,
+  Rec_input = NULL,
+  ln_InitDevs_input = NULL
 )
 }
 \arguments{
-\item{do_recruits_move}{whether recruits move. Character string either specified as 'dont_move', or 'move'}
+\item{do_recruits_move}{Indicator for whether recruits move (default = 0):
+\itemize{
+  \item \code{0}: No movement
+  \item \code{1}: Move
+}}
 
-\item{base_rec_sexratio}{base recruitment sex-ratio value}
+\item{sexratio_input}{Sex ratio array [n_regions × n_yrs × n_sexes × n_sims]
+(default = 1 if one sex, else 0.5 for each sex)}
 
-\item{rec_sexratio_vary}{whether recruitment sex-ratio varies. Options include: constant}
+\item{R0_input}{Unfished recruitment (R0) array [n_regions × n_yrs × n_sims]
+(default = 10)}
 
-\item{base_r0}{base R0 or mean recruitment value}
+\item{h_input}{Steepness array [n_regions × n_yrs × n_sims]
+(default = 0.8)}
 
-\item{r0_vary}{whether r0 or mean recruitment varies. Options include: constant}
+\item{ln_sigmaR}{Logarithmic standard deviation of recruitment [2]:
+1st = sigma for initial devs, 2nd = sigma for latter devs
+(default = log(c(1, 1)))}
 
-\item{base_h}{base steepness value}
+\item{recruitment_opt}{Recruitment type (default = "bh_rec"):
+\itemize{
+  \item \code{"mean_rec"}: Mean recruitment
+  \item \code{"bh_rec"}: Beverton-Holt recruitment
+  \item \code{"resample_from_input"}: Resampling recruitment years from `Rec_input` and preserves covariance of recruitment among regions if spatially-explicit values are provided
+}}
 
-\item{init_sigmaR}{Sigma R for initial devs}
+\item{rec_dd}{Recruitment density dependence (default = "global"):
+\itemize{
+  \item \code{"global"}: Shared across regions
+  \item \code{"local"}: Region-specific
+}}
 
-\item{sigmaR}{Sigma R for everything else}
+\item{init_dd}{Initial age density dependence (default = "global"):
+\itemize{
+  \item \code{"global"}: Shared across regions
+  \item \code{"local"}: Region-specific
+}}
 
-\item{recruitment_opt}{character string as either "mean_rec" or "bh_rec"}
+\item{sim_list}{Simulation list object from `Setup_Sim_Dim()`}
 
-\item{rec_dd}{recruitment density dependence; character string as either "global" or "local"}
+\item{init_age_strc}{Initial age structure method (default = 0):
+\itemize{
+  \item \code{0}: Iterative
+  \item \code{1}: Geometric series solution
+}}
 
-\item{init_dd}{initial age density dependence; character string as either "global" or "local"}
+\item{t_spawn}{Spawn timing fraction of the year (scalar, default = 0)}
 
-\item{sim_list}{Simulation list}
+\item{rec_lag}{Recruitment lag (default = 1)}
 
-\item{rec_lag}{Numeric, recruitment lag value}
+\item{Rec_input}{Recruitment array [n_regions × n_yrs × n_sims] (default = NULL)}
+
+\item{ln_InitDevs_input}{Initial deviations [n_regions × (n_ages-1) × n_sims] (default = NULL)}
 }
 \description{
 Set up recruitment dynamics for simulation
 }
+\seealso{
+Other Simulation Setup: 
+\code{\link{Setup_Sim_Biologicals}()},
+\code{\link{Setup_Sim_Containers}()},
+\code{\link{Setup_Sim_Dim}()},
+\code{\link{Setup_Sim_Fishing}()},
+\code{\link{Setup_Sim_Survey}()},
+\code{\link{Setup_Sim_Tagging}()},
+\code{\link{Setup_sim_env}()},
+\code{\link{Simulate_Pop_Static}()},
+\code{\link{run_annual_cycle}()},
+\code{\link{simulation_data_to_SPoRC}()},
+\code{\link{simulation_self_test}()}
+}
+\concept{Simulation Setup}
