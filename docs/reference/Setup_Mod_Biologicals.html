@@ -44,7 +44,10 @@
 <span>  WAA_fish <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  WAA_srv <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">MatAA</span>,</span>
-<span>  addtocomp <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  addtocomp <span class="op">=</span> <span class="fl">0.001</span>,</span>
+<span>  addtofishidx <span class="op">=</span> <span class="fl">1e-04</span>,</span>
+<span>  addtosrvidx <span class="op">=</span> <span class="fl">1e-04</span>,</span>
+<span>  addtotag <span class="op">=</span> <span class="fl">1e-10</span>,</span>
 <span>  AgeingError <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  Use_M_prior <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  M_prior <span class="op">=</span> <span class="cn">NA</span>,</span>
@@ -86,7 +89,19 @@
 
 
 <dt id="arg-addtocomp">addtocomp<a class="anchor" aria-label="anchor" href="#arg-addtocomp"></a></dt>
-<dd><p>Numeric value for a constant to add to composition data. Default is 0. Not used if logistic normal likelihoods are utilized.</p></dd>
+<dd><p>Numeric value for a constant to add to composition data. Default is 1e-3. Not used if logistic normal likelihoods are utilized.</p></dd>
+
+
+<dt id="arg-addtofishidx">addtofishidx<a class="anchor" aria-label="anchor" href="#arg-addtofishidx"></a></dt>
+<dd><p>Numeric value for a constant to add to composition data. Default is 1e-4.</p></dd>
+
+
+<dt id="arg-addtosrvidx">addtosrvidx<a class="anchor" aria-label="anchor" href="#arg-addtosrvidx"></a></dt>
+<dd><p>Numeric value for a constant to add to composition data. Default is 1e-4.</p></dd>
+
+
+<dt id="arg-addtotag">addtotag<a class="anchor" aria-label="anchor" href="#arg-addtotag"></a></dt>
+<dd><p>Numeric value for a constant to add to composition data. Default is 1e-10</p></dd>
 
 
 <dt id="arg-ageingerror">AgeingError<a class="anchor" aria-label="anchor" href="#arg-ageingerror"></a></dt>
@@ -159,6 +174,20 @@ Either a character string ("constant") or a list of index vectors, e.g., <code>l
 <dd><p>Additional arguments for starting values such as <code>ln_M</code> and <code>M_offset.</code> These are ignored if <code>M_spec = fix</code>.</p></dd>
 
 </dl></div>
+    <div class="section level2">
+    <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
+    <div class="dont-index"><p>Other Model Setup:
+<code><a href="Setup_Mod_Catch_and_F.html">Setup_Mod_Catch_and_F</a>()</code>,
+<code><a href="Setup_Mod_Dim.html">Setup_Mod_Dim</a>()</code>,
+<code><a href="Setup_Mod_FishIdx_and_Comps.html">Setup_Mod_FishIdx_and_Comps</a>()</code>,
+<code><a href="Setup_Mod_Fishsel_and_Q.html">Setup_Mod_Fishsel_and_Q</a>()</code>,
+<code><a href="Setup_Mod_Movement.html">Setup_Mod_Movement</a>()</code>,
+<code><a href="Setup_Mod_Rec.html">Setup_Mod_Rec</a>()</code>,
+<code><a href="Setup_Mod_SrvIdx_and_Comps.html">Setup_Mod_SrvIdx_and_Comps</a>()</code>,
+<code><a href="Setup_Mod_Srvsel_and_Q.html">Setup_Mod_Srvsel_and_Q</a>()</code>,
+<code><a href="Setup_Mod_Tagging.html">Setup_Mod_Tagging</a>()</code>,
+<code><a href="Setup_Mod_Weighting.html">Setup_Mod_Weighting</a>()</code></p></div>
+    </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>

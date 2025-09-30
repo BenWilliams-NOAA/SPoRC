@@ -1,77 +1,105 @@
 #' Set up recruitment dynamics for simulation
 #'
-#' @param do_recruits_move whether recruits move. Character string either specified as 'dont_move', or 'move'
-#' @param base_rec_sexratio base recruitment sex-ratio value
-#' @param rec_sexratio_vary whether recruitment sex-ratio varies. Options include: constant
-#' @param base_r0 base R0 or mean recruitment value
-#' @param r0_vary whether r0 or mean recruitment varies. Options include: constant
-#' @param base_h base steepness value
-#' @param init_sigmaR Sigma R for initial devs
-#' @param sigmaR Sigma R for everything else
-#' @param recruitment_opt character string as either "mean_rec" or "bh_rec"
-#' @param rec_dd recruitment density dependence; character string as either "global" or "local"
-#' @param sim_list Simulation list
-#' @param init_dd initial age density dependence; character string as either "global" or "local"
-#' @param rec_lag Numeric, recruitment lag value
+#' @param sim_list Simulation list object from `Setup_Sim_Dim()`
+#' @param do_recruits_move Indicator for whether recruits move (default = 0):
+#'   \itemize{
+#'     \item \code{0}: No movement
+#'     \item \code{1}: Move
+#'   }
+#' @param recruitment_opt Recruitment type (default = "bh_rec"):
+#'   \itemize{
+#'     \item \code{"mean_rec"}: Mean recruitment
+#'     \item \code{"bh_rec"}: Beverton-Holt recruitment
+#'     \item \code{"resample_from_input"}: Resampling recruitment years from `Rec_input` and preserves covariance of recruitment among regions if spatially-explicit values are provided
+#'   }
+#' @param rec_dd Recruitment density dependence (default = "global"):
+#'   \itemize{
+#'     \item \code{"global"}: Shared across regions
+#'     \item \code{"local"}: Region-specific
+#'   }
+#' @param init_dd Initial age density dependence (default = "global"):
+#'   \itemize{
+#'     \item \code{"global"}: Shared across regions
+#'     \item \code{"local"}: Region-specific
+#'   }
+#' @param rec_lag Recruitment lag (default = 1)
+#' @param sexratio_input Sex ratio array [n_regions × n_yrs × n_sexes × n_sims]
+#'   (default = 1 if one sex, else 0.5 for each sex)
+#' @param R0_input Unfished recruitment (R0) array [n_regions × n_yrs × n_sims]
+#'   (default = 10)
+#' @param h_input Steepness array [n_regions × n_yrs × n_sims]
+#'   (default = 0.8)
+#' @param ln_sigmaR Logarithmic standard deviation of recruitment [2]:
+#'   1st = sigma for initial devs, 2nd = sigma for latter devs
+#'   (default = log(c(1, 1)))
+#' @param Rec_input Recruitment array [n_regions × n_yrs × n_sims] (default = NULL)
+#' @param ln_InitDevs_input Initial deviations [n_regions × (n_ages-1) × n_sims] (default = NULL)
+#' @param init_age_strc Initial age structure method (default = 0):
+#'   \itemize{
+#'     \item \code{0}: Iterative
+#'     \item \code{1}: Geometric series solution
+#'   }
+#' @param t_spawn Spawn timing fraction of the year (scalar, default = 0)
 #'
 #' @export Setup_Sim_Rec
-#'
+#' @family Simulation Setup
 Setup_Sim_Rec <- function(
-    do_recruits_move,
-    base_rec_sexratio,
-    rec_sexratio_vary,
-    base_r0,
-    r0_vary,
-    base_h,
-    init_sigmaR,
-    sigmaR,
-    recruitment_opt,
-    rec_dd,
-    init_dd,
+    do_recruits_move = 0,
+    sexratio_input = array(if(sim_list$n_sexes == 1) 1 else 0.5, dim = c(sim_list$n_regions, sim_list$n_yrs, sim_list$n_sexes, sim_list$n_sims)),
+    R0_input = array(10, dim = c(sim_list$n_regions, sim_list$n_yrs, sim_list$n_sims)),
+    h_input = array(0.8, dim = c(sim_list$n_regions, sim_list$n_yrs, sim_list$n_sims)),
+    ln_sigmaR = log(c(1, 1)),
+    recruitment_opt = 'bh_rec',
+    rec_dd = 'global',
+    init_dd = 'global',
     sim_list,
-    rec_lag
-) {
+    init_age_strc = 0,
+    t_spawn = 0,
+    rec_lag = 1,
+    Rec_input = NULL,
+    ln_InitDevs_input = NULL
+    ) {
 
+  check_sim_dimensions(sexratio_input, n_regions = sim_list$n_regions, n_years = sim_list$n_yrs, n_sexes = sim_list$n_sexes, n_sims = sim_list$n_sims, what = "sexratio_input")
+  check_sim_dimensions(R0_input, n_regions = sim_list$n_regions, n_years = sim_list$n_yrs, n_sims = sim_list$n_sims, what = "R0_input")
+  check_sim_dimensions(h_input, n_regions = sim_list$n_regions, n_years = sim_list$n_yrs, n_sims  = sim_list$n_sims, what = "h_input")
+  if(!is.null(ln_InitDevs_input)) check_sim_dimensions(ln_InitDevs_input, n_regions = sim_list$n_regions, n_ages = sim_list$n_ages, n_sims = sim_list$n_sims, what = "ln_InitDevs_input")
 
-  if(do_recruits_move == 'dont_move') sim_list$do_recruits_move <- 0
-  if(do_recruits_move == 'move') sim_list$do_recruits_move <- 1
+  # Recruitment options
+  sim_list$do_recruits_move <- do_recruits_move
   if(sim_list$do_recruits_move == 0) sim_list$move_age <- 2 else sim_list$move_age <- 1 # what age to start movement of individuals
 
   if(recruitment_opt == "mean_rec") sim_list$recruitment_opt <- 0
   if(recruitment_opt == "bh_rec") sim_list$recruitment_opt <- 1
+  if(recruitment_opt == "resample_from_input") {
+    if(is.null(Rec_input)) stop("Recruitment input is NULL, but future recruitment is specified to be resampled!")
+    sim_list$recruitment_opt <- 999 # set at 999 (arbitrary)
+    rec_input_yrs <- dim(Rec_input)[2] # get years from Rec_input
+    tmp_Rec_input <- array(0, dim = c(sim_list$n_regions, sim_list$n_yrs, sim_list$n_sims))
+    # loop through simulations to resample years
+    for(i in 1:sim_list$n_sims) {
+      tmp_Rec_input[,1:rec_input_yrs,i] <- Rec_input[,,i]
+      resampled_years <- sample(1:rec_input_yrs, length(tmp_Rec_input[1,-c(1:rec_input_yrs),i]), TRUE)
+      tmp_Rec_input[,-c(1:rec_input_yrs),i] <- Rec_input[,resampled_years,i]
+    } # end i loop
+    Rec_input <- tmp_Rec_input # overwrite
+  } # resampling
 
   if(rec_dd == "global") sim_list$rec_dd <- 0
   if(rec_dd == "local") sim_list$rec_dd <- 1
   if(init_dd == "global") sim_list$init_dd <- 0
   if(init_dd == "local") sim_list$init_dd <- 1
 
-  # recruitment variability
-  sim_list$init_sigmaR <- array(init_sigmaR, dim = c(sim_list$n_regions, 1))
-  sim_list$sigmaR <- array(sigmaR, dim = c(sim_list$n_regions, sim_list$n_yrs))
-
-  # Set up containers for r0, h, init_sigmaR, sigmaR, and recruitment sex ratio
-  r0 <- array(0, dim = c(sim_list$n_regions, sim_list$n_yrs, sim_list$n_sims))
-  h <- array(0, dim = c(sim_list$n_regions, sim_list$n_yrs, sim_list$n_sims))
-  rec_sexratio <- array(0, dim = c(sim_list$n_regions, sim_list$n_yrs, sim_list$n_sexes, sim_list$n_sims))
-
-  for(sim in 1:sim_list$n_sims) {
-    for(r in 1:sim_list$n_regions) {
-      for(y in 1:sim_list$n_yrs) {
-
-        # Fill in values
-        h[r,y,sim] <- base_h[r] # fill in steepness
-        if(r0_vary == "constant") r0[r,y,sim] <- base_r0[r] # fill in r0 constant
-        if(rec_sexratio_vary == "constant") for(s in 1:sim_list$n_sexes) rec_sexratio[r,y,s,sim] <- base_rec_sexratio[s] # fill in constant recruitment sex-ratio
-
-      } # end y loop
-    } # end r loop
-  } # end sim loop
-
   # output these into environment
-  sim_list$h <- h
-  sim_list$r0 <- r0
-  sim_list$rec_sexratio <- rec_sexratio
+  sim_list$h <- h_input
+  sim_list$R0 <- R0_input
+  sim_list$sexratio <- sexratio_input
   sim_list$rec_lag <- rec_lag
+  sim_list$ln_sigmaR <- ln_sigmaR
+  sim_list$t_spawn <- t_spawn
+  sim_list$init_age_strc <- init_age_strc
+  if(!is.null(Rec_input)) sim_list$Rec_input <- Rec_input
+  if(!is.null(ln_InitDevs_input)) sim_list$ln_InitDevs_input <- ln_InitDevs_input
 
   return(sim_list)
 
@@ -87,7 +115,7 @@ Setup_Sim_Rec <- function(
 do_sigmaR_mapping <- function(input_list, sigmaR_spec) {
 
   # Define valid sigmaR options
-  valid_options <- c("est_shared", "fix_early_est_late", "fix")
+  valid_options <- c("est_all", "est_shared", "fix_early_est_late", "fix")
 
   # Checking to see if valid options
   if (!is.null(sigmaR_spec)) {
@@ -98,6 +126,7 @@ do_sigmaR_mapping <- function(input_list, sigmaR_spec) {
     # Switch for defining sigmaR mapping
     input_list$map$ln_sigmaR <- switch(
       sigmaR_spec,
+      est_all = factor(c(1,2)),
       est_shared = factor(c(1, 1)),
       fix_early_est_late = factor(c(NA, 1)),
       fix = factor(c(NA, NA))
@@ -257,6 +286,59 @@ do_h_mapping <- function(input_list, h_spec, rec_dd) {
   return(input_list)
 }
 
+#' Helper function to set up sex ratio parameters
+#'
+#' @param input_list Input list
+#' @param sexratio_spec Charcacter specifying sex ratio parameterization
+#' @keywords internal
+do_sexratio_pars_mapping <- function(input_list, sexratio_spec) {
+
+  # Initialize arrays and counters
+  map_sexratio <- input_list$par$sexratio_pars
+  map_sexratio[] <- NA
+  sexratio_counter <- 1
+
+  # Validate inputs here
+  if(!sexratio_spec %in% c("est_all", "est_shared_r", "fix")) stop("Sex Ratio Specificaiton is not correctly specified. Needs to be fix, est_all, or est_shared_r")
+
+  # if we want to fix
+  if(sexratio_spec == 'fix') map_sexratio[] <- NA
+
+  for(r in 1:input_list$data$n_regions) {
+
+    # Get number of sex ratio rate blocks
+    sexratio_blocks_tmp <- unique(as.vector(input_list$data$sexratio_blocks[r,]))
+
+    for(b in 1:length(sexratio_blocks_tmp)) {
+
+      # Estimate for all regions
+      if(sexratio_spec == 'est_all') {
+        map_sexratio[r,b] <- sexratio_counter
+        sexratio_counter <- sexratio_counter + 1
+      }
+
+      # Estimate but share sex ratio across regions
+      if(sexratio_spec == 'est_shared_r' && r == 1) {
+        for(rr in 1:input_list$data$n_regions) {
+          # only assign if this value exists for this region
+          if(sexratio_blocks_tmp[b] %in% input_list$data$sexratio_blocks[rr,]) {
+            map_sexratio[rr, b] <- sexratio_counter
+          } # end if
+        } # end rr loop
+        sexratio_counter <- sexratio_counter + 1
+      }
+
+    } # end b loop
+  } # end r loop
+
+  collect_message("Sex ratio is specified as: ", sexratio_spec)
+
+  # input sex ratio rates into mapping list
+  input_list$map$sexratio_pars <- factor(map_sexratio) # sex ratio rates
+
+  return(input_list)
+}
+
 #' Helper function to map recruitment proportions
 #'
 #' @param input_list Input list
@@ -294,7 +376,6 @@ do_Rec_prop_mapping <- function(input_list) {
 #'     \item Years 64–65: No bias correction.
 #'   }
 #' @param sigmaR_switch Integer year indicating when \code{sigmaR} switches from early to late values (0 disables switching).
-#' @param sexratio Numeric vector specifying recruitment sex ratio, dimensioned by number of sexes.
 #' @param init_age_strc Integer flag specifying initialization of initial age structure:
 #'   \itemize{
 #'     \item \code{0}: Initialize by iteration.
@@ -303,7 +384,7 @@ do_Rec_prop_mapping <- function(input_list) {
 #' @param init_F_prop Numeric value specifying the initial fishing mortality proportion relative to mean fishing mortality for initializing age structure.
 #' @param sigmaR_spec Character string specifying estimation of recruitment variability (\code{sigmaR}):
 #' \itemize{
-#'   \item \code{NULL}: Estimate separate \code{sigmaR} for early and late periods.
+#'   \item \code{NULL or "est_all"}: Estimate separate \code{sigmaR} for early and late periods.
 #'   \item \code{"est_shared"}: Estimate one \code{sigmaR} shared across periods.
 #'   \item \code{"fix"}: Fix both \code{sigmaR} values.
 #'   \item \code{"fix_early_est_late"}: Fix early \code{sigmaR}, estimate late \code{sigmaR}.
@@ -348,8 +429,20 @@ do_Rec_prop_mapping <- function(input_list) {
 #' @param Use_Rec_prop_Prior Integer flag (0 or 1) indicating whether to apply a prior on recruitment proportions.
 #' @param Rec_prop_prior Scalar or array specifying prior values for recruitment proportion parameters.
 #'   If scalar, a constant uniform prior is applied across all dimensions.
-#'
+#' @param sexratio_blocks Character vector specifying blocks of years and regions for sex ratio. Format examples:
+#'   \itemize{
+#'     \item \code{"Block_1_Year_1-15_Region_1"}
+#'     \item \code{"Block_2_Year_16-terminal_Region_2"}
+#'     \item \code{"none_Region_3"} (means no block, constant for that region; this is the default option)
+#'   }
+#' @param sexratio_spec Character string specifying sex ratio estimation scheme:
+#'   \itemize{
+#'     \item \code{"est_all"} estimates sex ratio for all blocks and regions independently
+#'     \item \code{"est_shared_r"} estimates sex ratio shared across regions but varying by block
+#'     \item \code{"fix"} fixes all sex ratio (no estimation)
+#'   }
 #' @export Setup_Mod_Rec
+#' @family Model Setup
 Setup_Mod_Rec <- function(input_list,
                           rec_model,
                           rec_dd = NULL,
@@ -363,7 +456,6 @@ Setup_Mod_Rec <- function(input_list,
                           max_bias_ramp_fct = 1,
                           sigmaR_switch = 1,
                           dont_est_recdev_last = 0,
-                          sexratio = 1,
                           init_age_strc = 0,
                           equil_init_age_strc = 1,
                           init_F_prop = 0,
@@ -372,8 +464,12 @@ Setup_Mod_Rec <- function(input_list,
                           RecDevs_spec = NULL,
                           h_spec = NULL,
                           t_spawn = 0,
+                          sexratio_spec = 'fix',
+                          sexratio_blocks = c(
+                            paste("none_Region_", c(1:input_list$data$n_regions), sep = '')
+                          ),
                           ...
-) {
+                          ) {
 
   messages_list <<- character(0)
   starting_values <- list(...)
@@ -416,6 +512,46 @@ Setup_Mod_Rec <- function(input_list,
     collect_message("Steepness priors are: ", ifelse(Use_h_prior == 1, "Used", "Not Used"))
   }
 
+
+  # Sex Ratio Options ---------------------------------------------
+  sexratio_blocks_mat <- array(NA, dim = c(input_list$data$n_regions, length(input_list$data$years)))
+
+  if(!is.null(sexratio_blocks)) {
+    for(i in 1:length(sexratio_blocks)) {
+
+      # Extract out components from list
+      tmp <- sexratio_blocks[i]
+      tmp_vec <- unlist(strsplit(tmp, "_"))
+
+      if(!tmp_vec[1] %in% c("none", "Block")) stop("Sex Ratio Blocks not correctly specified. This should be either none_Region_x or Block_x_Year_x-y_Region_x")
+
+      # extract out fleets if constant
+      if(tmp_vec[1] == "none") {
+        region <- as.numeric(tmp_vec[3]) # get region index
+        sexratio_blocks_mat[region,] <- 1 # input sex ratio time block
+      }
+
+      if(tmp_vec[1] == "Block") {
+        block_val <- as.numeric(tmp_vec[2]) # get block value
+        region <- as.numeric(tmp_vec[6]) # get region value
+
+        # get year ranges
+        if(!str_detect(tmp, "terminal")) { # if not terminal year
+          year_range <- as.numeric(unlist(strsplit(tmp_vec[4], "-")))
+          years <- year_range[1]:year_range[2] # get sequence of years
+        } else { # if terminal year
+          year_range <- unlist(strsplit(tmp_vec[4], '-'))[1] # get year range
+          years <- as.numeric(year_range):length(input_list$data$years) # get sequence of years
+        }
+
+        sexratio_blocks_mat[region,years] <- block_val # input sex ratio time block
+      }
+
+    } # end i loop
+  }
+
+  for(r in 1:input_list$data$n_regions) collect_message("Sex Ratios estimated with ", length(unique(sexratio_blocks_mat[r,])), " block for region ", r)
+
   # Input Validation --------------------------------------------------------
 
   # Helper function
@@ -446,7 +582,6 @@ Setup_Mod_Rec <- function(input_list,
   input_list$data$do_rec_bias_ramp <- do_rec_bias_ramp
   input_list$data$bias_year <- bias_year
   input_list$data$sigmaR_switch <- sigmaR_switch
-  input_list$data$sexratio <- sexratio
   input_list$data$init_age_strc <- init_age_strc
   input_list$data$init_F_prop <- init_F_prop
   input_list$data$t_spawn <- t_spawn
@@ -455,6 +590,7 @@ Setup_Mod_Rec <- function(input_list,
   input_list$data$Use_Rec_prop_Prior <- Use_Rec_prop_Prior
   Rec_prior_vals = ifelse(is.null(Rec_prop_prior), rep(1, input_list$data$n_regions), Rec_prop_prior)
   input_list$data$Rec_prop_prior <- array(Rec_prior_vals, dim = c(input_list$data$n_regions))
+  input_list$data$sexratio_blocks <- sexratio_blocks_mat
 
   # Populate Parameter List -------------------------------------------------
 
@@ -482,6 +618,11 @@ Setup_Mod_Rec <- function(input_list,
   if("ln_sigmaR" %in% names(starting_values)) input_list$par$ln_sigmaR <- starting_values$ln_sigmaR
   else input_list$par$ln_sigmaR <- c(0,0)  # (early period 1st element, late period 2nd element)
 
+  # sexratio parameters
+  max_sexratio_blks <- max(apply(input_list$data$sexratio_blocks, 1, FUN = function(x) length(unique(x)))) # figure out maximum number ofsex ratio blocks for each region
+  if("sexratio_pars" %in% names(starting_values)) input_list$par$sexratio_pars <- starting_values$sexratio_pars
+  else input_list$par$sexratio_pars <- array(0, dim = c(input_list$data$n_regions, max_sexratio_blks)) # specified at 0.5 in inverse logit space
+
   # Mapping Options -----------------------------------------------------------
 
   input_list <- do_sigmaR_mapping(input_list, sigmaR_spec) # sigmaR mapping
@@ -489,6 +630,7 @@ Setup_Mod_Rec <- function(input_list,
   input_list <- do_RecDevs_mapping(input_list, RecDevs_spec, rec_dd) # RevDevs mapping
   input_list <- do_h_mapping(input_list, h_spec, rec_dd) # steepness mapping
   input_list <- do_Rec_prop_mapping(input_list) # Recruitment proportion mapping
+  input_list <- do_sexratio_pars_mapping(input_list, sexratio_spec) # sex ratio parameters
 
   # Print Messages ----------------------------------------------------------
   if(input_list$verbose) for(msg in messages_list) message(msg)

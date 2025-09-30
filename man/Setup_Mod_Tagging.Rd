@@ -22,7 +22,7 @@ Setup_Mod_Tagging(
   move_sex_tag_pool = NA,
   Init_Tag_Mort_spec = NULL,
   Tag_Shed_spec = NULL,
-  TagRep_spec = NULL,
+  TagRep_spec = "fix",
   Tag_Reporting_blocks = NULL,
   ...
 )
@@ -121,3 +121,17 @@ Only parameters with rows in this data frame will have priors applied.}
 \description{
 Setup tagging processes and parameters
 }
+\seealso{
+Other Model Setup: 
+\code{\link{Setup_Mod_Biologicals}()},
+\code{\link{Setup_Mod_Catch_and_F}()},
+\code{\link{Setup_Mod_Dim}()},
+\code{\link{Setup_Mod_FishIdx_and_Comps}()},
+\code{\link{Setup_Mod_Fishsel_and_Q}()},
+\code{\link{Setup_Mod_Movement}()},
+\code{\link{Setup_Mod_Rec}()},
+\code{\link{Setup_Mod_SrvIdx_and_Comps}()},
+\code{\link{Setup_Mod_Srvsel_and_Q}()},
+\code{\link{Setup_Mod_Weighting}()}
+}
+\concept{Model Setup}

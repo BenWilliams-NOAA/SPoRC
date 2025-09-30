@@ -7,12 +7,13 @@
 #' @param newton_loops Number of newton loops to run to get gradients down
 #' @param do_optim Boolean on whether or not model is optimized
 #' @param silent Boolean on whether or not model run is silent
+#' @param nlminb_control List argument controls by nlminb
 #' @param ... Additional arguments taken by MakeADFun
 #'
 #' @importFrom stats nlminb optimHess
 #' @return Returns a list object that is optimized, with results outputted from the RTMB model
 #' @export fit_model
-#'
+#' @family Utility
 #' @examples
 #' \dontrun{
 #'model <- fit_model(data,
@@ -28,6 +29,7 @@ fit_model <- function(data,
                       newton_loops = 3,
                       silent = FALSE,
                       do_optim = TRUE,
+                      nlminb_control = list(iter.max = 1e5, eval.max = 1e5, rel.tol = 1e-15),
                       ...
                       ) {
 
@@ -38,7 +40,7 @@ fit_model <- function(data,
   if(do_optim == TRUE) {
     # Now, optimize the function
     optim <- stats::nlminb(obj$par, obj$fn, obj$gr,
-                           control = list(iter.max = 1e5, eval.max = 1e5, rel.tol = 1e-15))
+                           control = nlminb_control)
     # newton steps
     try_improve <- tryCatch(expr =
                               for(i in 1:newton_loops) {

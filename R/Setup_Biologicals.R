@@ -1,57 +1,57 @@
-#' Set up simulation stuff for biologicals
+#' Set up simulation containers and inputs for biological parameters
 #'
-#' @param base_M_value Base natural mortality value dimensioned by regions, ages, sexes
-#' @param M_pattern Natural mortality pattern. Options include: constant
-#' @param base_WAA_values Base weight-at-age values dimensioned by regions, ages, sexes
-#' @param base_WAA_fish_values Base weight-at-age values for the fishery dimensioned by regions, ages, sexes, fishery fleets
-#' @param WAA_pattern Weight-at-age pattern. Options include: constant
-#' @param base_Maturity_AA_values Base maturity values dimensioned by regions, ages, sexes
-#' @param Maturity_AA_pattern Maturity pattern. Options include: constant
-#' @param sim_list Simulation list objects
+#' @param sim_list Simulation list object from `Setup_Sim_Dim()`
+#' @param natmort_input Natural mortality array [n_regions × n_yrs × n_ages × n_sexes × n_sims]
+#' @param WAA_input Spawning weight-at-age array [n_regions × n_yrs × n_ages × n_sexes × n_sims]
+#' @param WAA_fish_input Fishery weight-at-age array [n_regions × n_yrs × n_ages × n_sexes × n_sims]
+#' @param WAA_srv_input Survey weight-at-age array [n_regions × n_yrs × n_ages × n_sexes × n_sims]
+#' @param MatAA_input Maturity-at-age array [n_regions × n_yrs × n_ages × n_sexes × n_sims]
+#' @param AgeingError_input Ageing error matrix [n_regions × n_model_ages × n_obs_ages × n_sims]
+#' @param SizeAgeTrans_input Size-age transition matrix [n_regions × n_yrs × n_lens × n_ages × n_sexes x n_sims]
 #'
 #' @export Setup_Sim_Biologicals
+#' @family Simulation Setup
 Setup_Sim_Biologicals <- function(
-                                  base_M_value,
-                                  M_pattern,
-                                  base_WAA_values,
-                                  base_WAA_fish_values,
-                                  WAA_pattern,
-                                  base_Maturity_AA_values,
-                                  Maturity_AA_pattern,
+                                  natmort_input,
+                                  WAA_input,
+                                  WAA_fish_input,
+                                  WAA_srv_input,
+                                  MatAA_input,
+                                  AgeingError_input = NULL,
+                                  SizeAgeTrans_input = NULL,
                                   sim_list
                                   ) {
 
-  # Create containers to store values
-  M <- array(0, dim = c(sim_list$n_regions, sim_list$n_yrs, sim_list$n_ages, sim_list$n_sexes, sim_list$n_sims))
-  WAA <- array(0, dim = c(sim_list$n_regions, sim_list$n_yrs, sim_list$n_ages, sim_list$n_sexes, sim_list$n_sims))
-  WAA_fish <- array(0, dim = c(sim_list$n_regions, sim_list$n_yrs, sim_list$n_ages, sim_list$n_sexes, sim_list$n_fish_fleets, sim_list$n_sims))
-  Maturity_AA <- array(0, dim = c(sim_list$n_regions, sim_list$n_yrs, sim_list$n_ages, sim_list$n_sexes, sim_list$n_sims))
-
-  for(sim in 1:sim_list$n_sims) {
-    for(r in 1:sim_list$n_regions) {
-      for(y in 1:sim_list$n_yrs) {
-        for(s in 1:sim_list$n_sexes) {
-
-          # Natural mortality constant
-          if(M_pattern == "constant") M[r,y,,s,sim] <- base_M_value[r,,s]
-
-          # WAA constant
-          if(WAA_pattern == "constant") WAA[r,y,,s,sim] <- base_WAA_values[r,,s]
-          if(WAA_pattern == "constant") for(f in 1:sim_list$n_fish_fleets) WAA_fish[r,y,,s,f,sim] <- base_WAA_fish_values[r,,s,f]
-
-          # Maturity constant
-          if(Maturity_AA_pattern == "constant") Maturity_AA[r,y,,s,sim] <- base_Maturity_AA_values[r,,s]
-
-        } # end s loop
-      } # end y loop
-    } # end r loop
-  } # end sim loop
+  check_sim_dimensions(natmort_input, n_regions = sim_list$n_regions, n_years = sim_list$n_yrs,
+                       n_ages = sim_list$n_ages, n_sexes = sim_list$n_sexes, n_sims = sim_list$n_sims, what = 'natmort_input')
+  check_sim_dimensions(WAA_input, n_regions = sim_list$n_regions, n_years = sim_list$n_yrs,
+                       n_ages = sim_list$n_ages, n_sexes = sim_list$n_sexes, n_sims = sim_list$n_sims, what = 'WAA_input')
+  check_sim_dimensions(WAA_fish_input, n_regions = sim_list$n_regions, n_years = sim_list$n_yrs,
+                       n_ages = sim_list$n_ages, n_sexes = sim_list$n_sexes, n_fish_fleets = sim_list$n_fish_fleets,
+                       n_sims = sim_list$n_sims, what = 'WAA_fish_input')
+  check_sim_dimensions(WAA_srv_input, n_regions = sim_list$n_regions, n_years = sim_list$n_yrs,
+                       n_ages = sim_list$n_ages, n_sexes = sim_list$n_sexes, n_srv_fleets = sim_list$n_srv_fleets,
+                       n_sims = sim_list$n_sims, what = 'WAA_srv_input')
+  check_sim_dimensions(MatAA_input, n_regions = sim_list$n_regions, n_years = sim_list$n_yrs,
+                       n_ages = sim_list$n_ages, n_sexes = sim_list$n_sexes, n_sims = sim_list$n_sims, what = 'MatAA_input')
+  if(!is.null(SizeAgeTrans_input)) check_sim_dimensions(SizeAgeTrans_input, n_regions = sim_list$n_regions, n_years = sim_list$n_yrs, n_lens = sim_list$n_lens,
+                                                        n_ages = sim_list$n_ages, n_sexes = sim_list$n_sexes, n_sims = sim_list$n_sims, what = 'SizeAgeTrans_input')
 
   # output into list
-  sim_list$M <- M
-  sim_list$WAA <- WAA
-  sim_list$WAA_fish <- WAA_fish
-  sim_list$Maturity_AA <- Maturity_AA
+  sim_list$natmort <- natmort_input
+  sim_list$WAA <- WAA_input
+  sim_list$WAA_fish <- WAA_fish_input
+  sim_list$WAA_srv <- WAA_srv_input
+  sim_list$MatAA <- MatAA_input
+  if(!is.null(SizeAgeTrans_input)) sim_list$SizeAgeTrans <- SizeAgeTrans_input
+  if(!is.null(AgeingError_input)) sim_list$AgeingError <- AgeingError_input
+  else {
+    # if null, create an identity matrix
+    identity_AgeingError <- array(0, dim = c(sim_list$n_yrs, sim_list$n_ages, sim_list$n_ages, sim_list$n_sims))
+    for(i in 1:sim_list$n_yrs) for(sim in 1:sim_list$n_sims) diag(identity_AgeingError[i,,,sim]) <- 1 # create identity matrix for each year
+    sim_list$AgeingError <- identity_AgeingError
+    warning("No ageing error matrix was provided. A default identity matrix was used, which assumes that the number and structure of modelled age bins exactly match the observed age bins. If the observed age composition data includes fewer age bins than the model (e.g., observed ages 2-10 while modelled ages are 1-10), this default assumption will cause a dimensional mismatch and potentially misalign the modelled and observed compositions. To avoid this, please provide an ageing error matrix of dimension n_model_ages x n_obs_ages that correctly maps modelled ages to observed age bins. For example, if observed ages are 2-10, supply a matrix that drops the first model age by using a shifted identity matrix: diag(1, 10)[, 2:10]. This will ensure the age bins are correctly aligned for likelihood calculations.")
+  }
 
   return(sim_list)
 
@@ -167,7 +167,6 @@ do_M_mapping <- function(input_list,
 #' }
 #' @param WAA_fish Numeric array of weight-at-age (fishery), dimensioned \code{[n_regions, n_years, n_ages, n_sexes, n_fish_fleets]}.
 #' @param WAA_srv Numeric array of weight-at-age (survey), dimensioned \code{[n_regions, n_years, n_ages, n_sexes, n_srv_fleets]}.
-#' @param addtocomp Numeric value for a constant to add to composition data. Default is 1e-3 Not used if logistic normal likelihoods are utilized.
 #' @param M_ageblk_spec Specification of age blocking for natural mortality estimation.
 #'   Either a character string ("constant") or a list of index vectors, e.g., \code{list(1:10, 11:30)}, which specifies 2 age blocks for M.
 #' @param M_regionblk_spec Specification of regional blocking for natural mortality.
@@ -177,14 +176,22 @@ do_M_mapping <- function(input_list,
 #' @param M_sexblk_spec Specification of sex blocking for natural mortality.
 #'   Either a character string ("constant") or a list of index vectors, e.g., \code{list(1:2)}, which specifies sex-invariant M.
 #' @param ... Additional arguments for starting values such as \code{ln_M} and \code{M_offset.} These are ignored if \code{M_spec = fix}.
+#' @param addtocomp Numeric value for a constant to add to composition data. Default is 1e-3. Not used if logistic normal likelihoods are utilized.
+#' @param addtofishidx Numeric value for a constant to add to composition data. Default is 1e-4.
+#' @param addtosrvidx Numeric value for a constant to add to composition data. Default is 1e-4.
+#' @param addtotag Numeric value for a constant to add to composition data. Default is 1e-10
 #'
 #' @export Setup_Mod_Biologicals
+#' @family Model Setup
 Setup_Mod_Biologicals <- function(input_list,
                                   WAA,
                                   WAA_fish = NULL,
                                   WAA_srv = NULL,
                                   MatAA,
                                   addtocomp = 1e-3,
+                                  addtofishidx = 1e-4,
+                                  addtosrvidx = 1e-4,
+                                  addtotag = 1e-10,
                                   AgeingError = NULL,
                                   Use_M_prior = 0,
                                   M_prior = NA,
@@ -319,6 +326,9 @@ Setup_Mod_Biologicals <- function(input_list,
   input_list$data$Fixed_natmort <- Fixed_natmort
   input_list$data$Selex_Type <- Selex_Type
   input_list$data$addtocomp <- addtocomp
+  input_list$data$addtofishidx <- addtofishidx
+  input_list$data$addtosrvidx <- addtosrvidx
+  input_list$data$addtotag <- addtotag
 
   # Populate Parameter List -------------------------------------------------
 

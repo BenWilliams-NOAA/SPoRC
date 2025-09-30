@@ -39,19 +39,21 @@
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">Setup_Sim_Rec</span><span class="op">(</span></span>
-<span>  <span class="va">do_recruits_move</span>,</span>
-<span>  <span class="va">base_rec_sexratio</span>,</span>
-<span>  <span class="va">rec_sexratio_vary</span>,</span>
-<span>  <span class="va">base_r0</span>,</span>
-<span>  <span class="va">r0_vary</span>,</span>
-<span>  <span class="va">base_h</span>,</span>
-<span>  <span class="va">init_sigmaR</span>,</span>
-<span>  <span class="va">sigmaR</span>,</span>
-<span>  <span class="va">recruitment_opt</span>,</span>
-<span>  <span class="va">rec_dd</span>,</span>
-<span>  <span class="va">init_dd</span>,</span>
+<span>  do_recruits_move <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  sexratio_input <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="kw">if</span> <span class="op">(</span><span class="va">sim_list</span><span class="op">$</span><span class="va">n_sexes</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span> <span class="fl">1</span> <span class="kw">else</span> <span class="fl">0.5</span>, dim <span class="op">=</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sim_list</span><span class="op">$</span><span class="va">n_regions</span>, <span class="va">sim_list</span><span class="op">$</span><span class="va">n_yrs</span>, <span class="va">sim_list</span><span class="op">$</span><span class="va">n_sexes</span>, <span class="va">sim_list</span><span class="op">$</span><span class="va">n_sims</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  R0_input <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="fl">10</span>, dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sim_list</span><span class="op">$</span><span class="va">n_regions</span>, <span class="va">sim_list</span><span class="op">$</span><span class="va">n_yrs</span>, <span class="va">sim_list</span><span class="op">$</span><span class="va">n_sims</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  h_input <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="fl">0.8</span>, dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sim_list</span><span class="op">$</span><span class="va">n_regions</span>, <span class="va">sim_list</span><span class="op">$</span><span class="va">n_yrs</span>, <span class="va">sim_list</span><span class="op">$</span><span class="va">n_sims</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  ln_sigmaR <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  recruitment_opt <span class="op">=</span> <span class="st">"bh_rec"</span>,</span>
+<span>  rec_dd <span class="op">=</span> <span class="st">"global"</span>,</span>
+<span>  init_dd <span class="op">=</span> <span class="st">"global"</span>,</span>
 <span>  <span class="va">sim_list</span>,</span>
-<span>  <span class="va">rec_lag</span></span>
+<span>  init_age_strc <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  t_spawn <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  rec_lag <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  Rec_input <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  ln_InitDevs_input <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -60,57 +62,92 @@
 
 
 <dl><dt id="arg-do-recruits-move">do_recruits_move<a class="anchor" aria-label="anchor" href="#arg-do-recruits-move"></a></dt>
-<dd><p>whether recruits move. Character string either specified as 'dont_move', or 'move'</p></dd>
+<dd><p>Indicator for whether recruits move (default = 0):</p><ul><li><p><code>0</code>: No movement</p></li>
+<li><p><code>1</code>: Move</p></li>
+</ul></dd>
 
 
-<dt id="arg-base-rec-sexratio">base_rec_sexratio<a class="anchor" aria-label="anchor" href="#arg-base-rec-sexratio"></a></dt>
-<dd><p>base recruitment sex-ratio value</p></dd>
+<dt id="arg-sexratio-input">sexratio_input<a class="anchor" aria-label="anchor" href="#arg-sexratio-input"></a></dt>
+<dd><p>Sex ratio array [n_regions × n_yrs × n_sexes × n_sims]
+(default = 1 if one sex, else 0.5 for each sex)</p></dd>
 
 
-<dt id="arg-rec-sexratio-vary">rec_sexratio_vary<a class="anchor" aria-label="anchor" href="#arg-rec-sexratio-vary"></a></dt>
-<dd><p>whether recruitment sex-ratio varies. Options include: constant</p></dd>
+<dt id="arg-r-input">R0_input<a class="anchor" aria-label="anchor" href="#arg-r-input"></a></dt>
+<dd><p>Unfished recruitment (R0) array [n_regions × n_yrs × n_sims]
+(default = 10)</p></dd>
 
 
-<dt id="arg-base-r-">base_r0<a class="anchor" aria-label="anchor" href="#arg-base-r-"></a></dt>
-<dd><p>base R0 or mean recruitment value</p></dd>
+<dt id="arg-h-input">h_input<a class="anchor" aria-label="anchor" href="#arg-h-input"></a></dt>
+<dd><p>Steepness array [n_regions × n_yrs × n_sims]
+(default = 0.8)</p></dd>
 
 
-<dt id="arg-r-vary">r0_vary<a class="anchor" aria-label="anchor" href="#arg-r-vary"></a></dt>
-<dd><p>whether r0 or mean recruitment varies. Options include: constant</p></dd>
-
-
-<dt id="arg-base-h">base_h<a class="anchor" aria-label="anchor" href="#arg-base-h"></a></dt>
-<dd><p>base steepness value</p></dd>
-
-
-<dt id="arg-init-sigmar">init_sigmaR<a class="anchor" aria-label="anchor" href="#arg-init-sigmar"></a></dt>
-<dd><p>Sigma R for initial devs</p></dd>
-
-
-<dt id="arg-sigmar">sigmaR<a class="anchor" aria-label="anchor" href="#arg-sigmar"></a></dt>
-<dd><p>Sigma R for everything else</p></dd>
+<dt id="arg-ln-sigmar">ln_sigmaR<a class="anchor" aria-label="anchor" href="#arg-ln-sigmar"></a></dt>
+<dd><p>Logarithmic standard deviation of recruitment [2]:
+1st = sigma for initial devs, 2nd = sigma for latter devs
+(default = log(c(1, 1)))</p></dd>
 
 
 <dt id="arg-recruitment-opt">recruitment_opt<a class="anchor" aria-label="anchor" href="#arg-recruitment-opt"></a></dt>
-<dd><p>character string as either "mean_rec" or "bh_rec"</p></dd>
+<dd><p>Recruitment type (default = "bh_rec"):</p><ul><li><p><code>"mean_rec"</code>: Mean recruitment</p></li>
+<li><p><code>"bh_rec"</code>: Beverton-Holt recruitment</p></li>
+<li><p><code>"resample_from_input"</code>: Resampling recruitment years from `Rec_input` and preserves covariance of recruitment among regions if spatially-explicit values are provided</p></li>
+</ul></dd>
 
 
 <dt id="arg-rec-dd">rec_dd<a class="anchor" aria-label="anchor" href="#arg-rec-dd"></a></dt>
-<dd><p>recruitment density dependence; character string as either "global" or "local"</p></dd>
+<dd><p>Recruitment density dependence (default = "global"):</p><ul><li><p><code>"global"</code>: Shared across regions</p></li>
+<li><p><code>"local"</code>: Region-specific</p></li>
+</ul></dd>
 
 
 <dt id="arg-init-dd">init_dd<a class="anchor" aria-label="anchor" href="#arg-init-dd"></a></dt>
-<dd><p>initial age density dependence; character string as either "global" or "local"</p></dd>
+<dd><p>Initial age density dependence (default = "global"):</p><ul><li><p><code>"global"</code>: Shared across regions</p></li>
+<li><p><code>"local"</code>: Region-specific</p></li>
+</ul></dd>
 
 
 <dt id="arg-sim-list">sim_list<a class="anchor" aria-label="anchor" href="#arg-sim-list"></a></dt>
-<dd><p>Simulation list</p></dd>
+<dd><p>Simulation list object from `Setup_Sim_Dim()`</p></dd>
+
+
+<dt id="arg-init-age-strc">init_age_strc<a class="anchor" aria-label="anchor" href="#arg-init-age-strc"></a></dt>
+<dd><p>Initial age structure method (default = 0):</p><ul><li><p><code>0</code>: Iterative</p></li>
+<li><p><code>1</code>: Geometric series solution</p></li>
+</ul></dd>
+
+
+<dt id="arg-t-spawn">t_spawn<a class="anchor" aria-label="anchor" href="#arg-t-spawn"></a></dt>
+<dd><p>Spawn timing fraction of the year (scalar, default = 0)</p></dd>
 
 
 <dt id="arg-rec-lag">rec_lag<a class="anchor" aria-label="anchor" href="#arg-rec-lag"></a></dt>
-<dd><p>Numeric, recruitment lag value</p></dd>
+<dd><p>Recruitment lag (default = 1)</p></dd>
+
+
+<dt id="arg-rec-input">Rec_input<a class="anchor" aria-label="anchor" href="#arg-rec-input"></a></dt>
+<dd><p>Recruitment array [n_regions × n_yrs × n_sims] (default = NULL)</p></dd>
+
+
+<dt id="arg-ln-initdevs-input">ln_InitDevs_input<a class="anchor" aria-label="anchor" href="#arg-ln-initdevs-input"></a></dt>
+<dd><p>Initial deviations [n_regions × (n_ages-1) × n_sims] (default = NULL)</p></dd>
 
 </dl></div>
+    <div class="section level2">
+    <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
+    <div class="dont-index"><p>Other Simulation Setup:
+<code><a href="Setup_Sim_Biologicals.html">Setup_Sim_Biologicals</a>()</code>,
+<code><a href="Setup_Sim_Containers.html">Setup_Sim_Containers</a>()</code>,
+<code><a href="Setup_Sim_Dim.html">Setup_Sim_Dim</a>()</code>,
+<code><a href="Setup_Sim_Fishing.html">Setup_Sim_Fishing</a>()</code>,
+<code><a href="Setup_Sim_Survey.html">Setup_Sim_Survey</a>()</code>,
+<code><a href="Setup_Sim_Tagging.html">Setup_Sim_Tagging</a>()</code>,
+<code><a href="Setup_sim_env.html">Setup_sim_env</a>()</code>,
+<code><a href="Simulate_Pop_Static.html">Simulate_Pop_Static</a>()</code>,
+<code><a href="run_annual_cycle.html">run_annual_cycle</a>()</code>,
+<code><a href="simulation_data_to_SPoRC.html">simulation_data_to_SPoRC</a>()</code>,
+<code><a href="simulation_self_test.html">simulation_self_test</a>()</code></p></div>
+    </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>

@@ -27,8 +27,112 @@ articles:
     contents:
       - h_closed_loop_simulations
       - i_reference_points
+      - l_simulation_testing
 
   - title: "Advanced"
     contents:
       - j_starting_mapping
       - k_defining_priors
+
+reference:
+  - title: "Model Setup"
+    desc: "Functions for setting up a `SPoRC` model"
+    contents:
+      - Setup_Mod_Biologicals
+      - Setup_Mod_Catch_and_F
+      - Setup_Mod_FishIdx_and_Comps
+      - Setup_Mod_Fishsel_and_Q
+      - Setup_Mod_Movement
+      - Setup_Mod_Weighting
+      - Setup_Mod_Rec
+      - Setup_Mod_SrvIdx_and_Comps
+      - Setup_Mod_Srvsel_and_Q
+      - Setup_Mod_Tagging
+      - Setup_Mod_Dim
+
+  - title: "Reference Points and Projections"
+    desc: "Functions for deriving reference points and catch projections"
+    contents:
+      - Do_Population_Projection
+      - Get_Reference_Points
+      - get_key_quants
+
+  - title: "Simulation Setup"
+    desc: "Functions for setting up simulations"
+    contents:
+      - Setup_Sim_Biologicals
+      - Setup_Sim_Containers
+      - Setup_Sim_Fishing
+      - Setup_Sim_Rec
+      - Setup_Sim_Survey
+      - Setup_Sim_Tagging
+      - Setup_Sim_Dim
+      - Setup_sim_env
+      - run_annual_cycle
+      - Simulate_Pop_Static
+      - simulation_self_test
+      - simulation_data_to_SPoRC
+
+  - title: "Closed-Loop Simulation"
+    desc: "Functions for setting up and running closed-loop population simulations"
+    contents:
+      - condition_closed_loop_simulations
+      - get_closed_loop_reference_points
+      - bisection_F
+
+  - title: "Francis Reweighting"
+    desc: "Functions for setting up Francis Reweighting"
+    contents:
+      - run_francis
+      - do_francis_reweighting
+
+  - title: "Model Diagnostics"
+    desc: "Functions for model diagnostics"
+    contents:
+      - do_jitter
+      - do_retrospective
+      - get_retrospective_relative_difference
+      - do_runs_test
+      - get_idx_fits
+      - get_comp_prop
+      - get_osa
+      - plot_resids
+      - get_nLL_plot
+      - get_idx_fits_plot
+      - get_catch_fits_plot
+      - get_retrospective_plot
+      - do_likelihood_profile
+      - do_mcmc
+      - mcmc_par_names
+      - mcmc_diag
+      - get_mcmc_ssb_rec
+
+  - title: "Utility"
+    desc: "Functions for convenience"
+    contents:
+      - fit_model
+      - set_data_indicator_unused
+      - post_optim_sanity_checks
+      - get_par_est_info
+
+  - title: "Plotting"
+    desc: "Functions for plotting"
+    contents:
+      - get_ts_plot
+      - get_selex_plot
+      - get_biological_plot
+      - get_data_fitted_plot
+      - plot_all_basic
+      - theme_sablefish
+
+  - title: "Data"
+    desc: "Data objects provided by SPoRC"
+    contents:
+      - sgl_rg_sable_data
+      - mlt_rg_sable_data
+      - sgl_rg_ebswp_data
+      - three_rg_sable_data
+      - sgl_rg_sable_rep
+      - mlt_rg_sable_rep
+      - sgl_rg_dusky_data
+      - dusky_rtmb_model

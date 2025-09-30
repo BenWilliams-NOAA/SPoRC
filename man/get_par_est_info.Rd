@@ -19,3 +19,10 @@ A list of dataframes for estimated and non-estimated parameter values.
 \description{
 Helper function for extracting parameter information and names from TMB
 }
+\seealso{
+Other Utility: 
+\code{\link{fit_model}()},
+\code{\link{post_optim_sanity_checks}()},
+\code{\link{set_data_indicator_unused}()}
+}
+\concept{Utility}

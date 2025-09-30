@@ -86,7 +86,7 @@
 
 
 <dt id="arg-sexratio">sexratio<a class="anchor" aria-label="anchor" href="#arg-sexratio"></a></dt>
-<dd><p>Vector of recruitment sex ratio</p></dd>
+<dd><p>Array of recruitment sex ratio (n_regions, n_proj_yrs, n_sexes)</p></dd>
 
 
 <dt id="arg-n-fish-fleets">n_fish_fleets<a class="anchor" aria-label="anchor" href="#arg-n-fish-fleets"></a></dt>
@@ -193,6 +193,12 @@
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A list containing projected F, catch, SSB, and Numbers at Age. (Objects are generally dimensioned in the following order: n_regions, n_yrs, n_ages, n_sexes, n_fleets)</p>
     </div>
+    <div class="section level2">
+    <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
+    <div class="dont-index"><p>Other Reference Points and Projections:
+<code><a href="Get_Reference_Points.html">Get_Reference_Points</a>()</code>,
+<code><a href="get_key_quants.html">get_key_quants</a>()</code></p></div>
+    </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
@@ -212,11 +218,10 @@
 <span><span class="co"># Setup necessary inputs</span></span>
 <span><span class="va">n_sims</span> <span class="op">&lt;-</span> <span class="fl">1000</span></span>
 <span><span class="va">t_spawn</span> <span class="op">&lt;-</span> <span class="fl">0</span></span>
-<span><span class="va">sexratio</span> <span class="op">&lt;-</span> <span class="fl">0.5</span></span>
 <span><span class="va">n_proj_yrs</span> <span class="op">&lt;-</span> <span class="fl">15</span></span>
 <span><span class="va">n_regions</span> <span class="op">&lt;-</span> <span class="fl">1</span></span>
 <span><span class="va">n_ages</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">ages</span><span class="op">)</span></span>
-<span><span class="va">n_sexes</span> <span class="op">&lt;-</span> <span class="va">data</span><span class="op">$</span><span class="va">n_sexes</span></span>
+<span><span class="va">n_sexes</span> <span class="op">&lt;-</span> <span class="fl">1</span> <span class="co"># single sex</span></span>
 <span><span class="va">n_fish_fleets</span> <span class="op">&lt;-</span> <span class="fl">2</span></span>
 <span><span class="va">do_recruits_move</span> <span class="op">&lt;-</span> <span class="fl">0</span></span>
 <span><span class="va">terminal_NAA</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="va">obj</span><span class="op">$</span><span class="va">rep</span><span class="op">$</span><span class="va">NAA</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">years</span><span class="op">)</span>,,<span class="op">]</span>, dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">n_regions</span>, <span class="va">n_ages</span>, <span class="va">n_sexes</span><span class="op">)</span><span class="op">)</span></span>
@@ -228,7 +233,7 @@
 <span><span class="va">terminal_F</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="va">obj</span><span class="op">$</span><span class="va">rep</span><span class="op">$</span><span class="va">Fmort</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">years</span><span class="op">)</span>,<span class="op">]</span>, dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">n_regions</span>, <span class="va">n_fish_fleets</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">natmort</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="va">obj</span><span class="op">$</span><span class="va">rep</span><span class="op">$</span><span class="va">natmort</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">years</span><span class="op">)</span>,,<span class="op">]</span>, dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">n_regions</span>, <span class="va">n_proj_yrs</span>, <span class="va">n_ages</span>, <span class="va">n_sexes</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">recruitment</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="va">obj</span><span class="op">$</span><span class="va">rep</span><span class="op">$</span><span class="va">Rec</span><span class="op">[</span>,<span class="fl">20</span><span class="op">:</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">years</span><span class="op">)</span> <span class="op">-</span> <span class="fl">2</span><span class="op">)</span><span class="op">]</span>, dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">n_regions</span>, <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="fl">20</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">years</span><span class="op">)</span> <span class="op">-</span> <span class="fl">2</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
+<span><span class="va">sexratio</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="fl">1</span>, dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">n_regions</span>, <span class="va">n_proj_yrs</span>, <span class="va">n_sexes</span><span class="op">)</span><span class="op">)</span> <span class="co"># recruitment sex ratio</span></span>
 <span><span class="co"># Define reference points</span></span>
 <span><span class="va">spr_35</span> <span class="op">&lt;-</span> <span class="fu"><a href="Get_Reference_Points.html">Get_Reference_Points</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">data</span>,</span>
 <span>                               rep <span class="op">=</span> <span class="va">rep</span>,</span>

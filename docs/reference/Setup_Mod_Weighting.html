@@ -40,8 +40,6 @@
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">Setup_Mod_Weighting</span><span class="op">(</span></span>
 <span>  <span class="va">input_list</span>,</span>
-<span>  sablefish_ADMB <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>  <span class="va">likelihoods</span>,</span>
 <span>  Wt_Catch <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  Wt_FishIdx <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  Wt_SrvIdx <span class="op">=</span> <span class="fl">1</span>,</span>
@@ -61,18 +59,6 @@
 
 <dl><dt id="arg-input-list">input_list<a class="anchor" aria-label="anchor" href="#arg-input-list"></a></dt>
 <dd><p>List containing data, parameter, and map lists.</p></dd>
-
-
-<dt id="arg-sablefish-admb">sablefish_ADMB<a class="anchor" aria-label="anchor" href="#arg-sablefish-admb"></a></dt>
-<dd><p>Numeric flag to mimic calculations for the sablefish ADMB model:</p><ul><li><p>1 to mimic sablefish ADMB calculations</p></li>
-<li><p>0 otherwise</p></li>
-</ul></dd>
-
-
-<dt id="arg-likelihoods">likelihoods<a class="anchor" aria-label="anchor" href="#arg-likelihoods"></a></dt>
-<dd><p>Numeric flag indicating likelihood implementation to use:</p><ul><li><p>0 for ADMB likelihoods</p></li>
-<li><p>1 for TMB likelihoods</p></li>
-</ul></dd>
 
 
 <dt id="arg-wt-catch">Wt_Catch<a class="anchor" aria-label="anchor" href="#arg-wt-catch"></a></dt>
@@ -115,6 +101,20 @@
 <dd><p>Numeric weight (lambda) applied to survey length composition data.</p></dd>
 
 </dl></div>
+    <div class="section level2">
+    <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
+    <div class="dont-index"><p>Other Model Setup:
+<code><a href="Setup_Mod_Biologicals.html">Setup_Mod_Biologicals</a>()</code>,
+<code><a href="Setup_Mod_Catch_and_F.html">Setup_Mod_Catch_and_F</a>()</code>,
+<code><a href="Setup_Mod_Dim.html">Setup_Mod_Dim</a>()</code>,
+<code><a href="Setup_Mod_FishIdx_and_Comps.html">Setup_Mod_FishIdx_and_Comps</a>()</code>,
+<code><a href="Setup_Mod_Fishsel_and_Q.html">Setup_Mod_Fishsel_and_Q</a>()</code>,
+<code><a href="Setup_Mod_Movement.html">Setup_Mod_Movement</a>()</code>,
+<code><a href="Setup_Mod_Rec.html">Setup_Mod_Rec</a>()</code>,
+<code><a href="Setup_Mod_SrvIdx_and_Comps.html">Setup_Mod_SrvIdx_and_Comps</a>()</code>,
+<code><a href="Setup_Mod_Srvsel_and_Q.html">Setup_Mod_Srvsel_and_Q</a>()</code>,
+<code><a href="Setup_Mod_Tagging.html">Setup_Mod_Tagging</a>()</code></p></div>
+    </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>

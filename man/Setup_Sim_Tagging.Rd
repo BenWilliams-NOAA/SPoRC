@@ -5,36 +5,96 @@
 \title{Set up simulated tagging dynamics}
 \usage{
 Setup_Sim_Tagging(
-  n_tags,
-  max_liberty,
-  tag_years,
-  t_tagging,
-  base_Tag_Reporting,
-  Tag_Reporting_pattern,
-  Tag_Ind_Mort,
-  Tag_Shed,
+  n_tags = NULL,
+  n_tags_rel_input = NULL,
+  UseTagging = 0,
+  max_liberty = sim_list$n_ages/2,
+  tag_release_indicator = expand.grid(regions = 1:sim_list$n_regions, tag_years =
+    1:sim_list$n_yrs),
+  t_tagging = 0,
+  ln_Init_Tag_Mort = log(1e-05),
+  ln_Tag_Shed = log(1e-05),
+  Tag_Reporting_input = array(0.5, dim = c(sim_list$n_regions, sim_list$n_yrs,
+    sim_list$n_sims)),
+  tag_selex = 5,
+  tag_natmort = 3,
+  tag_like = 0,
+  ln_tag_theta = log(1),
   sim_list
 )
 }
 \arguments{
-\item{n_tags}{Number of tags to release in a given year}
+\item{n_tags}{Number of tags to release in a given year (scalar, default = NULL)}
 
-\item{max_liberty}{Maximum liberty to track cohorts for}
+\item{n_tags_rel_input}{Number of tag releases by tag cohort length (default = NULL)}
 
-\item{tag_years}{Years to release tags for}
+\item{UseTagging}{Boolean to use tagging (default = 0):
+\itemize{
+  \item 0: Do not simulate tagging
+  \item 1: Simulate tagging
+}}
 
-\item{t_tagging}{Time of tagging (e.g., start year == 0, mid year == 0.5)}
+\item{max_liberty}{Maximum liberty to track cohorts (default = sim_list$n_ages / 2)}
 
-\item{base_Tag_Reporting}{Base tag reporting rate by region}
+\item{tag_release_indicator}{Tag release indicator [regions × tag_years]
+(default = all combinations of regions × years via `expand.grid`)}
 
-\item{Tag_Reporting_pattern}{Tag reporting pattern. Options include: constant}
+\item{t_tagging}{Time of tagging (e.g., start year == 0, mid year == 0.5; default = 0)}
 
-\item{Tag_Ind_Mort}{Initial tag induced mortality}
+\item{ln_Init_Tag_Mort}{Log initial tag-induced mortality (default = log(1e-5))}
 
-\item{Tag_Shed}{Chronic tag shedding rate}
+\item{ln_Tag_Shed}{Log chronic tag shedding rate (default = log(1e-5))}
 
-\item{sim_list}{Simulation list}
+\item{Tag_Reporting_input}{Tag reporting input [n_regions × n_yrs × n_sims]
+(default = 0.5)}
+
+\item{tag_selex}{Tag selectivity type (integer, default = 5):
+\itemize{
+  \item 0: Uniform_DomFleet
+  \item 1: SexAgg_DomFleet
+  \item 2: SexSp_DomFleet
+  \item 3: Uniform_AllFleet
+  \item 4: SexAgg_AllFleet
+  \item 5: SexSp_AllFleet
+}}
+
+\item{tag_natmort}{Tag natural mortality type (integer, default = 3):
+\itemize{
+  \item 0: AgeAgg_SexAgg
+  \item 1: AgeSp_SexAgg
+  \item 2: AgeAgg_SexSp
+  \item 3: AgeSp_SexSp
+}}
+
+\item{tag_like}{Tag likelihood type (integer, default = 0):
+\itemize{
+  \item 0: Poisson
+  \item 1: NegBin
+  \item 2: Multinomial_Release
+  \item 3: Multinomial_Recapture
+  \item 4: Dirichlet-Multinomial_Release
+  \item 5: Dirichlet-Multinomial_Recapture
+}}
+
+\item{ln_tag_theta}{Scalar in log space describing tag likelihood overdispersion (default = log(1))}
+
+\item{sim_list}{Simulation list (required)}
 }
 \description{
 Set up simulated tagging dynamics
 }
+\seealso{
+Other Simulation Setup: 
+\code{\link{Setup_Sim_Biologicals}()},
+\code{\link{Setup_Sim_Containers}()},
+\code{\link{Setup_Sim_Dim}()},
+\code{\link{Setup_Sim_Fishing}()},
+\code{\link{Setup_Sim_Rec}()},
+\code{\link{Setup_Sim_Survey}()},
+\code{\link{Setup_sim_env}()},
+\code{\link{Simulate_Pop_Static}()},
+\code{\link{run_annual_cycle}()},
+\code{\link{simulation_data_to_SPoRC}()},
+\code{\link{simulation_self_test}()}
+}
+\concept{Simulation Setup}

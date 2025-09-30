@@ -7,7 +7,7 @@
 #'
 #' @returns Plots of spawning biomass, dynamic b0, total biomass, recruitment, and fishing mortality time-series across models
 #' @export get_ts_plot
-#'
+#' @family Plotting
 #' @examples
 #' \dontrun{
 #'   get_ts_plot(list(rep1, rep2), list(sd_rep1, sd_rep2), c("Model1", "Model2"), do_ci = TRUE)
@@ -160,7 +160,7 @@ get_ts_plot <- function(rep,
 #'
 #' @returns Plots of terminal year fishery and survey selectivity by fleet, region, and sex across models
 #' @export get_selex_plot
-#'
+#' @family Plotting
 #' @examples
 #' \dontrun{
 #' get_selex_plot(list(rep1, rep2), c("Model1", "Model2"), year_indx = c(1:30))
@@ -235,7 +235,7 @@ get_selex_plot <- function(rep, model_names, Selex_Type = 'age', year_indx = NUL
 #'
 #' @returns A list of plots for terminal year movement, natural mortality, weight-at-age, and maturity at age across models
 #' @export get_biological_plot
-#'
+#' @family Plotting
 #' @examples
 #' \dontrun{
 #' get_biological_plot(list(data1, data2), list(rep1, rep2), c("Model1", "Model2"))
@@ -345,7 +345,7 @@ get_biological_plot <- function(data,
 #'
 #' @returns A plot of data that were fitted to across models
 #' @export get_data_fitted_plot
-#'
+#' @family Plotting
 #' @examples
 #' \dontrun{
 #' get_data_fitted_plot(list(data1, data2), c("Model1", "Model2"))
@@ -436,7 +436,7 @@ get_data_fitted_plot <- function(data,
 #'
 #' @returns Plot and tables of negative log likelihood values across models
 #' @export get_nLL_plot
-#'
+#' @family Model Diagnostics
 #' @examples
 #' \dontrun{
 #' get_nLL_plot(list(data1, data2), list(rep1, rep2), c("Model1", "Model2"))
@@ -522,7 +522,7 @@ get_nLL_plot <- function(data,
 #'
 #' @returns A plot of fitted values to various indices across models
 #' @export get_idx_fits_plot
-#'
+#' @family Model Diagnostics
 #' @examples
 #' \dontrun{
 #' get_idx_fits_plot(list(data1, data2), list(rep1, rep2), c("Model1", "Model2"))
@@ -562,7 +562,7 @@ get_idx_fits_plot <- function(data,
 #'
 #' @returns A plot of fitted values to various catch time series across models
 #' @export get_catch_fits_plot
-#'
+#' @family Model Diagnostics
 #' @examples
 #' \dontrun{
 #' get_catch_fits_plot(list(data1, data2), list(rep1, rep2), c("Model1", "Model2"))
@@ -612,7 +612,7 @@ get_catch_fits_plot <- function(data,
 #'
 #' @returns A retrospective plot of recruitment and SSB in relative and absolute scales, as well as a retrospective plot of recruitment by cohort (squid plot)
 #' @export get_retrospective_plot
-#'
+#' @family Model Diagnostics
 #' @examples
 #' \dontrun{
 #' # do retrospective
@@ -629,8 +629,6 @@ get_catch_fits_plot <- function(data,
 #' get_retrospective_plot(retro, Rec_Age = 2)
 #' }
 get_retrospective_plot <- function(retro_output, Rec_Age) {
-
-  if(sum(names(retro_output) %in% c("Region", "Year", "value", "Type", "peel")) != 5) stop("Retro output does not contain Region, Year, value, Type, peel.")
 
   # Get relative differences
   ret_df <- get_retrospective_relative_difference(retro_output)
@@ -665,7 +663,7 @@ get_retrospective_plot <- function(retro_output, Rec_Age) {
     ggplot2::geom_line(retro_output %>% filter(peel == 0), mapping = ggplot2::aes(x = Year, y = value), lty = 2, lwd = 1) +
     ggplot2::scale_color_viridis_c() +
     ggplot2::coord_cartesian(ylim = c(0, NA)) +
-    ggplot2::facet_wrap(~Type, scales = 'free') +
+    ggplot2::facet_grid(Region~Type, scales = 'free') +
     theme_sablefish() +
     ggplot2::labs(x = 'Year', y = 'Value', color = 'Peel')
 
@@ -676,6 +674,7 @@ get_retrospective_plot <- function(retro_output, Rec_Age) {
     ggplot2::ggplot(ggplot2::aes(x = years_est - 1, y = value, group = Year, color = factor(cohort))) +
     ggplot2::geom_line(lwd = 1.3) +
     ggplot2::geom_point(size = 4) +
+    ggplot2::facet_wrap(~Region, scales = 'free') +
     ggplot2::theme_bw(base_size = 15) +
     ggplot2::labs(x = 'Years since cohort was last estimated', y = 'Recruitment (millions)', color = 'Cohort')
 
@@ -755,6 +754,7 @@ get_retrospective_plot <- function(retro_output, Rec_Age) {
 #' }
 #'
 #' @export get_key_quants
+#' @family Reference Points and Projections
 get_key_quants <- function(data,
                            rep,
                            reference_points_opt,
@@ -933,6 +933,7 @@ get_key_quants <- function(data,
 #'
 #' @returns A series of plots compared across models outputted as a pdf in the specified directory
 #' @export plot_all_basic
+#' @family Plotting
 #'
 #' @examples
 #' \dontrun{

@@ -60,7 +60,7 @@ Following the initialization of `input_list`, we can pass the created object int
 3) Two values for `sigmaR` are used, the first value represents an early period `sigmaR`, which is fixed at 0.4, while the second value represents a late period `sigmaR`, which is freely estimated (although should be fixed).
 4) Recruitment deviations are estimated in a penalized likelihood framework,
 5) Recruitment deviations are estimated for all years, except for the terminal year,
-6) Recruitment sex-ratios are fixed at 0.5 for each sex,
+6) Recruitment sex-ratios are fixed at 0.5 for each sex (as default),
 7) Initial age structure is derived by assuming a geometric series (`init_age_strc = 1`; the alternative is iterating age structure to some equilibrium `init_age_strc = 0`), and 
 8) A 10% fraction of the mean fishing mortality rate is assumed for initalizing the age structure.
 
@@ -87,8 +87,6 @@ input_list <- Setup_Mod_Rec(input_list = input_list, # input data list from abov
                             rec_model = "mean_rec", # recruitment model
                             sigmaR_spec = "fix_early_est_late", 
                             # fix early sigmaR, estiamte late sigmaR
-                            sexratio = as.vector(c(0.5, 0.5)), 
-                            # recruitment sex ratio
                             init_age_strc = 1, # how to derive inital age strc
                             init_F_prop = 0.1 # fraction of mean F from 
                             # dominant fleet to apply to initial age strc
@@ -141,7 +139,7 @@ input_list <- Setup_Mod_Tagging(input_list = input_list,
 
 ## Setup Catch and Fishing Mortality
 
-Following the parameterization of biological dynamics, fishery dynamics can then be specified and set up using the `Setup_Mod_Catch_and_F` function. Again, the input_list that gets updated from previous helper functions. Users will need to supply the function with an array of observed catches `ObsCatch`, which are dimensioned as `n_regions`, `n_years`, and `n_fish_fleets`. Similarly, users will also need to specify the catch type of these observations with the `Catch_Type` argument. This argument expects a matrix dimensioned by `n_years` and `n_fish_fleets`, and is really only applicable in a spatial model (values of 0 indicate that catch is aggregated across regions in some periods and fleets, while values of 1 indicate catch is specific to each region in all periods and fleets). Thus, in a single region model, values of `1` should always be supplied. The function also expects the `UseCatch` argument to be specified, which is dimensioned as `n_regions`, `n_years`, and `n_fish_fleets`. Essentially, users will need to fill out whether catch is fit to for those particular partitions. Most use cases of this argument are scenarios in which catch is observed to be a value of 0, where the helper function automatically turns off the estimation of fishing mortality deviations for those partitions. Additional model options specified for this case study include: 1) whether fishing mortality penalties are utilized to help estimate deviations `Use_F_pen = 1`, to fix the standard deviation for catches and fishing mortality (`sigmaC_spec = 'fix'`, `sigmaF_spec = 'fix'`), and any constants to add to catch `Catch_Constant = c(0.01, 0.8)`, which has a length of `n_fish_fleets`. Ideally, the `Catch_Constant` argument is not needed, since it is not necessary to fit to catch values of 0. In such cases, users can leave this argument as NULL, and the function will automatically populate this with `Catch_Constant <- rep(0, input_list$data$n_fish_fleets)`.
+Following the parameterization of biological dynamics, fishery dynamics can then be specified and set up using the `Setup_Mod_Catch_and_F` function. Again, the input_list that gets updated from previous helper functions. Users will need to supply the function with an array of observed catches `ObsCatch`, which are dimensioned as `n_regions`, `n_years`, and `n_fish_fleets`. Similarly, users will also need to specify the catch type of these observations with the `Catch_Type` argument. This argument expects a matrix dimensioned by `n_years` and `n_fish_fleets`, and is really only applicable in a spatial model (values of 0 indicate that catch is aggregated across regions in some periods and fleets, while values of 1 indicate catch is specific to each region in all periods and fleets). Thus, in a single region model, values of `1` should always be supplied. The function also expects the `UseCatch` argument to be specified, which is dimensioned as `n_regions`, `n_years`, and `n_fish_fleets`. Essentially, users will need to fill out whether catch is fit to for those particular partitions. Most use cases of this argument are scenarios in which catch is observed to be a value of 0, where the helper function automatically turns off the estimation of fishing mortality deviations for those partitions. Additional model options specified for this case study include: 1) whether fishing mortality penalties are utilized to help estimate deviations `Use_F_pen = 1`, to fix the standard deviation for catches and fishing mortality (`sigmaC_spec = 'fix'`, `sigmaF_spec = 'fix'`).
 
 ```{r Setup Catch and Fishing Mortality, message = FALSE,  eval = FALSE}
 input_list <- Setup_Mod_Catch_and_F(input_list = input_list,
@@ -156,10 +154,9 @@ input_list <- Setup_Mod_Catch_and_F(input_list = input_list,
                                     # whether to use f penalty, == 0 don't use, == 1 use
                                     sigmaC_spec = 'fix',
                                     sigmaF_spec = "fix",
-                                    Catch_Constant = c(0.01, 0.8),
-                                    
+
                                     # Fixing sigma C and F
-                                    ln_sigmaC = array(log(sqrt(1/2)), dim = c(input_list$data$n_regions, input_list$data$n_fish_fleets)),
+                                    ln_sigmaC = array(log(sqrt(1/2)), dim = c(input_list$data$n_regions, length(input_list$data$years), input_list$data$n_fish_fleets)),
                                     ln_sigmaF = array(log(sqrt(1/2)), dim = c(input_list$data$n_regions, input_list$data$n_fish_fleets))
                                     )
 ```

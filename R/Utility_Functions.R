@@ -3,6 +3,7 @@
 #' @return ggplot theme
 #' @export theme_sablefish
 #' @import ggplot2
+#' @family Plotting
 theme_sablefish <- function() {
    theme_bw() +
     theme(legend.position = "top",
@@ -104,6 +105,7 @@ is_package_available <- function(pkg) {
 #'
 #' @returns Fishing mortality values
 #' @export bisection_F
+#' @family Closed Loop Simulations
 bisection_F <- function(f_guess,
                         catch,
                         NAA,
@@ -150,6 +152,7 @@ bisection_F <- function(f_guess,
 #' @param corr_tol Value for maximum correlation tolerance to use
 #'
 #' @export post_optim_sanity_checks
+#' @family Utility
 post_optim_sanity_checks <- function(sd_rep,
                                      rep,
                                      gradient_tol = 1e-3,
@@ -236,6 +239,7 @@ safe_extract <- function(obj, name) {
 #'
 #' @returns A list of dataframes for estimated and non-estimated parameter values.
 #' @export get_par_est_info
+#' @family Utility
 get_par_est_info <- function(parameters, mapping, sd_rep) {
 
   # get parameter names
@@ -270,10 +274,10 @@ get_par_est_info <- function(parameters, mapping, sd_rep) {
                   Par_Num_map = paste(Par, map, sep = "_")) # now, make a variable that is consistent with numbering in sdreport
 
   # now, get estimater parameter names and values
-  est_names <- data.frame(Par = names(sd_rep$par.fixed),
-                          Est_Val = sd_rep$par.fixed,
-                          SE_Val = sqrt(diag(sd_rep$cov.fixed)),
-                          Abs_Grad_Val = abs(as.vector(sd_rep$gradient.fixed))) %>%
+  est_names <- data.frame(Par = c(names(sd_rep$par.fixed), names(sd_rep$par.random)),
+                          Est_Val = c(sd_rep$par.fixed, sd_rep$par.random),
+                          SE_Val = c(sqrt(diag(sd_rep$cov.fixed)), sd_rep$diag.cov.random),
+                          Abs_Grad_Val = c(abs(as.vector(sd_rep$gradient.fixed)), rep(NA, length(sd_rep$diag.cov.random)))) %>%
     dplyr::group_by(Par) %>%
     dplyr::mutate(Par_Num_map = paste(Par, row_number(), sep = '_'))
 
@@ -290,4 +294,179 @@ get_par_est_info <- function(parameters, mapping, sd_rep) {
     list(est_pars = estimated_pars,
          non_est_pars = non_estimated_pars)
   )
+}
+
+#' Title Populates an unoptimized parameter list with optimized values
+#'
+#' @param parameters Parameter list
+#' @param mapping Mapping list
+#' @param sd_rep Sd report list from RTMB
+#' @param random Character vector of whether random effects were estimated
+#'
+#' @returns Updated parameter list with associated optimized parameters corresponding to the same mapping indices
+#' @keywords internal
+get_optim_param_list <- function(parameters, mapping, sd_rep, random) {
+
+  est_param_names <- names(c(sd_rep$par.fixed, sd_rep$par.random)) # get estimated parameter names
+
+  for (param_name in names(parameters)) {
+    map_name <- param_name
+    if (map_name %in% names(mapping) && param_name %in% est_param_names) {
+      # checking to see if vector
+      if(!is.vector(parameters[[param_name]])) {
+        param_map <- array(mapping[[map_name]], dim = dim(parameters[[param_name]])) # not a vector
+      } else {
+        param_map <- mapping[[map_name]] # vector
+      }
+
+      est_values <- if(param_name %in% random) sd_rep$par.random[names(sd_rep$par.random) == param_name] else sd_rep$par.fixed[names(sd_rep$par.fixed) == param_name] # Get estimated values for this parameter
+      unique_map_values <- unique(param_map[!is.na(param_map)]) # Get unique non-NA mapping values
+
+      # Create estimated parameter array/vector by mapping unique values to estimates
+      if(!is.vector(parameters[[param_name]])) {
+        param_est <- array(NA, dim = dim(parameters[[param_name]]))
+      } else {
+        param_est <- rep(NA, length(parameters[[param_name]]))
+      }
+
+      # mapg unique values back to the parameter structure
+      for (i in seq_along(unique_map_values)) {
+        param_est[param_map == unique_map_values[i]] <- est_values[i]
+      }
+
+      # if mapping is NA use original, else use estimated (shared values)
+      parameters[[param_name]][!is.na(param_map)] <- param_est[!is.na(param_map)]
+
+      # No mapping - estimated by default
+    } else if (param_name %in% est_param_names) {
+      if(!is.vector(parameters[[param_name]])) parameters[[param_name]] <- array(sd_rep$par.fixed[est_param_names == param_name], dim = dim(parameters[[param_name]])) # not a vector
+         else parameters[[param_name]] <- sd_rep$par.fixed[est_param_names == param_name] # vector
+         }
+
+  }
+
+  return(parameters)
+}
+
+#' Extend an array along a year dimension
+#'
+#' This function takes an array and extends it along the specified year dimension.
+#' The extension can either be filled with zeros or by repeating the last year slice.
+#'
+#' @param arr Array to extend. Can have any number of dimensions.
+#' @param n_years Integer. The total number of years to extend the array to.
+#' @param yr_dim Integer. The dimension of `arr` that corresponds to years.
+#' @param fill Character or Numeric (scalar or array). How to fill the extended years:
+#'   - `"zeros"`: fill with zeros
+#'   - `"last"`: repeat the last year slice that is not a NaN or NA value. If all values are NA, then the array gets populated with NAs.
+#'   - `"mean"`: take mean of time series
+#'   - `"F_pattern"`: Used for fishery input sample sizes, dynamically fills in sample sizes based on fishing mortality values specified in a closed loop simulation
+#'   -  Numeric: Constant scalar or array
+#' @return An array extended along the `yr_dim` dimension.
+#'
+#' @keywords internal
+extend_years <- function(arr, n_years, yr_dim, fill = "zeros") {
+  new_dims <- dim(arr); new_dims[yr_dim] <- n_years
+  if(fill %in% c("zeros", "F_pattern")) {
+    fill_array <- array(0, dim = new_dims)
+  } else if(fill == "last") {
+    # Get last non-NaN year slice along yr_dim
+    # First, find the last year index that contains at least some non-NaN values
+    last_valid_idx <- NULL
+    for(i in dim(arr)[yr_dim]:1) {
+      indices <- rep(list(quote(expr=)), length(dim(arr)))
+      indices[[yr_dim]] <- i
+      year_slice <- do.call(`[`, c(list(arr), indices, drop = FALSE))
+      # check if this slice has any non-NaN values
+      if(any(!is.na(year_slice) & !is.nan(year_slice))) {
+        last_valid_idx <- i
+        break
+      }
+    }
+    # use NA if no valid year found
+    if(is.null(last_valid_idx)) {
+      fill_array <- array(NA, dim = new_dims)
+    } else {
+      # Get the last valid year slice
+      indices <- rep(list(quote(expr=)), length(dim(arr)))
+      indices[[yr_dim]] <- last_valid_idx
+      last_year_slice <- do.call(`[`, c(list(arr), indices, drop = FALSE))
+
+      # repeat slice n_years times
+      fill_array <- array(0, dim = new_dims)
+      for(i in 1:n_years) {
+        fill_indices <- rep(list(quote(expr=)), length(dim(arr)))
+        fill_indices[[yr_dim]] <- i
+        fill_array <- do.call(`[<-`, c(list(fill_array), fill_indices, list(last_year_slice)))
+      }
+    }
+  } else if (fill == "mean") {
+    # get mean along the year dimension, excluding zeros and NaNs
+    margins <- setdiff(seq_along(dim(arr)), yr_dim)
+    # get mean excluding zeros and NaNs
+    mean_slice <- apply(arr, margins, function(x) {
+      valid_values <- x[!is.na(x) & !is.nan(x) & x != 0]
+      if(length(valid_values) == 0) return(0) else mean(valid_values)
+    })
+    # extend mean_slice along year dimension
+    fill_array <- array(mean_slice, dim = new_dims)
+  } else if (is.numeric(fill)) {
+    fill_array <- array(fill, dim = new_dims)
+  }
+  return(abind::abind(arr, fill_array, along = yr_dim))
+}
+
+#' Set Data Indicators to Unused for Specified Years
+#'
+#' @param data Data list for RTMB model
+#' @param unused_years Integer vector specifying which years to mark as unused. Only years present in \code{data$years} are considered.
+#' @param what Character vector specifying which data types to modify. Possible values include:
+#'   \describe{
+#'     \item{"Catch"}{Catch data indicators.}
+#'     \item{"FishIdx"}{Fishery index data indicators.}
+#'     \item{"FishAgeComps"}{Fishery age composition data indicators.}
+#'     \item{"FishLenComps"}{Fishery length composition data indicators.}
+#'     \item{"SrvIdx"}{Survey index data indicators.}
+#'     \item{"SrvAgeComps"}{Survey age composition data indicators.}
+#'     \item{"SrvLenComps"}{Survey length composition data indicators.}
+#'     \item{"Tagging"}{Tagging data and associated cohorts.}
+#'   }
+#'
+#' @returns The modified \code{data} object, with indicators set to 0 for the specified years and tagging cohorts removed if relevant.
+#' @export set_data_indicator_unused
+#' @family Utility
+set_data_indicator_unused <- function(data,
+                                      unused_years,
+                                      what = c('Catch', "FishIdx",
+                                               "FishAgeComps", "FishLenComps",
+                                               "SrvIdx", "SrvAgeComps", "SrvLenComps",
+                                               "Tagging")) {
+
+  # figure out year dimensions
+  data_years <- 1:length(data$years)
+  unused_years <- unused_years[which(unused_years %in% data_years)]
+
+  if(length(unused_years) > 0) {
+    # set to not use
+    if("Catch" %in% what) data$UseCatch[,unused_years,] <- 0
+    if("FishIdx" %in% what) data$UseFishIdx[,unused_years,] <- 0
+    if("FishAgeComps" %in% what) data$UseFishAgeComps[,unused_years,] <- 0
+    if("FishLenComps" %in% what) data$UseFishLenComps[,unused_years,] <- 0
+    if("SrvIdx" %in% what) data$UseSrvIdx[,unused_years,] <- 0
+    if("SrvAgeComps" %in% what) data$UseSrvAgeComps[,unused_years,] <- 0
+    if("SrvLenComps" %in% what) data$UseSrvLenComps[,unused_years,] <- 0
+  }
+
+  # modify tagging stuff
+  if(data$UseTagging == 1 && "Tagging" %in% what) {
+    tags_to_remove <- which(data$tag_release_indicator[,2] %in% unused_years)
+    if(length(tags_to_remove) > 0) {
+      data$Tagged_Fish <- data$Tagged_Fish[-tags_to_remove,,,drop=FALSE]
+      data$Obs_Tag_Recap <- data$Obs_Tag_Recap[,-tags_to_remove,,,,drop=FALSE]
+      data$tag_release_indicator <- data$tag_release_indicator[-tags_to_remove,,drop=FALSE]
+      data$n_tag_cohorts <- nrow(data$tag_release_indicator)
+    }
+  }
+
+  return(data)
 }

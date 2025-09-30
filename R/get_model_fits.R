@@ -6,6 +6,7 @@
 #'
 #' @returns Fits to indices as a dataframe
 #' @export get_idx_fits
+#' @family Model Diagnostics
 #' @import dplyr
 #' @importFrom tidyr drop_na
 #' @examples
@@ -45,19 +46,11 @@ get_idx_fits <- function(data,
   colnames(rep$PredFishIdx) <- year_labs
 
   # Observed survey index
-  if(data$likelihoods == 1) {
-    obs_srv <- reshape2::melt(data$ObsSrvIdx) %>% dplyr::rename(obs = value) %>%
-      dplyr::left_join(reshape2::melt(data$ObsSrvIdx_SE) %>%  dplyr::rename(se = value), by = c("Var1", "Var2", "Var3")) %>%
-      dplyr::mutate(lci = exp(log(obs) - (1.96 * se)), uci = exp(log(obs) + (1.96 * se)), Type = 'Survey') %>%
-      tidyr::drop_na() %>%
-      dplyr::rename(Region = Var1, Year = Var2, Fleet = Var3)
-  } else {
-    obs_srv <- reshape2::melt(data$ObsSrvIdx) %>% dplyr::rename(obs = value) %>%
-      dplyr::left_join(reshape2::melt(data$ObsSrvIdx_SE) %>%  dplyr::rename(se = value), by = c("Var1", "Var2", "Var3")) %>%
-      dplyr::mutate(lci = obs - (1.96 * se), uci = obs + (1.96 * se), Type = 'Survey') %>%
-      tidyr::drop_na() %>%
-      dplyr::rename(Region = Var1, Year = Var2, Fleet = Var3)
-  }
+  obs_srv <- reshape2::melt(data$ObsSrvIdx) %>% dplyr::rename(obs = value) %>%
+    dplyr::left_join(reshape2::melt(data$ObsSrvIdx_SE) %>%  dplyr::rename(se = value), by = c("Var1", "Var2", "Var3")) %>%
+    dplyr::mutate(lci = exp(log(obs) - (1.96 * se)), uci = exp(log(obs) + (1.96 * se)), Type = 'Survey') %>%
+    tidyr::drop_na() %>%
+    dplyr::rename(Region = Var1, Year = Var2, Fleet = Var3)
 
   # Predicted survey index
   pred_srv <- reshape2::melt(rep$PredSrvIdx) %>%
@@ -77,23 +70,13 @@ get_idx_fits <- function(data,
     dplyr::mutate(resid = log(obs) - log(value))
 
   # Observed fishery index
-  if(data$likelihoods == 1) {
-    obs_fish <- reshape2::melt(data$ObsFishIdx) %>%
-      dplyr::rename(obs = value) %>%
-      dplyr::left_join(reshape2::melt(data$ObsFishIdx_SE) %>%
-                         dplyr::rename(se = value), by = c("Var1", "Var2", "Var3")) %>%
-      dplyr::mutate(lci = exp(log(obs) - (1.96 * se)), uci = exp(log(obs) + (1.96 * se)), Type = 'Fishery') %>%
-      tidyr::drop_na() %>%
-      dplyr::rename(Region = Var1, Year = Var2, Fleet = Var3)
-  } else {
-    obs_fish <- reshape2::melt(data$ObsFishIdx) %>%
-      dplyr::rename(obs = value) %>%
-      dplyr::left_join(reshape2::melt(data$ObsFishIdx_SE) %>%
-                         dplyr::rename(se = value), by = c("Var1", "Var2", "Var3")) %>%
-      dplyr::mutate(lci = obs - (1.96 * se), uci = obs + (1.96 * se), Type = 'Fishery') %>%
-      tidyr::drop_na() %>%
-      dplyr::rename(Region = Var1, Year = Var2, Fleet = Var3)
-  }
+  obs_fish <- reshape2::melt(data$ObsFishIdx) %>%
+    dplyr::rename(obs = value) %>%
+    dplyr::left_join(reshape2::melt(data$ObsFishIdx_SE) %>%
+                       dplyr::rename(se = value), by = c("Var1", "Var2", "Var3")) %>%
+    dplyr::mutate(lci = exp(log(obs) - (1.96 * se)), uci = exp(log(obs) + (1.96 * se)), Type = 'Fishery') %>%
+    tidyr::drop_na() %>%
+    dplyr::rename(Region = Var1, Year = Var2, Fleet = Var3)
 
   # Predicted fishery index
   pred_fish <- reshape2::melt(rep$PredFishIdx) %>%
@@ -234,7 +217,7 @@ Restrc_Comps <- function(Exp,
 #' @importFrom tidyr drop_na
 #' @returns List of fishery age, lengths, survey age, lengths dataframe as well as in matrix form (dimensioned by region, year, bin, sex, fleet)
 #' @export get_comp_prop
-#'
+#' @family Model Diagnostics
 #' @examples
 #' \dontrun{
 #' comp_props <- get_comp_prop(data = data, rep = rep, age_labels = 2:31, len_labels = seq(41, 99, 2), year_labels = 1960:2024)
@@ -489,6 +472,7 @@ get_comp_prop <- function(data,
 #'
 #' @import dplyr
 #' @returns OSA residuals
+#' @family Model Diagnostics
 #' @export get_osa
 #'
 #' @examples
@@ -622,6 +606,7 @@ get_osa <- function(obs_mat,
 #'
 #' @returns A vareity of plots for OSA residuals (list)
 #' @export plot_resids
+#' @family Model Diagnostics
 #' @import dplyr
 #' @import ggplot2
 #'

@@ -26,3 +26,10 @@ post_optim_sanity_checks(
 \description{
 Post Optimization Model Convergence Checks
 }
+\seealso{
+Other Utility: 
+\code{\link{fit_model}()},
+\code{\link{get_par_est_info}()},
+\code{\link{set_data_indicator_unused}()}
+}
+\concept{Utility}

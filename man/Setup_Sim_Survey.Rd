@@ -5,28 +5,164 @@
 \title{Setup values for survey parameterization}
 \usage{
 Setup_Sim_Survey(
-  sigmaSrvIdx,
-  base_srv_q,
-  srv_q_pattern,
-  sel_model,
-  fixed_srv_sel_pars,
-  sim_list
+  ObsSrvIdx_SE = array(0.2, dim = c(sim_list$n_regions, sim_list$n_yrs,
+    sim_list$n_srv_fleets)),
+  sim_list,
+  srv_sel_input,
+  srv_q_input = array(1, dim = c(sim_list$n_regions, sim_list$n_yrs,
+    sim_list$n_srv_fleets, sim_list$n_sims)),
+  t_srv = array(0, dim = c(sim_list$n_regions, sim_list$n_srv_fleets)),
+  srv_idx_type = rep(1, sim_list$n_srv_fleets),
+  comp_srvage_like = rep(0, sim_list$n_srv_fleets),
+  ISS_SrvAgeComps = array(100, dim = c(sim_list$n_regions, sim_list$n_yrs,
+    sim_list$n_sexes, sim_list$n_srv_fleets, sim_list$n_sims)),
+  ln_SrvAge_theta = array(log(1), dim = c(sim_list$n_regions, sim_list$n_sexes,
+    sim_list$n_srv_fleets)),
+  ln_SrvAge_theta_agg = rep(log(1), sim_list$n_srv_fleets),
+  SrvAge_corr_pars_agg = rep(0.01, sim_list$n_srv_fleets),
+  SrvAge_corr_pars = array(0.01, dim = c(sim_list$n_regions, sim_list$n_sexes,
+    sim_list$n_srv_fleets, 2)),
+  SrvAgeComps_Type = array(2, dim = c(sim_list$n_yrs, sim_list$n_srv_fleets)),
+  comp_srvlen_like = rep(0, sim_list$n_srv_fleets),
+  ISS_SrvLenComps = array(100, dim = c(sim_list$n_regions, sim_list$n_yrs,
+    sim_list$n_sexes, sim_list$n_srv_fleets, sim_list$n_sims)),
+  ln_SrvLen_theta = array(log(1), dim = c(sim_list$n_regions, sim_list$n_sexes,
+    sim_list$n_srv_fleets)),
+  ln_SrvLen_theta_agg = rep(log(1), sim_list$n_srv_fleets),
+  SrvLen_corr_pars_agg = rep(0.01, sim_list$n_srv_fleets),
+  SrvLen_corr_pars = array(0.01, dim = c(sim_list$n_regions, sim_list$n_sexes,
+    sim_list$n_srv_fleets, 2)),
+  SrvLenComps_Type = array(2, dim = c(sim_list$n_yrs, sim_list$n_srv_fleets))
 )
 }
 \arguments{
-\item{sigmaSrvIdx}{Survey index observation error, dimensioned by region and fleet}
+\item{ObsSrvIdx_SE}{Survey index observation error
+[n_regions × n_yrs × n_srv_fleets]
+(default: `0.2`)}
 
-\item{base_srv_q}{Base survey catchability value, dimensioned by region and fleet}
+\item{sim_list}{Simulation list object from `Setup_Sim_Dim()`}
 
-\item{srv_q_pattern}{Survey catchability pattern, dimensioned by region and fleet. Options include: constant}
+\item{srv_sel_input}{Survey selectivity array
+[n_regions × n_yrs × n_ages × n_sexes × n_srv_fleets × n_sims]
+(no default, must be provided)}
 
-\item{sel_model}{Survey selectivity model dimensioned by region and fleet. Options include: logistic}
+\item{srv_q_input}{Survey catchability array
+[n_regions × n_yrs × n_srv_fleets × n_sims]
+(default: `1`)}
 
-\item{fixed_srv_sel_pars}{Fixed parameters of survey selectivity, dimensioned by region, sex, survey fleet, and the max number of parameters needed for
-for a defined survey selectivity functional form out of all defined functional forms for the survey.}
+\item{t_srv}{Survey timing fraction
+[n_regions × n_srv_fleets]
+(default: `0`)}
 
-\item{sim_list}{Simulation list object}
+\item{srv_idx_type}{Vector of index types [n_srv_fleets]
+(default: all `1` = biomass index)
+\itemize{
+  \item \code{0}: Abundance index
+  \item \code{1}: Biomass index
+}}
+
+\item{comp_srvage_like}{Vector [n_srv_fleets] specifying likelihood for simulating age comps
+(default: all `0` = multinomial)
+\itemize{
+  \item \code{0}: Multinomial
+  \item \code{1}: Dirichlet-Multinomial
+  \item \code{2}: Logistic Normal iid
+  \item \code{3}: Logistic Normal 1dar1
+  \item \code{4}: Logistic Normal 2d correlation (constant by sex, 1dar1 by age)
+}}
+
+\item{ISS_SrvAgeComps}{Input sample sizes
+[n_regions × n_yrs × n_sexes × n_srv_fleets × n_sims]
+(default: `100`)}
+
+\item{ln_SrvAge_theta}{Overdispersion parameters
+[n_regions × n_sexes × n_srv_fleets]
+(default: `log(1)`)}
+
+\item{ln_SrvAge_theta_agg}{Overdispersion parameters for aggregated comps
+[n_srv_fleets]
+(default: `log(1)`)}
+
+\item{SrvAge_corr_pars_agg}{Correlation parameters (agg.) for options 3–4
+[n_srv_fleets]
+(default: `0.01`)}
+
+\item{SrvAge_corr_pars}{Correlation parameters
+[n_regions × n_sexes × n_srv_fleets x 2]
+(default: `0.01`)}
+
+\item{SrvAgeComps_Type}{Array [n_yrs × n_srv_fleets]
+(default: `2` = joint by sex, split by region)
+\itemize{
+  \item \code{0}: Aggregated
+  \item \code{1}: Split by sex and region
+  \item \code{2}: Joint by sex, split by region
+  \item \code{999}: Not simulated
+}}
+
+\item{comp_srvlen_like}{Vector [n_srv_fleets] specifying likelihood for simulating length comps
+(default: all `0` = multinomial)
+\itemize{
+  \item \code{0}: Multinomial
+  \item \code{1}: Dirichlet-Multinomial
+  \item \code{2}: Logistic Normal iid
+  \item \code{3}: Logistic Normal 1dar1
+  \item \code{4}: Logistic Normal 2d correlation (constant by sex, 1dar1 by length)
+}}
+
+\item{ISS_SrvLenComps}{Input sample sizes
+[n_regions × n_yrs × n_sexes × n_srv_fleets × n_sims]
+(default: `100`)}
+
+\item{ln_SrvLen_theta}{Overdispersion parameters
+[n_regions × n_sexes × n_srv_fleets]
+(default: `log(1)`)}
+
+\item{ln_SrvLen_theta_agg}{Overdispersion parameters for aggregated comps
+[n_srv_fleets]
+(default: `log(1)`)}
+
+\item{SrvLen_corr_pars_agg}{Correlation parameters (agg.) for options 3–4
+[n_srv_fleets]
+(default: `0.01`)}
+
+\item{SrvLen_corr_pars}{Correlation parameters
+[n_regions × n_sexes × n_srv_fleets x 2]
+(default: `0.01`)}
+
+\item{SrvLenComps_Type}{Array [n_yrs × n_srv_fleets]
+(default: `2` = joint by sex, split by region)
+\itemize{
+  \item \code{0}: Aggregated
+  \item \code{1}: Split by sex and region
+  \item \code{2}: Joint by sex, split by region
+  \item \code{999}: Not simulated
+}}
 }
 \description{
 Setup values for survey parameterization
 }
+\section{Survey age compositions}{
+
+}
+
+\section{Survey length compositions}{
+
+  (no default, must be provided)
+}
+
+\seealso{
+Other Simulation Setup: 
+\code{\link{Setup_Sim_Biologicals}()},
+\code{\link{Setup_Sim_Containers}()},
+\code{\link{Setup_Sim_Dim}()},
+\code{\link{Setup_Sim_Fishing}()},
+\code{\link{Setup_Sim_Rec}()},
+\code{\link{Setup_Sim_Tagging}()},
+\code{\link{Setup_sim_env}()},
+\code{\link{Simulate_Pop_Static}()},
+\code{\link{run_annual_cycle}()},
+\code{\link{simulation_data_to_SPoRC}()},
+\code{\link{simulation_self_test}()}
+}
+\concept{Simulation Setup}

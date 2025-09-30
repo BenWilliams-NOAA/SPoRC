@@ -46,6 +46,7 @@
 <span>  newton_loops <span class="op">=</span> <span class="fl">3</span>,</span>
 <span>  silent <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  do_optim <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  nlminb_control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>iter.max <span class="op">=</span> <span class="fl">1e+05</span>, eval.max <span class="op">=</span> <span class="fl">1e+05</span>, rel.tol <span class="op">=</span> <span class="fl">1e-15</span><span class="op">)</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -82,6 +83,10 @@
 <dd><p>Boolean on whether or not model is optimized</p></dd>
 
 
+<dt id="arg-nlminb-control">nlminb_control<a class="anchor" aria-label="anchor" href="#arg-nlminb-control"></a></dt>
+<dd><p>List argument controls by nlminb</p></dd>
+
+
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
 <dd><p>Additional arguments taken by MakeADFun</p></dd>
 
@@ -89,6 +94,13 @@
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>Returns a list object that is optimized, with results outputted from the RTMB model</p>
+    </div>
+    <div class="section level2">
+    <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
+    <div class="dont-index"><p>Other Utility:
+<code><a href="get_par_est_info.html">get_par_est_info</a>()</code>,
+<code><a href="post_optim_sanity_checks.html">post_optim_sanity_checks</a>()</code>,
+<code><a href="set_data_indicator_unused.html">set_data_indicator_unused</a>()</code></p></div>
     </div>
 
     <div class="section level2">

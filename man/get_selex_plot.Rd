@@ -26,3 +26,12 @@ Get Fishery and Survey Selectivity Plots
 get_selex_plot(list(rep1, rep2), c("Model1", "Model2"), year_indx = c(1:30))
 }
 }
+\seealso{
+Other Plotting: 
+\code{\link{get_biological_plot}()},
+\code{\link{get_data_fitted_plot}()},
+\code{\link{get_ts_plot}()},
+\code{\link{plot_all_basic}()},
+\code{\link{theme_sablefish}()}
+}
+\concept{Plotting}

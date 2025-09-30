@@ -148,50 +148,78 @@ truncate_yr <- function(j,
 
 
 
-#' Run retrospective analyses
+#' Run retrospective analyses for RTMB models
 #'
-#' @param n_retro Number of retrospective peels to do
-#' @param data Data list for RTMB model
-#' @param parameters Parameter list for RTMB model
-#' @param mapping Mapping list for RTMB model
-#' @param random Random effects as a character vector - default is NULL
-#' @param do_par Whether to do parrallelization, boolean
-#' @param do_francis Whether to do francis reweighitng within a given retrospective peel, boolean
-#' @param n_francis_iter Number of francis iterations to do
-#' @param n_cores Number of cores to use for parrallelization
-#' @importFrom stats nlminb optimHess
-#' @returns Dataframe of retrospective estiamtes of SSB and recruitment
+#' Performs retrospective peels by truncating the input data, optionally applying
+#' Francis reweighting and parallelization, and returns estimates of spawning stock
+#' biomass (SSB) and recruitment for each peel.
+#'
+#' @param n_retro Integer. Number of retrospective peels to perform.
+#' @param data List. Data input for the RTMB model.
+#' @param parameters List. Parameter values for the RTMB model.
+#' @param mapping List. Mapping information for the RTMB model.
+#' @param random Character vector. Names of random effects in the model. Default is \code{NULL}.
+#' @param do_par Logical. Whether to run retrospective peels in parallel. Default is \code{FALSE}.
+#' @param n_cores Integer. Number of cores to use for parallel execution if \code{do_par = TRUE}.
+#' @param newton_loops Integer. Number of Newton loops to run during model fitting. Default is 3.
+#' @param do_francis Logical. Whether to apply Francis reweighting within each retrospective peel. Default is \code{FALSE}.
+#' @param n_francis_iter Integer. Number of Francis reweighting iterations. Required if \code{do_francis = TRUE}.
+#' @param nlminb_control List. Control parameters passed to \code{nlminb} during model fitting. Default is \code{list(iter.max = 1e5, eval.max = 1e5, rel.tol = 1e-15)}.
+#' @param do_sdrep Logical. Whether to return standard errors from \code{sdreport}. Default is \code{FALSE}.
+#' @param fishidx_datalag Integer array. Lags for fishery index data [regions x fleets]. Default is zeros.
+#' @param fishage_datalag Integer array. Lags for fishery age composition data [regions x fleets]. Default is zeros.
+#' @param fishlen_datalag Integer array. Lags for fishery length composition data [regions x fleets]. Default is zeros.
+#' @param srvidx_datalag Integer array. Lags for survey index data [regions x fleets]. Default is zeros.
+#' @param srvage_datalag Integer array. Lags for survey age composition data [regions x fleets]. Default is zeros.
+#' @param srvlen_datalag Integer array. Lags for survey length composition data [regions x fleets]. Default is zeros.
+#' @param tag_datalag Integer. Lag for tagging data. Default is 0.
+#'
+#' @return A \code{data.frame} containing retrospective estimates of SSB and recruitment.
+#'   Columns include:
+#'   \itemize{
+#'     \item \code{Region}: Region index.
+#'     \item \code{Year}: Year index.
+#'     \item \code{Type}: "SSB" or "Recruitment".
+#'     \item \code{peel}: Peel number (0 = full data, 1 = 1-year peel, etc.).
+#'     \item \code{value}: Estimated value of SSB or recruitment.
+#'     \item \code{pdHess} and \code{max_grad} (optional): Information from \code{sdreport} if \code{do_sdrep = TRUE}.
+#'   }
+#'
 #' @export do_retrospective
-#'
+#' @family Model Diagnostics
 #' @import RTMB
 #' @import dplyr
 #' @import future.apply
 #' @import future
 #' @import progressr
 #' @importFrom reshape2 melt
-#'
+#' @importFrom stats nlminb optimHess
 #'
 #' @examples
 #' \dontrun{
-#'  # Do retrospective here
-#'  ret <- do_retrospective(n_retro = 7, data, parameters, mapping, random = NULL, do_par = TRUE, n_cores = 7, do_francis = TRUE, n_francis_iter = 5)
-#'  ggplot(ret, aes(x = Year + 1959, y = value, group = peel, color = 2024 - peel)) +
-#'    geom_line(lwd = 1.3) +
-#'    facet_wrap(~Type) +
-#'    guides (color = guide_colourbar(barwidth = 10, barheight = 1.3)) +
-#'    labs(x = 'Year', y = 'Value', color = 'Retrospective Year') +
-#'    scale_color_viridis_c() +
-#'    theme_bw(base_size = 15) +
-#'    theme(legend.position = 'top')
+#' # Run a 7-year retrospective
+#' ret <- do_retrospective(
+#'   n_retro = 7,
+#'   data = data,
+#'   parameters = parameters,
+#'   mapping = mapping,
+#'   random = NULL,
+#'   do_par = TRUE,
+#'   n_cores = 7,
+#'   do_francis = TRUE,
+#'   n_francis_iter = 5
+#' )
 #'
-#'  ret %>%
-#'    dplyr::mutate(Year = Year + 1959, terminal = 2024 - peel, cohort = Year - 2, years_est = terminal-Year) %>%
-#'    filter(Type == 'Recruitment', cohort %in% c(2014:2022), terminal != Year) %>%
-#'    ggplot(aes(x = years_est - 1, y = value, group = Year, color = factor(cohort))) +
-#'    geom_line(lwd = 1.3) +
-#'    geom_point(size = 4) +
-#'    theme_bw(base_size = 15) +
-#'    labs(x = 'Years since cohort was last estimated', y = 'Recruitment (millions)', color = 'Cohort')
+#' # Plot retrospective SSB and Recruitment
+#' library(ggplot2)
+#' ggplot(ret, aes(x = Year + 1959, y = value, group = peel, color = 2024 - peel)) +
+#'   geom_line(lwd = 1.3) +
+#'   facet_wrap(~Type) +
+#'   guides(color = guide_colourbar(barwidth = 10, barheight = 1.3)) +
+#'   labs(x = 'Year', y = 'Value', color = 'Retrospective Year') +
+#'   scale_color_viridis_c() +
+#'   theme_bw(base_size = 15) +
+#'   theme(legend.position = 'top')
 #' }
 do_retrospective <- function(n_retro,
                              data,
@@ -200,8 +228,18 @@ do_retrospective <- function(n_retro,
                              random = NULL,
                              do_par,
                              n_cores,
+                             newton_loops = 3,
                              do_francis = FALSE,
-                             n_francis_iter = NULL
+                             n_francis_iter = NULL,
+                             nlminb_control = list(iter.max = 1e5, eval.max = 1e5, rel.tol = 1e-15),
+                             do_sdrep = FALSE,
+                             fishidx_datalag = array(0, dim = c(data$n_regions, data$n_fish_fleets)),
+                             fishage_datalag = array(0, dim = c(data$n_regions, data$n_fish_fleets)),
+                             fishlen_datalag = array(0, dim = c(data$n_regions, data$n_fish_fleets)),
+                             srvidx_datalag = array(0, dim = c(data$n_regions, data$n_srv_fleets)),
+                             srvage_datalag = array(0, dim = c(data$n_regions, data$n_srv_fleets)),
+                             srvlen_datalag = array(0, dim = c(data$n_regions, data$n_srv_fleets)),
+                             tag_datalag = 0
                              ) {
 
   # Loop through retrospective (no parrallelization)
@@ -214,68 +252,113 @@ do_retrospective <- function(n_retro,
       # truncate data
       init <- truncate_yr(j = j, data = data, parameters = parameters, mapping = mapping)
 
+      # Fishery Data Lags
+      start_col <- length(init$retro_data$years) # get start index
+      for(f in 1:data$n_fish_fleets) {
+        for(r in 1:data$n_regions) {
+          # get lag indices
+          fishage_tmp_lag <- fishage_datalag[r,f]
+          fishlen_tmp_lag <- fishlen_datalag[r,f]
+          fishidx_tmp_lag <- fishidx_datalag[r,f]
+          # fishery ages
+          if(fishage_tmp_lag > 0) {
+            fishage_end_col <- max(start_col - fishage_tmp_lag + 1, 1) # get end index
+            init$retro_data$UseFishAgeComps[r, start_col:fishage_end_col, f] <- 0 # input 0 to lag incoming data into assessment
+          }
+          # fishery lengths
+          if(fishlen_tmp_lag > 0) {
+            fishlen_end_col <- max(start_col - fishlen_tmp_lag + 1, 1) # get end index
+            init$retro_data$UseFishLenComps[r, start_col:fishlen_end_col, f] <- 0 # input 0 to lag incoming data into assessment
+          }
+          # fishery index
+          if(fishidx_tmp_lag > 0) {
+            fishidx_end_col <- max(start_col - fishidx_tmp_lag + 1, 1) # get end index
+            init$retro_data$UseFishIdx[r, start_col:fishidx_end_col, f] <- 0 # input 0 to lag incoming data into assessment
+          }
+        } # end r loop
+      } # end f loop
+
+      # Survey Data Lags
+      for(f in 1:data$n_srv_fleets) {
+        for(r in 1:data$n_regions) {
+          # get lag indices
+          srvage_tmp_lag <- srvage_datalag[r,f]
+          srvlen_tmp_lag <- srvlen_datalag[r,f]
+          srvidx_tmp_lag <- srvidx_datalag[r,f]
+          # survey ages
+          if(srvage_tmp_lag > 0) {
+            srvage_end_col <- max(start_col - srvage_tmp_lag + 1, 1) # get end index
+            init$retro_data$UseSrvAgeComps[r, start_col:srvage_end_col, f] <- 0 # input 0 to lag incoming data into assessment
+          }
+          # survey lengths
+          if(srvlen_tmp_lag > 0) {
+            srvlen_end_col <- max(start_col - srvlen_tmp_lag + 1, 1) # get end index
+            init$retro_data$UseSrvLenComps[r, start_col:srvlen_end_col, f] <- 0 # input 0 to lag incoming data into assessment
+          }
+          # survey index
+          if(srvidx_tmp_lag > 0) {
+            srvidx_end_col <- max(start_col - srvidx_tmp_lag + 1, 1) # get end index
+            init$retro_data$UseSrvIdx[r, start_col:srvidx_end_col, f] <- 0 # input 0 to lag incoming data into assessment
+          }
+        } # end r loop
+      } # end f loop
+
+      # Tagging Data Lags
+      if(tag_datalag > 0) {
+        Tag_Release_Ind <- as.matrix(init$retro_data$tag_release_indicator) # get tag release indicator
+        tag_end_col <- max(start_col - tag_datalag + 1, 1) # get end index
+        init$retro_data$tag_release_indicator <- as.matrix(Tag_Release_Ind[-which(Tag_Release_Ind[,2] %in% start_col:tag_end_col), ]) # remove tag data when lagged
+        init$retro_data$n_tag_cohorts <- nrow(init$retro_data$tag_release_indicator)
+        init$retro_data$Tagged_Fish <- init$retro_data$Tagged_Fish[1:nrow(init$retro_data$tag_release_indicator),,,drop = FALSE] # remove data (not necessary, but helps with computational cost if using tagging)
+        init$retro_data$Obs_Tag_Recap <- init$retro_data$Obs_Tag_Recap[,1:nrow(init$retro_data$tag_release_indicator),,,,drop = FALSE] # remove data (not necessary, but helps with computational cost)
+      }
+
       if(do_francis == FALSE) { # don't do francis within retrospective loop
 
-        # make AD model function
-        SPoRC_rtmb_model <- RTMB::MakeADFun(cmb(SPoRC_rtmb, init$retro_data), parameters = init$retro_parameters, map = init$retro_mapping, random = random, silent = T)
+        # run model
+        SPoRC_rtmb_model <- fit_model(
+          data = init$retro_data,
+          parameters = init$retro_parameters,
+          mapping = init$retro_mapping,
+          random = random,
+          newton_loops = newton_loops,
+          silent = TRUE
+        )
 
-        # Now, optimize the function
-        SPoRC_optim <- stats::nlminb(SPoRC_rtmb_model$par, SPoRC_rtmb_model$fn, SPoRC_rtmb_model$gr,
-                                     control = list(iter.max = 1e5, eval.max = 1e5, rel.tol = 1e-15))
-        # newton steps
-        try_improve <- tryCatch(expr =
-                                  for(i in 1:3) {
-                                    g = as.numeric(SPoRC_rtmb_model$gr(SPoRC_optim$par))
-                                    h = optimHess(SPoRC_optim$par, fn = SPoRC_rtmb_model$fn, gr = SPoRC_rtmb_model$gr)
-                                    SPoRC_optim$par = SPoRC_optim$par - solve(h,g)
-                                    SPoRC_optim$objective = SPoRC_rtmb_model$fn(SPoRC_optim$par)
-                                  }
-                                , error = function(e){e}, warning = function(w){w})
-
-        rep <- SPoRC_rtmb_model$report(SPoRC_rtmb_model$env$last.par.best) # Get report
+        rep <- SPoRC_rtmb_model$rep # extract report
 
       } else {
 
-        for(f in 1:n_francis_iter) {
+        SPoRC_rtmb_model_francis <- run_francis(data = init$retro_data,
+                                                parameters = init$retro_parameters,
+                                                mapping = init$retro_mapping,
+                                                random = random,
+                                                n_francis_iter = n_francis_iter,
+                                                newton_loops = newton_loops
+                                                )
 
-          if(f == 1) { # reset weights at 1 if at the first iteration
-            init$retro_data$Wt_FishAgeComps[] <- 1
-            init$retro_data$Wt_FishLenComps[] <- 1
-            init$retro_data$Wt_SrvAgeComps[] <- 1
-            init$retro_data$Wt_SrvLenComps[] <- 1
-          } else {
-            # get new weights
-            wts <- do_francis_reweighting(data = init$retro_data, rep = rep, age_labels = init$retro_data$ages, len_labels = init$retro_data$lens, year_labels = init$retro_data$years)
-            init$retro_data$Wt_FishAgeComps[] <- wts$new_fish_age_wts
-            init$retro_data$Wt_FishLenComps[] <- wts$new_fish_len_wts
-            init$retro_data$Wt_SrvAgeComps[] <- wts$new_srv_age_wts
-            init$retro_data$Wt_SrvLenComps[] <- wts$new_srv_len_wts
-          }
+        SPoRC_rtmb_model <- SPoRC_rtmb_model_francis$obj # extract obj
+        rep <- SPoRC_rtmb_model_francis$obj$rep # extract report
 
-          # make AD model function
-          SPoRC_rtmb_model <- RTMB::MakeADFun(cmb(SPoRC_rtmb, init$retro_data), parameters = init$retro_parameters, map = init$retro_mapping, random = random, silent = T)
-
-          # Now, optimize the function
-          SPoRC_optim <- stats::nlminb(SPoRC_rtmb_model$par, SPoRC_rtmb_model$fn, SPoRC_rtmb_model$gr,
-                                       control = list(iter.max = 1e5, eval.max = 1e5, rel.tol = 1e-15))
-          # newton steps
-          try_improve <- tryCatch(expr =
-                                    for(i in 1:3) {
-                                      g = as.numeric(SPoRC_rtmb_model$gr(SPoRC_optim$par))
-                                      h = optimHess(SPoRC_optim$par, fn = SPoRC_rtmb_model$fn, gr = SPoRC_rtmb_model$gr)
-                                      SPoRC_optim$par = SPoRC_optim$par - solve(h,g)
-                                      SPoRC_optim$objective = SPoRC_rtmb_model$fn(SPoRC_optim$par)
-                                    }
-                                  , error = function(e){e}, warning = function(w){w})
-
-          rep <- SPoRC_rtmb_model$report(SPoRC_rtmb_model$env$last.par.best) # Get report
-
-        } # end f for francis iteration
       } # end else
 
       # get ssb and recruitment
-      retro_tmp <- reshape2::melt(rep$SSB) %>% dplyr::rename(Region = Var1, Year = Var2) %>% dplyr::mutate(Type = "SSB") %>%
-        bind_rows(reshape2::melt(rep$Rec) %>% dplyr::rename(Region = Var1, Year = Var2) %>% dplyr::mutate(Type = "Recruitment")) %>% dplyr::mutate(peel = j)
+      retro_tmp <- reshape2::melt(rep$SSB) %>%
+        dplyr::rename(Region = Var1, Year = Var2) %>%
+        dplyr::mutate(Type = "SSB") %>%
+        bind_rows(reshape2::melt(rep$Rec) %>%
+                    dplyr::rename(Region = Var1, Year = Var2) %>%
+                    dplyr::mutate(Type = "Recruitment")) %>%
+        dplyr::mutate(peel = j)
+
+      if(do_sdrep == TRUE) {
+        sdrep <- RTMB::sdreport(SPoRC_rtmb_model) # get sdreport
+
+        # input info about pdHess and gradients
+        retro_tmp <- retro_tmp %>%
+          dplyr::mutate(pdHess = sdrep$pdHess,
+                        max_grad = max(abs(sdrep$gradient.fixed)))
+      }
 
       retro_all <- rbind(retro_all, retro_tmp) # bind all rows
 
@@ -294,60 +377,117 @@ do_retrospective <- function(n_retro,
 
       retro_all <- future.apply::future_lapply(0:n_retro, function(j) {
 
+        # truncate data
         init <- truncate_yr(j = j, data = data, parameters = parameters, mapping = mapping)
+
+        # Fishery Data Lags
+        start_col <- length(init$retro_data$years) # get start index
+        for(f in 1:data$n_fish_fleets) {
+          for(r in 1:data$n_regions) {
+            # get lag indices
+            fishage_tmp_lag <- fishage_datalag[r,f]
+            fishlen_tmp_lag <- fishlen_datalag[r,f]
+            fishidx_tmp_lag <- fishidx_datalag[r,f]
+            # fishery ages
+            if(fishage_tmp_lag > 0) {
+              fishage_end_col <- max(start_col - fishage_tmp_lag + 1, 1) # get end index
+              init$retro_data$UseFishAgeComps[r, start_col:fishage_end_col, f] <- 0 # input 0 to lag incoming data into assessment
+            }
+            # fishery lengths
+            if(fishlen_tmp_lag > 0) {
+              fishlen_end_col <- max(start_col - fishlen_tmp_lag + 1, 1) # get end index
+              init$retro_data$UseFishLenComps[r, start_col:fishlen_end_col, f] <- 0 # input 0 to lag incoming data into assessment
+            }
+            # fishery index
+            if(fishidx_tmp_lag > 0) {
+              fishidx_end_col <- max(start_col - fishidx_tmp_lag + 1, 1) # get end index
+              init$retro_data$UseFishIdx[r, start_col:fishidx_end_col, f] <- 0 # input 0 to lag incoming data into assessment
+            }
+          } # end r loop
+        } # end f loop
+
+        # Survey Data Lags
+        for(f in 1:data$n_srv_fleets) {
+          for(r in 1:data$n_regions) {
+            # get lag indices
+            srvage_tmp_lag <- srvage_datalag[r,f]
+            srvlen_tmp_lag <- srvlen_datalag[r,f]
+            srvidx_tmp_lag <- srvidx_datalag[r,f]
+            # survey ages
+            if(srvage_tmp_lag > 0) {
+              srvage_end_col <- max(start_col - srvage_tmp_lag + 1, 1) # get end index
+              init$retro_data$UsesrvAgeComps[r, start_col:srvage_end_col, f] <- 0 # input 0 to lag incoming data into assessment
+            }
+            # survey lengths
+            if(srvlen_tmp_lag > 0) {
+              srvlen_end_col <- max(start_col - srvlen_tmp_lag + 1, 1) # get end index
+              init$retro_data$UsesrvLenComps[r, start_col:srvlen_end_col, f] <- 0 # input 0 to lag incoming data into assessment
+            }
+            # survey index
+            if(srvidx_tmp_lag > 0) {
+              srvidx_end_col <- max(start_col - srvidx_tmp_lag + 1, 1) # get end index
+              init$retro_data$UsesrvIdx[r, start_col:srvidx_end_col, f] <- 0 # input 0 to lag incoming data into assessment
+            }
+          } # end r loop
+        } # end f loop
+
+        # Tagging Data Lags
+        if(tag_datalag > 0) {
+          Tag_Release_Ind <- as.matrix(init$retro_data$tag_release_indicator) # get tag release indicator
+          tag_end_col <- max(start_col - tag_datalag + 1, 1) # get end index
+          init$retro_data$tag_release_indicator <- as.matrix(Tag_Release_Ind[-which(Tag_Release_Ind[,2] %in% start_col:tag_end_col), ]) # remove tag data when lagged
+          init$retro_data$n_tag_cohorts <- nrow(init$retro_data$tag_release_indicator)
+          init$retro_data$Tagged_Fish <- init$retro_data$Tagged_Fish[1:nrow(init$retro_data$tag_release_indicator),,,drop = FALSE] # remove data (not necessary, but helps with computational cost if using tagging)
+          init$retro_data$Obs_Tag_Recap <- init$retro_data$Obs_Tag_Recap[,1:nrow(init$retro_data$tag_release_indicator),,,,drop = FALSE] # remove data (not necessary, but helps with computational cost)
+        }
 
         if(do_francis == FALSE) { # don't do francis within retrospective loop
 
-          # make AD model function
-          SPoRC_rtmb_model <- fit_model(init$retro_data,
-                                        init$retro_parameters,
-                                        init$retro_mapping,
-                                        random = random,
-                                        newton_loops = 3,
-                                        silent = T
-                                        )
+          # run model
+          SPoRC_rtmb_model <- fit_model(
+            data = init$retro_data,
+            parameters = init$retro_parameters,
+            mapping = init$retro_mapping,
+            random = random,
+            newton_loops = newton_loops,
+            silent = TRUE
+          )
 
-          rep <- SPoRC_rtmb_model$report(SPoRC_rtmb_model$env$last.par.best) # Get report
+          rep <- SPoRC_rtmb_model$rep # extract report
 
         } else {
 
-          for(f in 1:n_francis_iter) {
+          SPoRC_rtmb_model_francis <- run_francis(data = init$retro_data,
+                                                  parameters = init$retro_parameters,
+                                                  mapping = init$retro_mapping,
+                                                  random = random,
+                                                  n_francis_iter = n_francis_iter,
+                                                  newton_loops = newton_loops
+          )
 
-            if(f == 1) { # reset weights at 1 if at the first iteration
-              init$retro_data$Wt_FishAgeComps[] <- 1
-              init$retro_data$Wt_FishLenComps[] <- 1
-              init$retro_data$Wt_SrvAgeComps[] <- 1
-              init$retro_data$Wt_SrvLenComps[] <- 1
-            } else {
-              # get new weights
-              wts <- do_francis_reweighting(data = init$retro_data, rep = rep,
-                                            # Use dimensions of fishery ages to get weights (because obs and modelled ages might not equal; dimensions should be observed ages)
-                                            age_labels = 1:dim(data$ObsFishAgeComps)[3],
-                                            len_labels = init$retro_data$lens,
-                                            year_labels = init$retro_data$years)
+          SPoRC_rtmb_model <- SPoRC_rtmb_model_francis$obj # extract obj
+          rep <- SPoRC_rtmb_model_francis$obj$rep # extract report
 
-              init$retro_data$Wt_FishAgeComps[] <- wts$new_fish_age_wts
-              init$retro_data$Wt_FishLenComps[] <- wts$new_fish_len_wts
-              init$retro_data$Wt_SrvAgeComps[] <- wts$new_srv_age_wts
-              init$retro_data$Wt_SrvLenComps[] <- wts$new_srv_len_wts
-            }
-
-            # make AD model function
-            SPoRC_rtmb_model <- fit_model(init$retro_data,
-                                          init$retro_parameters,
-                                          init$retro_mapping,
-                                          random = random,
-                                          newton_loops = 3,
-                                          silent = T
-            )
-
-            rep <- SPoRC_rtmb_model$report(SPoRC_rtmb_model$env$last.par.best) # Get report
-
-          } # end f for francis iteration
         } # end else
 
-        retro_tmp <- reshape2::melt(rep$SSB) %>% dplyr::rename(Region = Var1, Year = Var2) %>% dplyr::mutate(Type = "SSB") %>%
-          bind_rows(reshape2::melt(rep$Rec) %>% dplyr::rename(Region = Var1, Year = Var2) %>% dplyr::mutate(Type = "Recruitment")) %>% dplyr::mutate(peel = j)
+        retro_tmp <- reshape2::melt(rep$SSB) %>%
+          dplyr::rename(Region = Var1, Year = Var2) %>%
+          dplyr::mutate(Type = "SSB") %>%
+          bind_rows(reshape2::melt(rep$Rec) %>%
+                      dplyr::rename(Region = Var1, Year = Var2) %>%
+                      dplyr::mutate(Type = "Recruitment")) %>%
+          dplyr::mutate(peel = j)
+
+        if(do_sdrep == TRUE) {
+          sdrep <- RTMB::sdreport(SPoRC_rtmb_model) # get sdreport
+
+          # input info about pdHess and gradients
+          retro_tmp <- retro_tmp %>%
+            dplyr::mutate(pdHess = sdrep$pdHess,
+                          max_grad = max(abs(sdrep$gradient.fixed)))
+        }
+
+        # retro_all <- rbind(retro_all, retro_tmp) # bind all rows
 
         p() # update progress
 
@@ -369,7 +509,7 @@ do_retrospective <- function(n_retro,
 #'
 #' @returns Returns a data frame with relative difference of SSB and recruitment from the terminal year
 #' @export get_retrospective_relative_difference
-#'
+#' @family Model Diagnostics
 #' @import dplyr
 #' @importFrom tidyr pivot_longer pivot_wider
 #' @examples
@@ -395,7 +535,7 @@ get_retrospective_relative_difference <- function(retro_data) {
 
   # Get peels
   peels <- retro_data %>% filter(peel != 0) %>%
-    tidyr::pivot_wider(names_from = peel, values_from = value)
+    tidyr::pivot_wider(names_from = peel, values_from = value, id_cols = c('Region', "Year", "Type"))
 
   # Summarize relative difference
   allret <- terminal %>%

@@ -31,9 +31,9 @@
     </div>
 
     <div class="section level2">
-      <h2 id="all-functions">All functions<a class="anchor" aria-label="anchor" href="#all-functions"></a></h2>
+      <h2 id="model-setup">Model Setup<a class="anchor" aria-label="anchor" href="#model-setup"></a></h2>
 
-
+      <div class="section-desc"><p>Functions for setting up a <code>SPoRC</code> model</p></div>
 
 
     </div><div class="section level2">
@@ -42,24 +42,6 @@
 
 
       <dl><dt>
-
-          <code><a href="Do_Population_Projection.html">Do_Population_Projection()</a></code>
-
-        </dt>
-        <dd>Do Population Projections</dd>
-      </dl><dl><dt>
-
-          <code><a href="Get_Feedback_Data.html">Get_Feedback_Data()</a></code>
-
-        </dt>
-        <dd>Helper function that obtains data for a simulation with a feedback loop</dd>
-      </dl><dl><dt>
-
-          <code><a href="Get_Reference_Points.html">Get_Reference_Points()</a></code>
-
-        </dt>
-        <dd>Wrapper function to get reference points</dd>
-      </dl><dl><dt>
 
           <code><a href="Setup_Mod_Biologicals.html">Setup_Mod_Biologicals()</a></code>
 
@@ -71,12 +53,6 @@
 
         </dt>
         <dd>Setup fishing mortality and catch observations</dd>
-      </dl><dl><dt>
-
-          <code><a href="Setup_Mod_Dim.html">Setup_Mod_Dim()</a></code>
-
-        </dt>
-        <dd>Set up model dimensions</dd>
       </dl><dl><dt>
 
           <code><a href="Setup_Mod_FishIdx_and_Comps.html">Setup_Mod_FishIdx_and_Comps()</a></code>
@@ -95,6 +71,12 @@
 
         </dt>
         <dd>Setup Movement Processes for SPoRC</dd>
+      </dl><dl><dt>
+
+          <code><a href="Setup_Mod_Weighting.html">Setup_Mod_Weighting()</a></code>
+
+        </dt>
+        <dd>Set up SPoRC model weighting</dd>
       </dl><dl><dt>
 
           <code><a href="Setup_Mod_Rec.html">Setup_Mod_Rec()</a></code>
@@ -121,46 +103,68 @@
         <dd>Setup tagging processes and parameters</dd>
       </dl><dl><dt>
 
-          <code><a href="Setup_Mod_Weighting.html">Setup_Mod_Weighting()</a></code>
+          <code><a href="Setup_Mod_Dim.html">Setup_Mod_Dim()</a></code>
 
         </dt>
-        <dd>Set up SPoRC model weighting</dd>
+        <dd>Set up model dimensions</dd>
+      </dl></div><div class="section level2">
+      <h2 id="reference-points-and-projections">Reference Points and Projections<a class="anchor" aria-label="anchor" href="#reference-points-and-projections"></a></h2>
+
+      <div class="section-desc"><p>Functions for deriving reference points and catch projections</p></div>
+
+
+    </div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="Do_Population_Projection.html">Do_Population_Projection()</a></code>
+
+        </dt>
+        <dd>Do Population Projections</dd>
       </dl><dl><dt>
+
+          <code><a href="Get_Reference_Points.html">Get_Reference_Points()</a></code>
+
+        </dt>
+        <dd>Wrapper function to get reference points</dd>
+      </dl><dl><dt>
+
+          <code><a href="get_key_quants.html">get_key_quants()</a></code>
+
+        </dt>
+        <dd>Generate Key Projection Quantities and Table Plot</dd>
+      </dl></div><div class="section level2">
+      <h2 id="simulation-setup">Simulation Setup<a class="anchor" aria-label="anchor" href="#simulation-setup"></a></h2>
+
+      <div class="section-desc"><p>Functions for setting up simulations</p></div>
+
+
+    </div><div class="section level2">
+
+
+
+
+      <dl><dt>
 
           <code><a href="Setup_Sim_Biologicals.html">Setup_Sim_Biologicals()</a></code>
 
         </dt>
-        <dd>Set up simulation stuff for biologicals</dd>
+        <dd>Set up simulation containers and inputs for biological parameters</dd>
       </dl><dl><dt>
 
           <code><a href="Setup_Sim_Containers.html">Setup_Sim_Containers()</a></code>
 
         </dt>
-        <dd>Setup containers for simulation and output into global environment</dd>
+        <dd>Setup containers for simulation and output</dd>
       </dl><dl><dt>
 
-          <code><a href="Setup_Sim_Dim.html">Setup_Sim_Dim()</a></code>
+          <code><a href="Setup_Sim_Fishing.html">Setup_Sim_Fishing()</a></code>
 
         </dt>
-        <dd>Set up simulation dimensions</dd>
-      </dl><dl><dt>
-
-          <code><a href="Setup_Sim_FishMort.html">Setup_Sim_FishMort()</a></code>
-
-        </dt>
-        <dd>Setup values and dimensions of fishing mortality</dd>
-      </dl><dl><dt>
-
-          <code><a href="Setup_Sim_FishSel.html">Setup_Sim_FishSel()</a></code>
-
-        </dt>
-        <dd>Setup fishery selectivity</dd>
-      </dl><dl><dt>
-
-          <code><a href="Setup_Sim_Observation_Proc.html">Setup_Sim_Observation_Proc()</a></code>
-
-        </dt>
-        <dd>Set up simulation observation processes</dd>
+        <dd>Setup values and dimensions of fishing processes</dd>
       </dl><dl><dt>
 
           <code><a href="Setup_Sim_Rec.html">Setup_Sim_Rec()</a></code>
@@ -181,10 +185,22 @@
         <dd>Set up simulated tagging dynamics</dd>
       </dl><dl><dt>
 
+          <code><a href="Setup_Sim_Dim.html">Setup_Sim_Dim()</a></code>
+
+        </dt>
+        <dd>Initialize Simulation Dimension Settings</dd>
+      </dl><dl><dt>
+
           <code><a href="Setup_sim_env.html">Setup_sim_env()</a></code>
 
         </dt>
         <dd>Constructs simulation objects in a new simulation environment for use in simulation functions</dd>
+      </dl><dl><dt>
+
+          <code><a href="run_annual_cycle.html">run_annual_cycle()</a></code>
+
+        </dt>
+        <dd>Run Annual Cycle in Simulation Environment</dd>
       </dl><dl><dt>
 
           <code><a href="Simulate_Pop_Static.html">Simulate_Pop_Static()</a></code>
@@ -193,28 +209,151 @@
         <dd>Simulates a static spatial, sex, and age-structured population (no feedback loop)</dd>
       </dl><dl><dt>
 
+          <code><a href="simulation_self_test.html">simulation_self_test()</a></code>
+
+        </dt>
+        <dd>Conduct a Simulation Self Test</dd>
+      </dl><dl><dt>
+
+          <code><a href="simulation_data_to_SPoRC.html">simulation_data_to_SPoRC()</a></code>
+
+        </dt>
+        <dd>Extract simulation data into SPoRC format</dd>
+      </dl></div><div class="section level2">
+      <h2 id="closed-loop-simulation">Closed-Loop Simulation<a class="anchor" aria-label="anchor" href="#closed-loop-simulation"></a></h2>
+
+      <div class="section-desc"><p>Functions for setting up and running closed-loop population simulations</p></div>
+
+
+    </div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="condition_closed_loop_simulations.html">condition_closed_loop_simulations()</a></code>
+
+        </dt>
+        <dd>Set up simulation list for closed-loop projections</dd>
+      </dl><dl><dt>
+
+          <code><a href="get_closed_loop_reference_points.html">get_closed_loop_reference_points()</a></code>
+
+        </dt>
+        <dd>Get Closed Loop Reference Points</dd>
+      </dl><dl><dt>
+
           <code><a href="bisection_F.html">bisection_F()</a></code>
 
         </dt>
         <dd>Go from TAC to Fishing Mortality using bisection</dd>
-      </dl><dl><dt>
+      </dl></div><div class="section level2">
+      <h2 id="francis-reweighting">Francis Reweighting<a class="anchor" aria-label="anchor" href="#francis-reweighting"></a></h2>
 
-          <code><a href="check_data_dimensions.html">check_data_dimensions()</a></code>
+      <div class="section-desc"><p>Functions for setting up Francis Reweighting</p></div>
+
+
+    </div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="run_francis.html">run_francis()</a></code>
 
         </dt>
-        <dd>Helper function used to check data dimensions to ensure they are correct</dd>
+        <dd>Run Iterative Francis Reweighting Procedure</dd>
       </dl><dl><dt>
 
           <code><a href="do_francis_reweighting.html">do_francis_reweighting()</a></code>
 
         </dt>
-        <dd>Run Francis Reweighting</dd>
-      </dl><dl><dt>
+        <dd>Get Francis Weights</dd>
+      </dl></div><div class="section level2">
+      <h2 id="model-diagnostics">Model Diagnostics<a class="anchor" aria-label="anchor" href="#model-diagnostics"></a></h2>
+
+      <div class="section-desc"><p>Functions for model diagnostics</p></div>
+
+
+    </div><div class="section level2">
+
+
+
+
+      <dl><dt>
 
           <code><a href="do_jitter.html">do_jitter()</a></code>
 
         </dt>
         <dd>Run Jitter Analysis</dd>
+      </dl><dl><dt>
+
+          <code><a href="do_retrospective.html">do_retrospective()</a></code>
+
+        </dt>
+        <dd>Run retrospective analyses for RTMB models</dd>
+      </dl><dl><dt>
+
+          <code><a href="get_retrospective_relative_difference.html">get_retrospective_relative_difference()</a></code>
+
+        </dt>
+        <dd>Derive relative difference from terminal year from a retrospective analysis.</dd>
+      </dl><dl><dt>
+
+          <code><a href="do_runs_test.html">do_runs_test()</a></code>
+
+        </dt>
+        <dd>Runs test function taken from SS3 diags.</dd>
+      </dl><dl><dt>
+
+          <code><a href="get_idx_fits.html">get_idx_fits()</a></code>
+
+        </dt>
+        <dd>Gets index fits results</dd>
+      </dl><dl><dt>
+
+          <code><a href="get_comp_prop.html">get_comp_prop()</a></code>
+
+        </dt>
+        <dd>Gets composition data proportions normalized according to the assessment specifications from RTMB</dd>
+      </dl><dl><dt>
+
+          <code><a href="get_osa.html">get_osa()</a></code>
+
+        </dt>
+        <dd>Function to format comp data and get OSA residuals from afscOSA (uses afscOSA and compresid as backend to get OSA residuals)</dd>
+      </dl><dl><dt>
+
+          <code><a href="plot_resids.html">plot_resids()</a></code>
+
+        </dt>
+        <dd>Plots OSA residuals from outputs from get_osa. Much of this code is taken from the afscOM package, but with modificaitons to plot features.</dd>
+      </dl><dl><dt>
+
+          <code><a href="get_nLL_plot.html">get_nLL_plot()</a></code>
+
+        </dt>
+        <dd>Get plot of negative log likelihood values</dd>
+      </dl><dl><dt>
+
+          <code><a href="get_idx_fits_plot.html">get_idx_fits_plot()</a></code>
+
+        </dt>
+        <dd>Get Index Fits Plot</dd>
+      </dl><dl><dt>
+
+          <code><a href="get_catch_fits_plot.html">get_catch_fits_plot()</a></code>
+
+        </dt>
+        <dd>Title Get Catch Fits Plot</dd>
+      </dl><dl><dt>
+
+          <code><a href="get_retrospective_plot.html">get_retrospective_plot()</a></code>
+
+        </dt>
+        <dd>Get Retrospective Plot</dd>
       </dl><dl><dt>
 
           <code><a href="do_likelihood_profile.html">do_likelihood_profile()</a></code>
@@ -229,112 +368,10 @@
         <dd>Run MCMC using rtmbstan</dd>
       </dl><dl><dt>
 
-          <code><a href="do_retrospective.html">do_retrospective()</a></code>
+          <code><a href="mcmc_par_names.html">mcmc_par_names()</a></code>
 
         </dt>
-        <dd>Run retrospective analyses</dd>
-      </dl><dl><dt>
-
-          <code><a href="do_runs_test.html">do_runs_test()</a></code>
-
-        </dt>
-        <dd>Runs test function taken from SS3 diags.</dd>
-      </dl><dl><dt>
-
-          <code><a href="fit_model.html">fit_model()</a></code>
-
-        </dt>
-        <dd>Run RTMB model</dd>
-      </dl><dl><dt>
-
-          <code><a href="get_biological_plot.html">get_biological_plot()</a></code>
-
-        </dt>
-        <dd>Get Plots of Biological Quantities</dd>
-      </dl><dl><dt>
-
-          <code><a href="get_catch_fits_plot.html">get_catch_fits_plot()</a></code>
-
-        </dt>
-        <dd>Title Get Catch Fits Plot</dd>
-      </dl><dl><dt>
-
-          <code><a href="get_comp_prop.html">get_comp_prop()</a></code>
-
-        </dt>
-        <dd>Gets composition data proportions normalized according to the assessment specifications from RTMB</dd>
-      </dl><dl><dt>
-
-          <code><a href="get_data_fitted_plot.html">get_data_fitted_plot()</a></code>
-
-        </dt>
-        <dd>Get Data Fitted to Plot</dd>
-      </dl><dl><dt>
-
-          <code><a href="get_idx_fits.html">get_idx_fits()</a></code>
-
-        </dt>
-        <dd>Gets index fits results</dd>
-      </dl><dl><dt>
-
-          <code><a href="get_idx_fits_plot.html">get_idx_fits_plot()</a></code>
-
-        </dt>
-        <dd>Get Index Fits Plot</dd>
-      </dl><dl><dt>
-
-          <code><a href="get_key_quants.html">get_key_quants()</a></code>
-
-        </dt>
-        <dd>Generate Key Projection Quantities and Table Plot</dd>
-      </dl><dl><dt>
-
-          <code><a href="get_mcmc_ssb_rec.html">get_mcmc_ssb_rec()</a></code>
-
-        </dt>
-        <dd>Derive SSB and Recruitment from MCMC using posterior samples</dd>
-      </dl><dl><dt>
-
-          <code><a href="get_nLL_plot.html">get_nLL_plot()</a></code>
-
-        </dt>
-        <dd>Get plot of negative log likelihood values</dd>
-      </dl><dl><dt>
-
-          <code><a href="get_osa.html">get_osa()</a></code>
-
-        </dt>
-        <dd>Function to format comp data and get OSA residuals from afscOSA (uses afscOSA and compresid as backend to get OSA residuals)</dd>
-      </dl><dl><dt>
-
-          <code><a href="get_par_est_info.html">get_par_est_info()</a></code>
-
-        </dt>
-        <dd>Helper function for extracting parameter information and names from TMB</dd>
-      </dl><dl><dt>
-
-          <code><a href="get_retrospective_plot.html">get_retrospective_plot()</a></code>
-
-        </dt>
-        <dd>Get Retrospective Plot</dd>
-      </dl><dl><dt>
-
-          <code><a href="get_retrospective_relative_difference.html">get_retrospective_relative_difference()</a></code>
-
-        </dt>
-        <dd>Derive relative difference from terminal year from a retrospective analysis.</dd>
-      </dl><dl><dt>
-
-          <code><a href="get_selex_plot.html">get_selex_plot()</a></code>
-
-        </dt>
-        <dd>Get Fishery and Survey Selectivity Plots</dd>
-      </dl><dl><dt>
-
-          <code><a href="get_ts_plot.html">get_ts_plot()</a></code>
-
-        </dt>
-        <dd>Get Time Series Plots</dd>
+        <dd>Gets parameter names from mcmc object</dd>
       </dl><dl><dt>
 
           <code><a href="mcmc_diag.html">mcmc_diag()</a></code>
@@ -343,34 +380,33 @@
         <dd>Model diagnostics for MCMC</dd>
       </dl><dl><dt>
 
-          <code><a href="mcmc_par_names.html">mcmc_par_names()</a></code>
+          <code><a href="get_mcmc_ssb_rec.html">get_mcmc_ssb_rec()</a></code>
 
         </dt>
-        <dd>Gets parameter names from mcmc object</dd>
+        <dd>Derive SSB and Recruitment from MCMC using posterior samples</dd>
+      </dl></div><div class="section level2">
+      <h2 id="utility">Utility<a class="anchor" aria-label="anchor" href="#utility"></a></h2>
+
+      <div class="section-desc"><p>Functions for convenience</p></div>
+
+
+    </div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="fit_model.html">fit_model()</a></code>
+
+        </dt>
+        <dd>Run RTMB model</dd>
       </dl><dl><dt>
 
-          <code><a href="mlt_rg_sable_data.html">mlt_rg_sable_data</a></code>
+          <code><a href="set_data_indicator_unused.html">set_data_indicator_unused()</a></code>
 
         </dt>
-        <dd>Sablefish data for multi region (5 area) case study</dd>
-      </dl><dl><dt>
-
-          <code><a href="mlt_rg_sable_rep.html">mlt_rg_sable_rep</a></code>
-
-        </dt>
-        <dd>Sablefish report for 5 region case study</dd>
-      </dl><dl><dt>
-
-          <code><a href="plot_all_basic.html">plot_all_basic()</a></code>
-
-        </dt>
-        <dd>Plotting function for all basic quantities</dd>
-      </dl><dl><dt>
-
-          <code><a href="plot_resids.html">plot_resids()</a></code>
-
-        </dt>
-        <dd>Plots OSA residuals from outputs from get_osa. Much of this code is taken from the afscOM package, but with modificaitons to plot features.</dd>
+        <dd>Set Data Indicators to Unused for Specified Years</dd>
       </dl><dl><dt>
 
           <code><a href="post_optim_sanity_checks.html">post_optim_sanity_checks()</a></code>
@@ -379,16 +415,80 @@
         <dd>Post Optimization Model Convergence Checks</dd>
       </dl><dl><dt>
 
-          <code><a href="run_annual_cycle.html">run_annual_cycle()</a></code>
+          <code><a href="get_par_est_info.html">get_par_est_info()</a></code>
 
         </dt>
-        <dd>Run Annual Cycle in Simulation Environment</dd>
+        <dd>Helper function for extracting parameter information and names from TMB</dd>
+      </dl></div><div class="section level2">
+      <h2 id="plotting">Plotting<a class="anchor" aria-label="anchor" href="#plotting"></a></h2>
+
+      <div class="section-desc"><p>Functions for plotting</p></div>
+
+
+    </div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="get_ts_plot.html">get_ts_plot()</a></code>
+
+        </dt>
+        <dd>Get Time Series Plots</dd>
       </dl><dl><dt>
 
-          <code><a href="sgl_rg_dusky_data.html">sgl_rg_dusky_data</a></code>
+          <code><a href="get_selex_plot.html">get_selex_plot()</a></code>
 
         </dt>
-        <dd>Dusky data for single region assessment case study</dd>
+        <dd>Get Fishery and Survey Selectivity Plots</dd>
+      </dl><dl><dt>
+
+          <code><a href="get_biological_plot.html">get_biological_plot()</a></code>
+
+        </dt>
+        <dd>Get Plots of Biological Quantities</dd>
+      </dl><dl><dt>
+
+          <code><a href="get_data_fitted_plot.html">get_data_fitted_plot()</a></code>
+
+        </dt>
+        <dd>Get Data Fitted to Plot</dd>
+      </dl><dl><dt>
+
+          <code><a href="plot_all_basic.html">plot_all_basic()</a></code>
+
+        </dt>
+        <dd>Plotting function for all basic quantities</dd>
+      </dl><dl><dt>
+
+          <code><a href="theme_sablefish.html">theme_sablefish()</a></code>
+
+        </dt>
+        <dd>ggplot theme for sablefish</dd>
+      </dl></div><div class="section level2">
+      <h2 id="data">Data<a class="anchor" aria-label="anchor" href="#data"></a></h2>
+
+      <div class="section-desc"><p>Data objects provided by SPoRC</p></div>
+
+
+    </div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="sgl_rg_sable_data.html">sgl_rg_sable_data</a></code>
+
+        </dt>
+        <dd>Sablefish data for single region case study</dd>
+      </dl><dl><dt>
+
+          <code><a href="mlt_rg_sable_data.html">mlt_rg_sable_data</a></code>
+
+        </dt>
+        <dd>Sablefish data for multi region (5 area) case study</dd>
       </dl><dl><dt>
 
           <code><a href="sgl_rg_ebswp_data.html">sgl_rg_ebswp_data</a></code>
@@ -397,10 +497,10 @@
         <dd>EBS Walleye Pollock data for single region case study</dd>
       </dl><dl><dt>
 
-          <code><a href="sgl_rg_sable_data.html">sgl_rg_sable_data</a></code>
+          <code><a href="three_rg_sable_data.html">three_rg_sable_data</a></code>
 
         </dt>
-        <dd>Sablefish data for single region case study</dd>
+        <dd>Sablefish data for multi region (3 area) case study</dd>
       </dl><dl><dt>
 
           <code><a href="sgl_rg_sable_rep.html">sgl_rg_sable_rep</a></code>
@@ -409,18 +509,25 @@
         <dd>Sablefish report for single region case study</dd>
       </dl><dl><dt>
 
-          <code><a href="theme_sablefish.html">theme_sablefish()</a></code>
+          <code><a href="mlt_rg_sable_rep.html">mlt_rg_sable_rep</a></code>
 
         </dt>
-        <dd>ggplot theme for sablefish</dd>
+        <dd>Sablefish report for 5 region case study</dd>
       </dl><dl><dt>
 
-          <code><a href="three_rg_sable_data.html">three_rg_sable_data</a></code>
+          <code><a href="sgl_rg_dusky_data.html">sgl_rg_dusky_data</a></code>
 
         </dt>
-        <dd>Sablefish data for multi region (3 area) case study</dd>
+        <dd>Dusky data for single region assessment case study</dd>
+      </dl><dl><dt>
+
+          <code><a href="dusky_rtmb_model.html">dusky_rtmb_model</a></code>
+
+        </dt>
+        <dd>Dusky model outputs from single regino model</dd>
       </dl></div>
-  </main></div>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+    </nav></aside></div>
 
 
     <footer><div class="pkgdown-footer-left">

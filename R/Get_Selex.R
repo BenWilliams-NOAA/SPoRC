@@ -108,12 +108,11 @@ Get_Selex = function(Selex_Model,
   if(Selex_Model == 4) {
 
     # define bin ranges for double normal here
-    max_x_val <- max(Bin)
     midbin <- Bin
 
     # Extract and transform parameters here
     p1trans <- min(Bin) + (max(Bin) - min(Bin)) * RTMB::plogis(ln_Pars[1]) # peak bin at plateau
-    p2trans <- p1trans + 1 + (0.99 + max_x_val - p1trans - 1)/(1 + exp(-1.0 * ln_Pars[2])) # width of plateau
+    p2trans <- p1trans + 1 + (0.99 + max(Bin) - p1trans - 1)/(1 + exp(-1.0 * ln_Pars[2])) # width of plateau
     p3trans <- exp(ln_Pars[3]) # ascending width
     p4trans <- exp(ln_Pars[4]) # descending width
     p5trans <- 1/(1 + exp(-1.0 * ln_Pars[5])) # selectivity at first bin
@@ -136,7 +135,7 @@ Get_Selex = function(Selex_Model,
     des.scaled <- (1 + (p6trans - 1) * (desc - 1) /(stj - 1))
     join1 <- 1/(1 + exp(-(20 * (midbin - p1trans)/(1 + abs(midbin - p1trans))))) # joiner functions
     join2 <- 1/(1 + exp(-(20 * (midbin - p2trans)/(1 + abs(midbin - p2trans))))) # joiner functions
-    selex <- asc.scaled * (1 - join1) + join1 * (1 * (1 - join2) + des.scaled * join2) # return parameteric form
+    selex <- asc.scaled * (1 - join1) + join1 * ((1 - join2) + des.scaled * join2) # return parameteric form
     selex[1] <- p5trans # return parameteric form
   }
 

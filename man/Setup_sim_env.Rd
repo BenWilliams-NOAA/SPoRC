@@ -20,3 +20,18 @@ Constructs simulation objects in a new simulation environment for use in simulat
 sim_env <- Setup_sim_env(sim_list)
 }
 }
+\seealso{
+Other Simulation Setup: 
+\code{\link{Setup_Sim_Biologicals}()},
+\code{\link{Setup_Sim_Containers}()},
+\code{\link{Setup_Sim_Dim}()},
+\code{\link{Setup_Sim_Fishing}()},
+\code{\link{Setup_Sim_Rec}()},
+\code{\link{Setup_Sim_Survey}()},
+\code{\link{Setup_Sim_Tagging}()},
+\code{\link{Simulate_Pop_Static}()},
+\code{\link{run_annual_cycle}()},
+\code{\link{simulation_data_to_SPoRC}()},
+\code{\link{simulation_self_test}()}
+}
+\concept{Simulation Setup}

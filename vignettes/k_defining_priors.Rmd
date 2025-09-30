@@ -304,7 +304,6 @@ In the context of a spatial model, Dirichlet priors can also be placed on recrui
 # Setup recruitment stuff (using defaults for other stuff)
 input_list <- Setup_Mod_Rec(input_list = input_list, # input data list from above
                             do_rec_bias_ramp = 0,
-                            sexratio = c(0.5, 0.5), # fix sex ratio at 0.5
 
                             # Model options
                             rec_model = "mean_rec", # recruitment model

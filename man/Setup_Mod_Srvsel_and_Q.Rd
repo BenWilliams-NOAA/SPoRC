@@ -6,12 +6,12 @@
 \usage{
 Setup_Mod_Srvsel_and_Q(
   input_list,
-  cont_tv_srv_sel,
-  srv_sel_blocks,
+  cont_tv_srv_sel = paste("none_Fleet_", 1:input_list$data$n_srv_fleets, sep = ""),
+  srv_sel_blocks = paste("none_Fleet_", 1:input_list$data$n_srv_fleets, sep = ""),
   srv_sel_model,
   Use_srv_q_prior = 0,
   srv_q_prior = NA,
-  srv_q_blocks,
+  srv_q_blocks = paste("none_Fleet_", 1:input_list$data$n_srv_fleets, sep = ""),
   srvsel_pe_pars_spec = NULL,
   srv_fixed_sel_pars_spec,
   srv_q_spec = NULL,
@@ -21,6 +21,7 @@ Setup_Mod_Srvsel_and_Q(
   srv_q_cov_dat = NULL,
   Use_srv_selex_prior = 0,
   srv_selex_prior = NULL,
+  t_srv = array(0.5, dim = c(input_list$data$n_regions, input_list$data$n_srv_fleets)),
   ...
 )
 }
@@ -33,7 +34,7 @@ The vector must be length \code{n_srv_fleets}, and each element must follow the 
 
 Valid time variation types include:
 \itemize{
-  \item \code{"none"}: No continuous time variation.
+  \item \code{"none"}: No continuous time variation. (default)
   \item \code{"iid"}: Independent and identically distributed deviations across years.
   \item \code{"rw"}: Random walk in time.
   \item \code{"3dmarg"}: 3D marginal time-varying selectivity.
@@ -51,7 +52,7 @@ For example:
 
 \item{srv_sel_blocks}{Character vector specifying the survey selectivity blocks for each region and fleet.
 Each element must follow the structure: `"Block_<block number>_Year_<start>-<end>_Fleet_<fleet number>"` or `"none_Fleet_<fleet number>"`.
-This allows users to define time-varying selectivity blocks for specific fleets within a region.
+This allows users to define time-varying selectivity blocks for specific fleets within a region. Default is "none_Fleet_x".
 
 For example:
 \itemize{
@@ -254,8 +255,24 @@ This avoids issues with list structure but does not affect the design matrix or 
   \item \code{"Region_3_Fleet_2"} = \code{~ NULL} disables environmental covariates for that fleet-region.
 }}
 
+\item{t_srv}{Survey timing in fractions (n_regions * n_srv_fleets; default is 0.5)}
+
 \item{...}{Additional arguments specifying starting values for survey selectivity and catchability parameters (srvsel_pe_pars, ln_srvsel_devs, ln_srv_fixed_sel_pars, ln_srv_q, srv_q_coeff)}
 }
 \description{
 Setup survey selectivity and catchability specifications
 }
+\seealso{
+Other Model Setup: 
+\code{\link{Setup_Mod_Biologicals}()},
+\code{\link{Setup_Mod_Catch_and_F}()},
+\code{\link{Setup_Mod_Dim}()},
+\code{\link{Setup_Mod_FishIdx_and_Comps}()},
+\code{\link{Setup_Mod_Fishsel_and_Q}()},
+\code{\link{Setup_Mod_Movement}()},
+\code{\link{Setup_Mod_Rec}()},
+\code{\link{Setup_Mod_SrvIdx_and_Comps}()},
+\code{\link{Setup_Mod_Tagging}()},
+\code{\link{Setup_Mod_Weighting}()}
+}
+\concept{Model Setup}

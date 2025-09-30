@@ -10,7 +10,10 @@ Setup_Mod_Biologicals(
   WAA_fish = NULL,
   WAA_srv = NULL,
   MatAA,
-  addtocomp = 0,
+  addtocomp = 0.001,
+  addtofishidx = 1e-04,
+  addtosrvidx = 1e-04,
+  addtotag = 1e-10,
   AgeingError = NULL,
   Use_M_prior = 0,
   M_prior = NA,
@@ -37,7 +40,13 @@ Setup_Mod_Biologicals(
 
 \item{MatAA}{Numeric array of maturity-at-age, dimensioned \code{[n_regions, n_years, n_ages, n_sexes]}.}
 
-\item{addtocomp}{Numeric value for a constant to add to composition data. Default is 0. Not used if logistic normal likelihoods are utilized.}
+\item{addtocomp}{Numeric value for a constant to add to composition data. Default is 1e-3. Not used if logistic normal likelihoods are utilized.}
+
+\item{addtofishidx}{Numeric value for a constant to add to composition data. Default is 1e-4.}
+
+\item{addtosrvidx}{Numeric value for a constant to add to composition data. Default is 1e-4.}
+
+\item{addtotag}{Numeric value for a constant to add to composition data. Default is 1e-10}
 
 \item{AgeingError}{Numeric matrix or array representing the ageing error transition matrix.
   If a matrix (2D), dimensions should be \code{[number of modeled ages, number of observed composition ages]}
@@ -91,3 +100,17 @@ Either a character string ("constant") or a list of index vectors, e.g., \code{l
 \description{
 Setup biological inputs for estimation model
 }
+\seealso{
+Other Model Setup: 
+\code{\link{Setup_Mod_Catch_and_F}()},
+\code{\link{Setup_Mod_Dim}()},
+\code{\link{Setup_Mod_FishIdx_and_Comps}()},
+\code{\link{Setup_Mod_Fishsel_and_Q}()},
+\code{\link{Setup_Mod_Movement}()},
+\code{\link{Setup_Mod_Rec}()},
+\code{\link{Setup_Mod_SrvIdx_and_Comps}()},
+\code{\link{Setup_Mod_Srvsel_and_Q}()},
+\code{\link{Setup_Mod_Tagging}()},
+\code{\link{Setup_Mod_Weighting}()}
+}
+\concept{Model Setup}

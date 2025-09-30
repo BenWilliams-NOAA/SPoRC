@@ -48,14 +48,12 @@
 <span>  <span class="va">UseSrvAgeComps</span>,</span>
 <span>  <span class="va">ObsSrvLenComps</span>,</span>
 <span>  <span class="va">UseSrvLenComps</span>,</span>
-<span>  ISS_SrvAgeComps <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  ISS_SrvLenComps <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  <span class="va">ISS_SrvAgeComps</span>,</span>
+<span>  <span class="va">ISS_SrvLenComps</span>,</span>
 <span>  <span class="va">SrvAgeComps_LikeType</span>,</span>
 <span>  <span class="va">SrvLenComps_LikeType</span>,</span>
 <span>  <span class="va">SrvAgeComps_Type</span>,</span>
 <span>  <span class="va">SrvLenComps_Type</span>,</span>
-<span>  SrvAge_comp_agg_type <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  SrvLen_comp_agg_type <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -143,25 +141,25 @@ Options include:</p><ul><li><p><code>"agg"</code>: Aggregated across regions and
 <dd><p>Same as <code>SrvAgeComps_Type</code>, but for length compositions.</p></dd>
 
 
-<dt id="arg-srvage-comp-agg-type">SrvAge_comp_agg_type<a class="anchor" aria-label="anchor" href="#arg-srvage-comp-agg-type"></a></dt>
-<dd><p>Optional integer vector of length <code>n_srv_fleets</code> specifying
-the order of operations for aggregating age compositions when <code>SrvAgeComps_Type == "agg"</code>.</p><ul><li><p><code>0</code>: Normalize, then aggregate, then apply ageing error, then normalize again.</p></li>
-<li><p><code>1</code>: Aggregate first, normalize, then apply ageing error.</p></li>
-</ul><p>Default is <code>NULL</code>.</p></dd>
-
-
-<dt id="arg-srvlen-comp-agg-type">SrvLen_comp_agg_type<a class="anchor" aria-label="anchor" href="#arg-srvlen-comp-agg-type"></a></dt>
-<dd><p>Optional integer vector of length <code>n_srv_fleets</code> specifying
-the order of operations for aggregating length compositions.</p><ul><li><p><code>0</code>: Do not normalize before applying size–age transition.</p></li>
-<li><p><code>1</code>: Normalize before applying size–age transition.</p></li>
-</ul><p>Default is <code>NULL</code>.</p></dd>
-
-
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
 <dd><p>Additional arguments specifying starting values for overdispersion parameters
 (e.g., <code>ln_SrvAge_theta</code>, <code>ln_SrvLen_theta</code>, <code>ln_SrvAge_theta_agg</code>, <code>ln_SrvLen_theta_agg</code>).</p></dd>
 
 </dl></div>
+    <div class="section level2">
+    <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
+    <div class="dont-index"><p>Other Model Setup:
+<code><a href="Setup_Mod_Biologicals.html">Setup_Mod_Biologicals</a>()</code>,
+<code><a href="Setup_Mod_Catch_and_F.html">Setup_Mod_Catch_and_F</a>()</code>,
+<code><a href="Setup_Mod_Dim.html">Setup_Mod_Dim</a>()</code>,
+<code><a href="Setup_Mod_FishIdx_and_Comps.html">Setup_Mod_FishIdx_and_Comps</a>()</code>,
+<code><a href="Setup_Mod_Fishsel_and_Q.html">Setup_Mod_Fishsel_and_Q</a>()</code>,
+<code><a href="Setup_Mod_Movement.html">Setup_Mod_Movement</a>()</code>,
+<code><a href="Setup_Mod_Rec.html">Setup_Mod_Rec</a>()</code>,
+<code><a href="Setup_Mod_Srvsel_and_Q.html">Setup_Mod_Srvsel_and_Q</a>()</code>,
+<code><a href="Setup_Mod_Tagging.html">Setup_Mod_Tagging</a>()</code>,
+<code><a href="Setup_Mod_Weighting.html">Setup_Mod_Weighting</a>()</code></p></div>
+    </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>

@@ -39,7 +39,7 @@ Do_Population_Projection(
 
 \item{n_sexes}{Number of sexes}
 
-\item{sexratio}{Vector of recruitment sex ratio}
+\item{sexratio}{Array of recruitment sex ratio (n_regions, n_proj_yrs, n_sexes)}
 
 \item{n_fish_fleets}{Number of fishery fleets}
 
@@ -111,11 +111,10 @@ rep <- obj$report(obj$env$last.par.best) # need to have an RTMB object first
 # Setup necessary inputs
 n_sims <- 1000
 t_spawn <- 0
-sexratio <- 0.5
 n_proj_yrs <- 15
 n_regions <- 1
 n_ages <- length(data$ages)
-n_sexes <- data$n_sexes
+n_sexes <- 1 # single sex
 n_fish_fleets <- 2
 do_recruits_move <- 0
 terminal_NAA <- array(obj$rep$NAA[,length(data$years),,], dim = c(n_regions, n_ages, n_sexes))
@@ -127,7 +126,7 @@ Movement <- array(rep(obj$rep$Movement[,,length(data$years),,], each = n_proj_yr
 terminal_F <- array(obj$rep$Fmort[,length(data$years),], dim = c(n_regions, n_fish_fleets))
 natmort <- array(obj$rep$natmort[,length(data$years),,], dim = c(n_regions, n_proj_yrs, n_ages, n_sexes))
 recruitment <- array(obj$rep$Rec[,20:(length(data$years) - 2)], dim = c(n_regions, length(20:length(data$years) - 2)))
-
+sexratio <- array(1, dim = c(n_regions, n_proj_yrs, n_sexes)) # recruitment sex ratio
 # Define reference points
 spr_35 <- Get_Reference_Points(data = data,
                                rep = rep,
@@ -244,3 +243,9 @@ bh_rec_opt <- list(
 )
 }
 }
+\seealso{
+Other Reference Points and Projections: 
+\code{\link{Get_Reference_Points}()},
+\code{\link{get_key_quants}()}
+}
+\concept{Reference Points and Projections}

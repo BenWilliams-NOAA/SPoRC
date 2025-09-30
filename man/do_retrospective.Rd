@@ -2,7 +2,7 @@
 % Please edit documentation in R/do_retrospective.R
 \name{do_retrospective}
 \alias{do_retrospective}
-\title{Run retrospective analyses}
+\title{Run retrospective analyses for RTMB models}
 \usage{
 do_retrospective(
   n_retro,
@@ -12,55 +12,120 @@ do_retrospective(
   random = NULL,
   do_par,
   n_cores,
+  newton_loops = 3,
   do_francis = FALSE,
-  n_francis_iter = NULL
+  n_francis_iter = NULL,
+  nlminb_control = list(iter.max = 1e+05, eval.max = 1e+05, rel.tol = 1e-15),
+  do_sdrep = FALSE,
+  fishidx_datalag = array(0, dim = c(data$n_regions, data$n_fish_fleets)),
+  fishage_datalag = array(0, dim = c(data$n_regions, data$n_fish_fleets)),
+  fishlen_datalag = array(0, dim = c(data$n_regions, data$n_fish_fleets)),
+  srvidx_datalag = array(0, dim = c(data$n_regions, data$n_srv_fleets)),
+  srvage_datalag = array(0, dim = c(data$n_regions, data$n_srv_fleets)),
+  srvlen_datalag = array(0, dim = c(data$n_regions, data$n_srv_fleets)),
+  tag_datalag = 0
 )
 }
 \arguments{
-\item{n_retro}{Number of retrospective peels to do}
+\item{n_retro}{Integer. Number of retrospective peels to perform.}
 
-\item{data}{Data list for RTMB model}
+\item{data}{List. Data input for the RTMB model.}
 
-\item{parameters}{Parameter list for RTMB model}
+\item{parameters}{List. Parameter values for the RTMB model.}
 
-\item{mapping}{Mapping list for RTMB model}
+\item{mapping}{List. Mapping information for the RTMB model.}
 
-\item{random}{Random effects as a character vector - default is NULL}
+\item{random}{Character vector. Names of random effects in the model. Default is \code{NULL}.}
 
-\item{do_par}{Whether to do parrallelization, boolean}
+\item{do_par}{Logical. Whether to run retrospective peels in parallel. Default is \code{FALSE}.}
 
-\item{n_cores}{Number of cores to use for parrallelization}
+\item{n_cores}{Integer. Number of cores to use for parallel execution if \code{do_par = TRUE}.}
 
-\item{do_francis}{Whether to do francis reweighitng within a given retrospective peel, boolean}
+\item{newton_loops}{Integer. Number of Newton loops to run during model fitting. Default is 3.}
 
-\item{n_francis_iter}{Number of francis iterations to do}
+\item{do_francis}{Logical. Whether to apply Francis reweighting within each retrospective peel. Default is \code{FALSE}.}
+
+\item{n_francis_iter}{Integer. Number of Francis reweighting iterations. Required if \code{do_francis = TRUE}.}
+
+\item{nlminb_control}{List. Control parameters passed to \code{nlminb} during model fitting. Default is \code{list(iter.max = 1e5, eval.max = 1e5, rel.tol = 1e-15)}.}
+
+\item{do_sdrep}{Logical. Whether to return standard errors from \code{sdreport}. Default is \code{FALSE}.}
+
+\item{fishidx_datalag}{Integer array. Lags for fishery index data [regions x fleets]. Default is zeros.}
+
+\item{fishage_datalag}{Integer array. Lags for fishery age composition data [regions x fleets]. Default is zeros.}
+
+\item{fishlen_datalag}{Integer array. Lags for fishery length composition data [regions x fleets]. Default is zeros.}
+
+\item{srvidx_datalag}{Integer array. Lags for survey index data [regions x fleets]. Default is zeros.}
+
+\item{srvage_datalag}{Integer array. Lags for survey age composition data [regions x fleets]. Default is zeros.}
+
+\item{srvlen_datalag}{Integer array. Lags for survey length composition data [regions x fleets]. Default is zeros.}
+
+\item{tag_datalag}{Integer. Lag for tagging data. Default is 0.}
 }
 \value{
-Dataframe of retrospective estiamtes of SSB and recruitment
+A \code{data.frame} containing retrospective estimates of SSB and recruitment.
+  Columns include:
+  \itemize{
+    \item \code{Region}: Region index.
+    \item \code{Year}: Year index.
+    \item \code{Type}: "SSB" or "Recruitment".
+    \item \code{peel}: Peel number (0 = full data, 1 = 1-year peel, etc.).
+    \item \code{value}: Estimated value of SSB or recruitment.
+    \item \code{pdHess} and \code{max_grad} (optional): Information from \code{sdreport} if \code{do_sdrep = TRUE}.
+  }
 }
 \description{
-Run retrospective analyses
+Performs retrospective peels by truncating the input data, optionally applying
+Francis reweighting and parallelization, and returns estimates of spawning stock
+biomass (SSB) and recruitment for each peel.
 }
 \examples{
 \dontrun{
- # Do retrospective here
- ret <- do_retrospective(n_retro = 7, data, parameters, mapping, random = NULL, do_par = TRUE, n_cores = 7, do_francis = TRUE, n_francis_iter = 5)
- ggplot(ret, aes(x = Year + 1959, y = value, group = peel, color = 2024 - peel)) +
-   geom_line(lwd = 1.3) +
-   facet_wrap(~Type) +
-   guides (color = guide_colourbar(barwidth = 10, barheight = 1.3)) +
-   labs(x = 'Year', y = 'Value', color = 'Retrospective Year') +
-   scale_color_viridis_c() +
-   theme_bw(base_size = 15) +
-   theme(legend.position = 'top')
+# Run a 7-year retrospective
+ret <- do_retrospective(
+  n_retro = 7,
+  data = data,
+  parameters = parameters,
+  mapping = mapping,
+  random = NULL,
+  do_par = TRUE,
+  n_cores = 7,
+  do_francis = TRUE,
+  n_francis_iter = 5
+)
 
- ret \%>\%
-   dplyr::mutate(Year = Year + 1959, terminal = 2024 - peel, cohort = Year - 2, years_est = terminal-Year) \%>\%
-   filter(Type == 'Recruitment', cohort \%in\% c(2014:2022), terminal != Year) \%>\%
-   ggplot(aes(x = years_est - 1, y = value, group = Year, color = factor(cohort))) +
-   geom_line(lwd = 1.3) +
-   geom_point(size = 4) +
-   theme_bw(base_size = 15) +
-   labs(x = 'Years since cohort was last estimated', y = 'Recruitment (millions)', color = 'Cohort')
+# Plot retrospective SSB and Recruitment
+library(ggplot2)
+ggplot(ret, aes(x = Year + 1959, y = value, group = peel, color = 2024 - peel)) +
+  geom_line(lwd = 1.3) +
+  facet_wrap(~Type) +
+  guides(color = guide_colourbar(barwidth = 10, barheight = 1.3)) +
+  labs(x = 'Year', y = 'Value', color = 'Retrospective Year') +
+  scale_color_viridis_c() +
+  theme_bw(base_size = 15) +
+  theme(legend.position = 'top')
 }
 }
+\seealso{
+Other Model Diagnostics: 
+\code{\link{do_jitter}()},
+\code{\link{do_likelihood_profile}()},
+\code{\link{do_mcmc}()},
+\code{\link{do_runs_test}()},
+\code{\link{get_catch_fits_plot}()},
+\code{\link{get_comp_prop}()},
+\code{\link{get_idx_fits}()},
+\code{\link{get_idx_fits_plot}()},
+\code{\link{get_mcmc_ssb_rec}()},
+\code{\link{get_nLL_plot}()},
+\code{\link{get_osa}()},
+\code{\link{get_retrospective_plot}()},
+\code{\link{get_retrospective_relative_difference}()},
+\code{\link{mcmc_diag}()},
+\code{\link{mcmc_par_names}()},
+\code{\link{plot_resids}()}
+}
+\concept{Model Diagnostics}

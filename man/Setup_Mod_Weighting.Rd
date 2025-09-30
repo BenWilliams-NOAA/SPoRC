@@ -6,8 +6,6 @@
 \usage{
 Setup_Mod_Weighting(
   input_list,
-  sablefish_ADMB = 0,
-  likelihoods,
   Wt_Catch = 1,
   Wt_FishIdx = 1,
   Wt_SrvIdx = 1,
@@ -22,18 +20,6 @@ Setup_Mod_Weighting(
 }
 \arguments{
 \item{input_list}{List containing data, parameter, and map lists.}
-
-\item{sablefish_ADMB}{Numeric flag to mimic calculations for the sablefish ADMB model:
-\itemize{
-  \item 1 to mimic sablefish ADMB calculations
-  \item 0 otherwise
-}}
-
-\item{likelihoods}{Numeric flag indicating likelihood implementation to use:
-\itemize{
-  \item 0 for ADMB likelihoods
-  \item 1 for TMB likelihoods
-}}
 
 \item{Wt_Catch}{Either a numeric scalar (lambda) applied to the overall catch dataset or an array of lambdas (i.e., weights can change by year and fleet) dimensioned by n_regions, n_years, n_fish_fleets.}
 
@@ -58,3 +44,17 @@ Setup_Mod_Weighting(
 \description{
 Set up SPoRC model weighting
 }
+\seealso{
+Other Model Setup: 
+\code{\link{Setup_Mod_Biologicals}()},
+\code{\link{Setup_Mod_Catch_and_F}()},
+\code{\link{Setup_Mod_Dim}()},
+\code{\link{Setup_Mod_FishIdx_and_Comps}()},
+\code{\link{Setup_Mod_Fishsel_and_Q}()},
+\code{\link{Setup_Mod_Movement}()},
+\code{\link{Setup_Mod_Rec}()},
+\code{\link{Setup_Mod_SrvIdx_and_Comps}()},
+\code{\link{Setup_Mod_Srvsel_and_Q}()},
+\code{\link{Setup_Mod_Tagging}()}
+}
+\concept{Model Setup}

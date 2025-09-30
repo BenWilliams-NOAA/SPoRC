@@ -40,12 +40,12 @@
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">Setup_Mod_Srvsel_and_Q</span><span class="op">(</span></span>
 <span>  <span class="va">input_list</span>,</span>
-<span>  <span class="va">cont_tv_srv_sel</span>,</span>
-<span>  <span class="va">srv_sel_blocks</span>,</span>
+<span>  cont_tv_srv_sel <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"none_Fleet_"</span>, <span class="fl">1</span><span class="op">:</span><span class="va">input_list</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">n_srv_fleets</span>, sep <span class="op">=</span> <span class="st">""</span><span class="op">)</span>,</span>
+<span>  srv_sel_blocks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"none_Fleet_"</span>, <span class="fl">1</span><span class="op">:</span><span class="va">input_list</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">n_srv_fleets</span>, sep <span class="op">=</span> <span class="st">""</span><span class="op">)</span>,</span>
 <span>  <span class="va">srv_sel_model</span>,</span>
 <span>  Use_srv_q_prior <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  srv_q_prior <span class="op">=</span> <span class="cn">NA</span>,</span>
-<span>  <span class="va">srv_q_blocks</span>,</span>
+<span>  srv_q_blocks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"none_Fleet_"</span>, <span class="fl">1</span><span class="op">:</span><span class="va">input_list</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">n_srv_fleets</span>, sep <span class="op">=</span> <span class="st">""</span><span class="op">)</span>,</span>
 <span>  srvsel_pe_pars_spec <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">srv_fixed_sel_pars_spec</span>,</span>
 <span>  srv_q_spec <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -55,6 +55,7 @@
 <span>  srv_q_cov_dat <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  Use_srv_selex_prior <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  srv_selex_prior <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  t_srv <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="fl">0.5</span>, dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">input_list</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">n_regions</span>, <span class="va">input_list</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">n_srv_fleets</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -71,7 +72,7 @@
 <dd><p>Character vector specifying the form of continuous time-varying selectivity for each survey fleet.
 The vector must be length <code>n_srv_fleets</code>, and each element must follow the structure:
 <code>"&lt;time variation type&gt;_Fleet_&lt;fleet number&gt;"</code>.</p>
-<p>Valid time variation types include:</p><ul><li><p><code>"none"</code>: No continuous time variation.</p></li>
+<p>Valid time variation types include:</p><ul><li><p><code>"none"</code>: No continuous time variation. (default)</p></li>
 <li><p><code>"iid"</code>: Independent and identically distributed deviations across years.</p></li>
 <li><p><code>"rw"</code>: Random walk in time.</p></li>
 <li><p><code>"3dmarg"</code>: 3D marginal time-varying selectivity.</p></li>
@@ -85,7 +86,7 @@ The vector must be length <code>n_srv_fleets</code>, and each element must follo
 <dt id="arg-srv-sel-blocks">srv_sel_blocks<a class="anchor" aria-label="anchor" href="#arg-srv-sel-blocks"></a></dt>
 <dd><p>Character vector specifying the survey selectivity blocks for each region and fleet.
 Each element must follow the structure: `"Block_&lt;block number&gt;_Year_&lt;start&gt;-&lt;end&gt;_Fleet_&lt;fleet number&gt;"` or `"none_Fleet_&lt;fleet number&gt;"`.
-This allows users to define time-varying selectivity blocks for specific fleets within a region.</p>
+This allows users to define time-varying selectivity blocks for specific fleets within a region. Default is "none_Fleet_x".</p>
 <p>For example:</p><ul><li><p><code>"Block_1_Year_1-35_Fleet_1"</code> defines selectivity block 1 for Fleet 1 covering years 1 through 35.</p></li>
 <li><p><code>"Block_2_Year_36-56_Fleet_1"</code> defines block 2 for Fleet 1 for years 36 to 56.</p></li>
 <li><p><code>"Block_3_Year_57-terminal_Fleet_1"</code> assigns block 3 from year 57 through the terminal year for Fleet 1.</p></li>
@@ -264,10 +265,28 @@ This avoids issues with list structure but does not affect the design matrix or 
 </ul></dd>
 
 
+<dt id="arg-t-srv">t_srv<a class="anchor" aria-label="anchor" href="#arg-t-srv"></a></dt>
+<dd><p>Survey timing in fractions (n_regions * n_srv_fleets; default is 0.5)</p></dd>
+
+
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
 <dd><p>Additional arguments specifying starting values for survey selectivity and catchability parameters (srvsel_pe_pars, ln_srvsel_devs, ln_srv_fixed_sel_pars, ln_srv_q, srv_q_coeff)</p></dd>
 
 </dl></div>
+    <div class="section level2">
+    <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
+    <div class="dont-index"><p>Other Model Setup:
+<code><a href="Setup_Mod_Biologicals.html">Setup_Mod_Biologicals</a>()</code>,
+<code><a href="Setup_Mod_Catch_and_F.html">Setup_Mod_Catch_and_F</a>()</code>,
+<code><a href="Setup_Mod_Dim.html">Setup_Mod_Dim</a>()</code>,
+<code><a href="Setup_Mod_FishIdx_and_Comps.html">Setup_Mod_FishIdx_and_Comps</a>()</code>,
+<code><a href="Setup_Mod_Fishsel_and_Q.html">Setup_Mod_Fishsel_and_Q</a>()</code>,
+<code><a href="Setup_Mod_Movement.html">Setup_Mod_Movement</a>()</code>,
+<code><a href="Setup_Mod_Rec.html">Setup_Mod_Rec</a>()</code>,
+<code><a href="Setup_Mod_SrvIdx_and_Comps.html">Setup_Mod_SrvIdx_and_Comps</a>()</code>,
+<code><a href="Setup_Mod_Tagging.html">Setup_Mod_Tagging</a>()</code>,
+<code><a href="Setup_Mod_Weighting.html">Setup_Mod_Weighting</a>()</code></p></div>
+    </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>

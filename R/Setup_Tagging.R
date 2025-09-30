@@ -1,56 +1,89 @@
 #' Set up simulated tagging dynamics
 #'
-#' @param n_tags Number of tags to release in a given year
-#' @param max_liberty Maximum liberty to track cohorts for
-#' @param tag_years Years to release tags for
-#' @param t_tagging Time of tagging (e.g., start year == 0, mid year == 0.5)
-#' @param base_Tag_Reporting Base tag reporting rate by region
-#' @param Tag_Reporting_pattern Tag reporting pattern. Options include: constant
-#' @param Tag_Ind_Mort Initial tag induced mortality
-#' @param Tag_Shed Chronic tag shedding rate
-#' @param sim_list Simulation list
-#'
+#' @param n_tags Number of tags to release in a given year (scalar, default = NULL)
+#' @param max_liberty Maximum liberty to track cohorts (default = sim_list$n_ages / 2)
+#' @param t_tagging Time of tagging (e.g., start year == 0, mid year == 0.5; default = 0)
+#' @param ln_Init_Tag_Mort Log initial tag-induced mortality (default = log(1e-5))
+#' @param ln_Tag_Shed Log chronic tag shedding rate (default = log(1e-5))
+#' @param sim_list Simulation list (required)
+#' @param UseTagging Boolean to use tagging (default = 0):
+#'   \itemize{
+#'     \item 0: Do not simulate tagging
+#'     \item 1: Simulate tagging
+#'   }
+#' @param tag_release_indicator Tag release indicator [regions × tag_years]
+#'   (default = all combinations of regions × years via `expand.grid`)
+#' @param Tag_Reporting_input Tag reporting input [n_regions × n_yrs × n_sims]
+#'   (default = 0.5)
+#' @param n_tags_rel_input Number of tag releases by tag cohort length (default = NULL)
+#' @param tag_selex Tag selectivity type (integer, default = 5):
+#'   \itemize{
+#'     \item 0: Uniform_DomFleet
+#'     \item 1: SexAgg_DomFleet
+#'     \item 2: SexSp_DomFleet
+#'     \item 3: Uniform_AllFleet
+#'     \item 4: SexAgg_AllFleet
+#'     \item 5: SexSp_AllFleet
+#'   }
+#' @param tag_natmort Tag natural mortality type (integer, default = 3):
+#'   \itemize{
+#'     \item 0: AgeAgg_SexAgg
+#'     \item 1: AgeSp_SexAgg
+#'     \item 2: AgeAgg_SexSp
+#'     \item 3: AgeSp_SexSp
+#'   }
+#' @param tag_like Tag likelihood type (integer, default = 0):
+#'   \itemize{
+#'     \item 0: Poisson
+#'     \item 1: NegBin
+#'     \item 2: Multinomial_Release
+#'     \item 3: Multinomial_Recapture
+#'     \item 4: Dirichlet-Multinomial_Release
+#'     \item 5: Dirichlet-Multinomial_Recapture
+#'   }
+#' @param ln_tag_theta Scalar in log space describing tag likelihood overdispersion (default = log(1))
 #' @export Setup_Sim_Tagging
-#'
-Setup_Sim_Tagging <- function(
-                              n_tags,
-                              max_liberty,
-                              tag_years,
-                              t_tagging,
-                              base_Tag_Reporting,
-                              Tag_Reporting_pattern,
-                              Tag_Ind_Mort,
-                              Tag_Shed,
+#' @family Simulation Setup
+Setup_Sim_Tagging <- function(n_tags = NULL,
+                              n_tags_rel_input = NULL,
+                              UseTagging = 0,
+                              max_liberty = sim_list$n_ages / 2,
+                              tag_release_indicator = expand.grid(regions = 1:sim_list$n_regions, tag_years = 1:sim_list$n_yrs),
+                              t_tagging = 0,
+                              ln_Init_Tag_Mort = log(1e-5),
+                              ln_Tag_Shed = log(1e-5),
+                              Tag_Reporting_input = array(0.5, dim = c(sim_list$n_regions, sim_list$n_yrs, sim_list$n_sims)),
+                              tag_selex = 5,
+                              tag_natmort = 3,
+                              tag_like = 0,
+                              ln_tag_theta = log(1),
                               sim_list
                               ) {
 
+  if(!is.null(Tag_Reporting_input)) check_sim_dimensions(Tag_Reporting_input, n_regions = sim_list$n_regions, n_years = sim_list$n_yrs, n_sims = sim_list$n_sims, what = "Tag_Reporting_input")
+
   # Output variables into list
-  sim_list$n_tags <- n_tags
+  if(!is.null(n_tags)) sim_list$n_tags <- n_tags
+  if(!is.null(n_tags_rel_input)) sim_list$n_tags_rel_input <- n_tags_rel_input
   sim_list$max_liberty <- max_liberty
-  sim_list$tag_years <- tag_years
-  sim_list$n_tag_yrs <- length(tag_years)
-  sim_list$t_tagging <- t_tagging
-  sim_list$Tag_Ind_Mort <- Tag_Ind_Mort
-  sim_list$Tag_Shed <- Tag_Shed
-  sim_list$n_tag_rel_events <- sim_list$n_tag_yrs * sim_list$n_regions # number of tag release events - tag years x tag region (tag cohorts)
-  sim_list$tag_rel_indicator <- expand.grid(regions = 1:sim_list$n_regions, tag_yrs = tag_years) # get tag release indicator (by tag years and regions = a tag cohort)
+  sim_list$t_tagging <- t_tagging # time of tagging
+  sim_list$ln_Init_Tag_Mort <- ln_Init_Tag_Mort # tag induced mortality
+  sim_list$ln_Tag_Shed <- ln_Tag_Shed # tag shedding
+  sim_list$tag_release_indicator <- tag_release_indicator # tag release indicator (by tag years and regions = a tag cohort)
+  sim_list$n_tag_rel_events <- nrow(tag_release_indicator) # number of tag release events - tag years x tag region (tag cohorts)
 
   # Containers
-  Tag_Reporting <- array(0, dim = c(sim_list$n_regions, sim_list$n_yrs, sim_list$n_sims)) # populated later on
-  sim_list$Tag_Fish <- array(0, dim = c(sim_list$n_tag_rel_events, sim_list$n_ages, sim_list$n_sexes, sim_list$n_sims)) # number of tagged fish
+  sim_list$Tagged_Fish <- array(0, dim = c(sim_list$n_tag_rel_events, sim_list$n_ages, sim_list$n_sexes, sim_list$n_sims)) # number of tagged fish
   sim_list$Tag_Avail <- array(0, dim = c(sim_list$max_liberty + 1, sim_list$n_tag_rel_events, sim_list$n_regions, sim_list$n_ages, sim_list$n_sexes, sim_list$n_sims)) # tags availiable for recapture every year
   sim_list$Pred_Tag_Recap <- array(0, dim = c(sim_list$max_liberty, sim_list$n_tag_rel_events, sim_list$n_regions, sim_list$n_ages, sim_list$n_sexes, sim_list$n_sims)) # predicted tag recaptures
   sim_list$Obs_Tag_Recap <- array(0, dim = c(sim_list$max_liberty, sim_list$n_tag_rel_events, sim_list$n_regions, sim_list$n_ages, sim_list$n_sexes, sim_list$n_sims)) # observed tag recaptures
 
-  for(sim in 1:sim_list$n_sims) {
-    for(r in 1:sim_list$n_regions) {
-      for(y in 1:sim_list$n_yrs) {
-        if(Tag_Reporting_pattern == "constant") Tag_Reporting[r,y,sim] <- base_Tag_Reporting[r]
-      } # end y loop
-    } # end r loop
-  } # end sim loop
-
-  sim_list$Tag_Reporting <- Tag_Reporting # output this into list
+  sim_list$Tag_Reporting <- Tag_Reporting_input # output this into list
+  sim_list$UseTagging <- UseTagging # output into list
+  sim_list$tag_selex <- tag_selex # output into list
+  sim_list$tag_natmort <- tag_natmort # otuput into list
+  sim_list$tag_like <- tag_like # tag likelihood
+  sim_list$ln_tag_theta <- ln_tag_theta # tag likelihood overdispersion parameter
 
   return(sim_list)
 }
@@ -115,7 +148,6 @@ do_Tag_Reporting_Pars_mapping <- function(input_list, TagRep_spec) {
   # If not using tagging data
   if(input_list$data$UseTagging == 0) {
     input_list$map$Tag_Reporting_Pars <- factor(rep(NA, length(input_list$par$Tag_Reporting_Pars))) # tag reporting rates
-    input_list$data$map_Tag_Reporting_Pars = array(as.numeric(input_list$map$Tag_Reporting_Pars), dim = dim(input_list$par$Tag_Reporting_Pars))
   }
 
   if(input_list$data$UseTagging == 1) {
@@ -128,7 +160,7 @@ do_Tag_Reporting_Pars_mapping <- function(input_list, TagRep_spec) {
     if(input_list$data$Tag_LikeType %in% c(0,1,2,4)) { # If this is a poisson, negative binomial, multinomial or dirichlet-multinomial release conditioned
 
       # Validate inputs here
-      if(!is.null(TagRep_spec)) if(!TagRep_spec %in% c("est_all", "est_shared_r", "fix")) stop("Tag Reporting Specificaiton is not correctly specified. Needs to be fix, est_all, or est_shared_r")
+      if(!TagRep_spec %in% c("est_all", "est_shared_r", "fix")) stop("Tag Reporting Specificaiton is not correctly specified. Needs to be fix, est_all, or est_shared_r")
 
       # if we want to fix
       if(TagRep_spec == 'fix') map_TagRep[] <- NA
@@ -166,7 +198,6 @@ do_Tag_Reporting_Pars_mapping <- function(input_list, TagRep_spec) {
 
     # input tag reporting rates into mapping list
     input_list$map$Tag_Reporting_Pars <- factor(map_TagRep) # tag reporting rates
-    input_list$data$map_Tag_Reporting_Pars <- array(as.numeric(input_list$map$Tag_Reporting_Pars), dim = dim(input_list$par$Tag_Reporting_Pars))
 
   }
 
@@ -247,6 +278,7 @@ do_Tag_Reporting_Pars_mapping <- function(input_list, TagRep_spec) {
 #'   Only parameters with rows in this data frame will have priors applied.
 #'
 #' @export Setup_Mod_Tagging
+#' @family Model Setup
 Setup_Mod_Tagging <- function(input_list,
                               UseTagging = 0,
                               tag_release_indicator = NULL,
@@ -264,7 +296,7 @@ Setup_Mod_Tagging <- function(input_list,
                               move_sex_tag_pool = NA,
                               Init_Tag_Mort_spec = NULL,
                               Tag_Shed_spec = NULL,
-                              TagRep_spec = NULL,
+                              TagRep_spec = 'fix',
                               Tag_Reporting_blocks = NULL,
                               ...
                               ) {

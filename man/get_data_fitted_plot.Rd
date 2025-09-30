@@ -22,3 +22,12 @@ Get Data Fitted to Plot
 get_data_fitted_plot(list(data1, data2), c("Model1", "Model2"))
 }
 }
+\seealso{
+Other Plotting: 
+\code{\link{get_biological_plot}()},
+\code{\link{get_selex_plot}()},
+\code{\link{get_ts_plot}()},
+\code{\link{plot_all_basic}()},
+\code{\link{theme_sablefish}()}
+}
+\concept{Plotting}

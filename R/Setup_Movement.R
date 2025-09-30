@@ -302,6 +302,7 @@ do_cont_vary_move_mapping <- function(input_list, cont_vary_movement, Movement_c
 #' @param ... Additional parameters such as starting values for \code{move_pars}, \code{logit_move_devs}, and \code{move_pe_pars}.
 #'
 #' @export Setup_Mod_Movement
+#' @family Model Setup
 Setup_Mod_Movement <- function(input_list,
                                do_recruits_move = 0,
                                use_fixed_movement = 0,

@@ -41,3 +41,9 @@ Fishing mortality values
 \description{
 Go from TAC to Fishing Mortality using bisection
 }
+\seealso{
+Other Closed Loop Simulations: 
+\code{\link{condition_closed_loop_simulations}()},
+\code{\link{get_closed_loop_reference_points}()}
+}
+\concept{Closed Loop Simulations}

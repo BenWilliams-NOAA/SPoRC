@@ -142,6 +142,7 @@ get_francis_weights <- function(n_regions,
 #'
 #' @return A list object of francis weights (note that it will be NAs for some, if using jnt composition approaches - i.e., only uses one dimension), as well as a dataframe of francis mean fits
 #' @export do_francis_reweighting
+#' @family Francis Reweighting
 #' @details
 #' Function to get francis weights. Used inside the wrapper function run_francis(), or can be defined by the user as a loop to extract Francis weights (see example).
 #'
@@ -336,20 +337,20 @@ do_francis_reweighting <- function(data,
 #'   [fit_model()].
 #' @param mapping A list or mapping object used to specify fixed or
 #'   estimated parameters in [fit_model()].
-#' @param n_francis_iters Integer. Number of Francis reweighting
+#' @param n_francis_iter Integer. Number of Francis reweighting
 #'   iterations to perform. Default is `10`.
 #' @param newton_loops Integer. Number of Newton loops passed to
 #'   [fit_model()]. Default is `0`.
 #' @param random A character string of random effects passed to [fit_model()].
 #'
-#' @returns A list with two elements:
+#' @returns A list with three elements:
 #' \describe{
 #'   \item{obj}{The fitted model object returned by [fit_model()],
 #'   including all elements of a TMB object, data, parameters, mapping, random effects specified, and report.}
-#'   \item{mean_francis}{A summary of the mean Francis weights from the
-#'   final iteration.}
+#'   \item{mean_francis}{A summary of the mean Francis weights from the final iteration.}
+#'   \item{recorded_weights}{A summary of recorded francis weights from each iteartion.}
 #' }
-#'
+#' @family Francis Reweighting
 #' @export run_francis
 #'
 #' @examples
@@ -357,22 +358,24 @@ do_francis_reweighting <- function(data,
 #'   out <- run_francis(data = data,
 #'                      parameters = parameters,
 #'                      mapping = mapping,
-#'                      random = NULL
-#'                      n_francis_iters = 5,
+#'                      random = NULL,
+#'                      n_francis_iter = 5,
 #'                      newton_loops = 3)
 #'   out$obj
 #'   out$mean_francis
 #' }
-
 run_francis <- function(data,
                         parameters,
                         mapping,
                         random = NULL,
-                        n_francis_iters = 10,
-                        newton_loops = 0) {
+                        n_francis_iter = 10,
+                        newton_loops = 0
+                        ) {
+
+  wts_df <- data.frame() # empty dataframe for recorded weights to bind to
 
   # run francis
-  for(j in 1:n_francis_iters) {
+  for(j in 1:n_francis_iter) {
 
     if(j == 1) { # reset weights at 1
       data$Wt_FishAgeComps[] <- 1
@@ -404,6 +407,19 @@ run_francis <- function(data,
                                   age_labels = 1:dim(data$ObsFishAgeComps)[3],
                                   len_labels = data$lens,
                                   year_labels = data$years)
+
+    # record weights
+    # reshape matrices and label
+    fish_age_wts_df <- reshape2::melt(wts$new_fish_age_wts); fish_age_wts_df$Type <- "Fishery Ages"
+    fish_len_wts_df <- reshape2::melt(wts$new_fish_len_wts); fish_len_wts_df$Type <- "Fishery Lengths"
+    srv_age_wts_df <- reshape2::melt(wts$new_srv_age_wts); srv_age_wts_df$Type <- "Survey Ages"
+    srv_len_wts_df <- reshape2::melt(wts$new_srv_len_wts); srv_len_wts_df$Type <- "Survey Lengths"
+    tmp_wts_df <- rbind(fish_age_wts_df, fish_len_wts_df, srv_age_wts_df, srv_len_wts_df) # bind dataframes together
+    colnames(tmp_wts_df) <- c("Region", "Year", "Sex", "Fleet", "Weight", "Type") # rename columns
+    tmp_wts_df$iter <- j # indicate francis iteration
+    wts_df <- rbind(wts_df, tmp_wts_df) # update dataframe
+    print(paste("Francis iteration:", j)) # print francis iteration
+
   } # end j loop
 
   obj$data <- data
@@ -412,6 +428,7 @@ run_francis <- function(data,
   obj$random <- random
   obj$rep <- rep
 
-  return(list(obj = obj, mean_francis = wts$mean_francis))
+  return(list(obj = obj, mean_francis = wts$mean_francis, recorded_weights = wts_df))
 
 }
+

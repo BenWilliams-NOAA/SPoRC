@@ -70,8 +70,6 @@ input_list <- Setup_Mod_Rec(
   rec_model = "mean_rec",
   sigmaR_spec = "fix",
   # fix early sigmaR and late sigmaR
-  sexratio = as.vector(c(1.0)),
-  # recruitment sex ratio
   init_age_strc = 1, # geometric series to derive initial age structure
   ln_global_R0 = log(2.7), # starting value for mean_rec
   t_spawn = sgl_rg_dusky_data$spwn_month
@@ -121,7 +119,7 @@ Because this vignette illustrates a single-region model, movement dynamics are n
 
 
 ## Setup Catch and Fishing Mortality
-The function `Setup_Mod_Catch_and_F` then updates the `input_list` with catch data and fishing mortality specifications. Three data inputs are required: observed catch (`ObsCatch`), the type of catch (`Catch_Type`), and an indicator for whether the catch is used in the model (`UseCatch`). Model options include a switch for applying a fishing mortality penalty (`Use_F_pen`), whether the catch error standard deviation is fixed or estimated (`sigmaC_spec`), and a small constant added to avoid problems with zero catches (`Catch_Constant`). Finally, fixed values for the observation error of catch (`ln_sigmaC`) and the penalty on fishing mortality (`ln_sigmaF`) are provided, both dimensioned by the number of regions and fishery fleets. Note that these are specified as $log(\sqrt{(1/2)})$ because the model was originally written in ADMB where these values were computed as sum of squares, and the standard deviation of these terms were implicitly assumed to be set at 1. 
+The function `Setup_Mod_Catch_and_F` then updates the `input_list` with catch data and fishing mortality specifications. Three data inputs are required: observed catch (`ObsCatch`), the type of catch (`Catch_Type`), and an indicator for whether the catch is used in the model (`UseCatch`). Model options include a switch for applying a fishing mortality penalty (`Use_F_pen`) and whether the catch error standard deviation is fixed or estimated (`sigmaC_spec`), and a small constant added to avoid problems with zero catches (`Catch_Constant`). Finally, fixed values for the observation error of catch (`ln_sigmaC`) and the penalty on fishing mortality (`ln_sigmaF`) are provided. Note that these are specified as $log(\sqrt{(1/2)})$ because the model was originally written in ADMB where these values were computed as sum of squares, and the standard deviation of these terms were implicitly assumed to be set at 1. 
 
 ```{r eval = F}
 input_list <- Setup_Mod_Catch_and_F(
@@ -136,10 +134,9 @@ input_list <- Setup_Mod_Catch_and_F(
   Use_F_pen = 1,
   # whether to use f penalty, == 0 don't use, == 1 use
   sigmaC_spec = "fix",
-  Catch_Constant = 0.00001,
 
   # Fixing sigma C and F
-  ln_sigmaC = array(log(sqrt(1/2)), dim = c(input_list$data$n_regions, input_list$data$n_fish_fleets)),
+  ln_sigmaC = array(log(sqrt(1/2)), dim = c(input_list$data$n_regions, length(input_list$data$years), input_list$data$n_fish_fleets)),
   ln_sigmaF = array(log(sqrt(1/2)), dim = c(input_list$data$n_regions, input_list$data$n_fish_fleets))
 )
 ```
@@ -339,7 +336,7 @@ nofrancis_model$sdrep <- RTMB::sdreport(nofrancis_model) # get standard error re
 ```
 
 ## Fit model (With Francis)
-Conducting Francis re-weighting on composition data requires an iterative procedure to adjust the effective weights of age and length compositions based on model fit. First, a separate copy of the data list (`francis_data`) is created, which will be updated with revised weights during the iterations. The number of Francis iterations is specified (`n_francis_iters = 10`), which indicates the number of times the model is refit, where the composition weights are updated after each model iteration. The `run_francis` function then conducts the reweighting procedure and the weights are saved inside the data list object (`francis_runs$obj$data`)
+Conducting Francis re-weighting on composition data requires an iterative procedure to adjust the effective weights of age and length compositions based on model fit. First, a separate copy of the data list (`francis_data`) is created, which will be updated with revised weights during the iterations. The number of Francis iterations is specified (`n_francis_iter = 10`), which indicates the number of times the model is refit, where the composition weights are updated after each model iteration. The `run_francis` function then conducts the reweighting procedure and the weights are saved inside the data list object (`francis_runs$obj$data`)
 ```{r eval = FALSE}
 francis_data <- data # redefine data list for francis (replacing data weights)
 
@@ -347,7 +344,7 @@ francis_data <- data # redefine data list for francis (replacing data weights)
 francis_runs <- run_francis(francis_data,
                              parameters,
                              mapping,
-                             n_francis_iters = 10,
+                             n_francis_iter = 10,
                              newton_loops =  3)
 
 # get obj
@@ -802,7 +799,6 @@ HCR_function <- function(x, frp, brp, alpha = 0.05) {
 # define projection parameters
 n_sims <- 1e3
 t_spawn <- 0
-sexratio <- c(0.5, 0.5)
 n_proj_yrs <- 25
 n_regions <- 1
 n_ages <- length(francis_data$ages)
@@ -819,6 +815,7 @@ Movement <- array(rep(francis_model$rep$Movement[,,length(francis_data$years),,]
 terminal_F <- array(francis_model$rep$Fmort[,length(francis_data$years),], dim = c(n_regions, n_fish_fleets)) # terminal F
 natmort <- array(rep(francis_model$rep$natmort[,length(francis_data$years),,], each = n_proj_yrs), dim = c(n_regions, n_proj_yrs, n_ages, n_sexes)) # natural mortaility
 recruitment <- array(francis_model$rep$Rec[,3:(length(francis_data$years) - 4)], dim = c(n_regions, length(3:(length(francis_data$years) - 4)))) # recruitment from years 3 - terminal (corresponds to 1979)
+sexratio <- array(1, dim = c(n_regions, n_proj_yrs, n_sexes)) # recruitment sex ratio 
 ```
 
 Next, we can define the Alaska projection scenarios to understand if the stock is within sustainable limits. These scenarios vary in how fishing mortality is applied relative to biological reference points. Scenario 1 applies the harvest control rule (HCR) using $F_{40\%}$ as the maximum allowable fishing mortality, with the annual mean of catch across simulations providing the annual catch advice. Scenario 2 also uses the HCR but scales $F_{40\%}$ based on the previous year’s fishing mortality. Scenario 3 applies a constant fishing mortality equal to the average of the last five years. Scenario 4 adjusts fishing mortality under the HCR using $F_{60\%}$, while Scenario 5 assumes no fishing. Scenario 6 applies the HCR with $F_{35\%}$, representing the overfishing limit (`FOFL`). Finally, Scenario 7 applies the HCR with $F_{40\%}$ in the first two projection years and then transitions to $F_{35\%}$ in later years.

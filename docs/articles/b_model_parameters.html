@@ -343,6 +343,14 @@ covariates</td>
 <td>SD for initial and recruitment deviations</td>
 <td>0</td>
 </tr>
+<tr class="odd">
+<td><code>sexratio_pars</code></td>
+<td><code>n_regions, n_blocks</code></td>
+<td>Logit sex ratio parameters; defaults to invlogit(sexratio_pars) = 1
+if <code>n_sexes == 1</code>
+</td>
+<td>0</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -563,7 +571,7 @@ logistic-normal)</td>
 </tr>
 <tr class="odd">
 <td><code>Tag_Reporting_Pars</code></td>
-<td><code>n_regions, n_years</code></td>
+<td><code>n_regions, n_blocks</code></td>
 <td>Logit tag reporting rate parameters</td>
 <td>0</td>
 </tr>

@@ -4,7 +4,7 @@
 \alias{Simulate_Pop_Static}
 \title{Simulates a static spatial, sex, and age-structured population (no feedback loop)}
 \usage{
-Simulate_Pop_Static(sim_list, output_path)
+Simulate_Pop_Static(sim_list, output_path = NULL)
 }
 \arguments{
 \item{sim_list}{Simulation list objects}
@@ -17,135 +17,18 @@ a list object with a bunch of simulated values and outputs
 \description{
 Simulates a static spatial, sex, and age-structured population (no feedback loop)
 }
-\examples{
-\dontrun{
-  # Set up model dimensions
- sim_list <- Setup_Sim_Dim(n_sims = 100,
-                           n_yrs = 10,
-                           n_regions = 2,
-                           n_ages = 8,
-                           n_sexes = 1,
-                           n_fish_fleets = 1,
-                           n_srv_fleets = 1
- )
-
- # set up containers
- sim_list <- Setup_Sim_Containers(sim_list)
-
- # Setup fishing mortality
- sim_list <- Setup_Sim_FishMort(sim_list = sim_list,
-                                sigmaC = 1e-3,
-                                init_F = matrix(0, nrow = sim_list$n_regions, ncol = sim_list$n_fish_fleets),
-                                Fmort_pattern = matrix(c('two-way', "two-way"), nrow = sim_list$n_regions, ncol = sim_list$n_fish_fleets),
-                                Fmort_start = matrix(c(0.01, 0.01), nrow = sim_list$n_regions, ncol = sim_list$n_fish_fleets),
-                                Fmort_fct = matrix(c(15, 15), nrow = sim_list$n_regions, ncol = sim_list$n_fish_fleets),
-                                proc_error = TRUE,
-                                proc_error_sd = 0.1)
-
- # Setup fishery selectivity
- sim_list <- Setup_Sim_FishSel(sel_model = matrix(c('logistic', "logistic"), nrow = sim_list$n_regions, ncol = sim_list$n_fish_fleets),
-                               # a50, k for logistic shared across regions
-                               fixed_fish_sel_pars = array(c(3,3,1,1), dim = c(sim_list$n_regions, sim_list$n_sexes, sim_list$n_fish_fleets, 2)),
-                               sim_list = sim_list
- )
-
- # Setup survey catchability and selectivity
- sim_list <- Setup_Sim_Survey(
-   sim_list = sim_list,
-   sigmaSrvIdx = array(0.2, dim = c(sim_list$n_regions, sim_list$n_srv_fleets)), # survey observation error
-   base_srv_q = array(1, dim = c(sim_list$n_regions, sim_list$n_srv_fleets)), # base survey catchability value
-   srv_q_pattern = matrix(c('constant', "constant"), nrow = sim_list$n_regions, ncol = sim_list$n_srv_fleets), # catchability pattern
-   sel_model = matrix(c('logistic', "logistic"), nrow = sim_list$n_regions, ncol = sim_list$n_srv_fleets), # selectivity model
-   # a50, k, for logistic shared across regions
-   fixed_srv_sel_pars = array(c(3,3,1,1), dim = c(sim_list$n_regions, sim_list$n_sexes, sim_list$n_srv_fleets, 2))
- )
-
- # Setup recruitment stuff
- sim_list <- Setup_Sim_Rec(
-   sim_list = sim_list,
-   do_recruits_move = "dont_move", # == 0, recruits don't move , == 1 recruits move
-   base_rec_sexratio = 1, # single sex
-   rec_sexratio_vary = "constant",
-   base_r0 = c(50, 50),
-   r0_vary = "constant",
-   base_h = c(0.8, 0.8),
-   init_sigmaR = 0.5,
-   sigmaR = 0.5,
-   recruitment_opt = "bh_rec",
-   rec_dd = "global",
-   init_dd = "global",
-   rec_lag = 1
- )
-
- # Setup biologicals
- sim_list <- Setup_Sim_Biologicals(
-   sim_list = sim_list,
-   base_M_value = array(0.5, dim = c(sim_list$n_regions, sim_list$n_ages, sim_list$n_sims)),
-   M_pattern = "constant",
-   base_WAA_values = array(rep(5 * (1 - exp(-0.1 * 1:sim_list$n_ages)), each = sim_list$n_regions * sim_list$n_sexes),
-                           dim = c(sim_list$n_regions, sim_list$n_ages, sim_list$n_sexes)),
-   base_WAA_fish_values = array(rep(5 * (1 - exp(-0.1 * 1:sim_list$n_ages)), each = sim_list$n_regions * sim_list$n_sexes),
-                                dim = c(sim_list$n_regions, sim_list$n_ages, sim_list$n_sexes, sim_list$n_fish_fleets)),
-   WAA_pattern = "constant",
-   base_Maturity_AA_values = array(rep(1 / (1 + exp(-0.3 * 1:sim_list$n_ages)), each = sim_list$n_regions * sim_list$n_sexes),
-                                   dim = c(sim_list$n_regions, sim_list$n_ages, sim_list$n_sexes)),
-   Maturity_AA_pattern = "constant"
- )
-
- # Setup tagging stuff
- sim_list <- Setup_Sim_Tagging(
-   sim_list = sim_list,
-   n_tags = 5000,
-   max_liberty = 30,
-   tag_years = seq(1, sim_list$n_yrs, 3),
-   t_tagging = 0.5,
-   base_Tag_Reporting = c(0.2, 0.2),
-   Tag_Reporting_pattern = "constant",
-   Tag_Ind_Mort = 0,
-   Tag_Shed = 0
- )
-
- # Setup observation processes
- sim_list <- Setup_Sim_Observation_Proc(
-   sim_list = sim_list,
-   Comp_Structure = "spltR_jntS",
-   Comp_Srv_Like = "Multinomial",
-   Comp_Fish_Like = "Multinomial",
-   ISS_FishAge_Pattern = 'F_pattern',
-   FishAgeTheta = 3,
-   SrvAgeTheta = 2,
-   Srv_Like_Pars = NA,
-   base_ISS_FishAge = 200,
-   base_ISS_SrvAge = 200,
-   Tag_Like = "Poisson",
-   Tag_Like_Pars = NA
- )
-
- # IID Movement Matrix across years and ages
- ref <- 1
- movement_matrix <- array(0, dim = c(sim_list$n_regions, sim_list$n_regions, sim_list$n_yrs, sim_list$n_ages, sim_list$n_sexes, sim_list$n_sims)) # From, To
- base <- matrix(0, sim_list$n_regions, sim_list$n_regions)
-
- # Plug in movement process error
- for(sim in 1:sim_list$n_sims) {
-   for(a in 1:sim_list$n_ages) {
-     for(s in 1:sim_list$n_sexes) {
-       for(y in 1:sim_list$n_yrs) {
-         for(r in 1:sim_list$n_regions) {
-           if(a > 1) pe_err <- rnorm(length(tmp_move[-ref]), 0, 0.4) # logit proces error
-           else pe_err <- 0
-           tmp_move <- base[r,]
-           tmp_move[-ref] <- tmp_move[-ref] + pe_err
-           movement_matrix[r,,y,a,s,sim] <- exp(tmp_move) / sum(exp(tmp_move))
-         }
-       } # end y loop
-     } # end s loop
-   } # end a loop
- } # end sim loop
-
- sim_list$movement_matrix <- movement_matrix
-
- # Run Simulation ----------------------------------------------------------
- Simulate_Pop_Static(sim_list = sim_list, output_path = here("sim_out.RDS"))
+\seealso{
+Other Simulation Setup: 
+\code{\link{Setup_Sim_Biologicals}()},
+\code{\link{Setup_Sim_Containers}()},
+\code{\link{Setup_Sim_Dim}()},
+\code{\link{Setup_Sim_Fishing}()},
+\code{\link{Setup_Sim_Rec}()},
+\code{\link{Setup_Sim_Survey}()},
+\code{\link{Setup_Sim_Tagging}()},
+\code{\link{Setup_sim_env}()},
+\code{\link{run_annual_cycle}()},
+\code{\link{simulation_data_to_SPoRC}()},
+\code{\link{simulation_self_test}()}
 }
-}
+\concept{Simulation Setup}

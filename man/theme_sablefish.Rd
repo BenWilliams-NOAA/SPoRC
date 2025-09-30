@@ -12,3 +12,12 @@ ggplot theme
 \description{
 ggplot theme for sablefish
 }
+\seealso{
+Other Plotting: 
+\code{\link{get_biological_plot}()},
+\code{\link{get_data_fitted_plot}()},
+\code{\link{get_selex_plot}()},
+\code{\link{get_ts_plot}()},
+\code{\link{plot_all_basic}()}
+}
+\concept{Plotting}

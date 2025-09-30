@@ -89,8 +89,6 @@ Following the initialization of `input_list`, we can pass the created object int
     # fixing steepness
     sigmaR_spec = "fix",
     # fix early sigmaR and late sigmaR
-    sexratio = as.vector(c(1.0)),
-    # recruitment sex ratio
     init_age_strc = 1,
     ln_global_R0 = 10,
     t_spawn = 0.25,
@@ -166,7 +164,7 @@ Following the parameterization of biological dynamics, fishery dynamics can then
     # whether to use f penalty, == 0 don't use, == 1 use
     sigmaC_spec = "fix",
     # fixing catch standard deviation
-    ln_sigmaC = matrix(log(0.05), 1, 1)
+    ln_sigmaC = array(log(0.05), dim = c(1,length(input_list$data$years),1))
     # starting / fixed value for catch standard deviation
   )
 ```

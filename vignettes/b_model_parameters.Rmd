@@ -77,6 +77,7 @@ The following table describes all elements contained within `input_list$pars`, w
 | `ln_InitDevs` | `n_regions, n_ages - 2` | Log initial age deviations | 0 |
 | `ln_RecDevs` | `n_regions, n_recdev_years` | Log recruitment deviations | 0 |
 | `ln_sigmaR` | `2` | SD for initial and recruitment deviations | 0 |
+| `sexratio_pars` | `n_regions, n_blocks` | Logit sex ratio parameters; defaults to invlogit(sexratio_pars) = 1 if `n_sexes == 1` | 0 |
 
 ## Fishery Compositions
 
@@ -118,5 +119,5 @@ The following table describes all elements contained within `input_list$pars`, w
 |-----------|-----------|-------------|---------|
 | `ln_Init_Tag_Mort` | `1` | Log tag mortality | 1e-50 |
 | `ln_Tag_Shed` | `1` | Log chronic tag shedding | 1e-50 |
-| `Tag_Reporting_Pars` | `n_regions, n_years` | Logit tag reporting rate parameters | 0 |
+| `Tag_Reporting_Pars` | `n_regions, n_blocks` | Logit tag reporting rate parameters | 0 |
 | `ln_tag_theta` | `1` | Log overdispersion for tagging | 0 |
