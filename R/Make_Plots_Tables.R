@@ -851,6 +851,11 @@ get_key_quants <- function(data,
     Movement_avg <- apply(rep[[i]]$Movement[,,avg_yrs,,,drop = FALSE], c(1,2,4,5), mean) # movement
     Movement <- aperm(abind::abind(replicate(n_proj_yrs, Movement_avg, simplify = FALSE), along = 5), perm = c(1,2,5,3,4)) # movement
 
+    # Sex ratio
+    sexratio_avg <- apply(rep[[i]]$sexratio[,avg_yrs,,drop = FALSE], c(1,3), mean)
+    sexratio <- array(dim = c(data[[i]]$n_regions, proj_model_opt$n_proj_yrs, data[[i]]$n_sexes)) # empty array
+    for(yr in 1:proj_model_opt$n_proj_yrs) sexratio[, yr, ] <- sexratio_avg # populate empty array
+
     # Now, set up inputs for reference points
     f_ref_pt = array(tmp_ref_pts$f_ref_pt, dim = c(data[[i]]$n_regions, n_proj_yrs))
     b_ref_pt = array(tmp_ref_pts$b_ref_pt, dim = c(data[[i]]$n_regions, n_proj_yrs))
@@ -878,7 +883,7 @@ get_key_quants <- function(data,
                                          n_regions = data[[i]]$n_regions, # number of regions
                                          n_ages = length(data[[i]]$ages), # number of ages
                                          n_sexes = data[[i]]$n_sexes, # number of sexes
-                                         sexratio = reference_points_opt$sex_ratio_f, # sex ratio for recruitment
+                                         sexratio = sexratio, # sex ratio for recruitment
                                          n_fish_fleets = data[[i]]$n_fish_fleets, # number of fishery fleets
                                          do_recruits_move = data[[i]]$do_recruits_move, # whether recruits move
                                          recruitment = recruitment, # recruitment values to use for mean recruitment

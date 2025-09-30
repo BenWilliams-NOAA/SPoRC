@@ -347,7 +347,8 @@ do_francis_reweighting <- function(data,
 #' \describe{
 #'   \item{obj}{The fitted model object returned by [fit_model()],
 #'   including all elements of a TMB object, data, parameters, mapping, random effects specified, and report.}
-#'   \item{mean_francis}{A summary of the mean Francis weights from the final iteration.}
+#'   \item{end_mean_francis}{A summary of the mean Francis weights from the first iteration.}
+#'   \item{end_mean_francis}{A summary of the mean Francis weights from the final iteration.}
 #'   \item{recorded_weights}{A summary of recorded francis weights from each iteartion.}
 #' }
 #' @family Francis Reweighting
@@ -402,11 +403,16 @@ run_francis <- function(data,
     rep <- obj$report(obj$env$last.par.best) # Get report
 
     # get francis weights
-    wts <- do_francis_reweighting(data = data, rep = rep,
-                                  # uses fishery ages to index, because of potential for uneven number of observed and modelled ages
-                                  age_labels = 1:dim(data$ObsFishAgeComps)[3],
-                                  len_labels = data$lens,
-                                  year_labels = data$years)
+    wts <- do_francis_reweighting(
+      data = data, rep = rep,
+      # uses fishery ages to index, because of potential for uneven number of observed and modelled ages
+      age_labels = 1:dim(data$ObsFishAgeComps)[3],
+      len_labels = data$lens,
+      year_labels = data$years
+    )
+
+    # save first iteration run
+    if(j == 1) wts_1 <- wts
 
     # record weights
     # reshape matrices and label
@@ -428,7 +434,8 @@ run_francis <- function(data,
   obj$random <- random
   obj$rep <- rep
 
-  return(list(obj = obj, mean_francis = wts$mean_francis, recorded_weights = wts_df))
+  return(list(obj = obj, start_mean_francis = wts_1$mean_francis,
+              end_mean_francis = wts$mean_francis, recorded_weights = wts_df))
 
 }
 
