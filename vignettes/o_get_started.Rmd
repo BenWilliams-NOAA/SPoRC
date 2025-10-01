@@ -690,56 +690,73 @@ ggplot(jitter_res, aes(x = jitter, y = jnLL, color = Max_Gradient, shape = Hessi
 ![](figures/o_jitter_res.png)
 
 # MCMC
-The final model diagnostic available in the `SPoRC` package is MCMC, which not only estimates parameter uncertainty but also samples the full joint posterior, revealing parameter correlations, skewed distributions, or potential multimodality that MLE may miss. Comparing MCMC results with maximum likelihood estimates further helps assess consistency in point estimates and standard errors.
+Lastly, SPoRC can also interact with other Bayesian software (i.e, `adnuts`) to conduct MCMC analysis, which not only estimates parameter uncertainty but also samples the full joint posterior, revealing parameter correlations, skewed distributions, or potential multimodality that MLE may miss. Comparing MCMC results with maximum likelihood estimates further helps assess consistency in point estimates and standard errors. In particular, we can utilize the native functionality built into `adnuts`, which seamlessly integrates with TMB and RTMB models, which will be demonstrated in the following sections. First, let us install and load in the relevant packages.
 
-The `do_mcmc` function in `SPoRC` runs a Bayesian MCMC analysis using the `rstan` backend. In this example, four chains are run for 10,000 iterations each, with a thinning rate of 10 and an `adapt_delta` of 0.95 to improve convergence. Laplace approximation on random effects is disabled to sample the full posterior (if consistency checks are needed to ensure that Laplace is appropriate for random effects, this can be turned to `TRUE`). After running MCMC, `rstan::summary` provides summary statistics including posterior means, standard deviations, effective sample sizes (`n_eff`), and convergence diagnostics (`R_hat`).
+```{r, eval = FALSE}
+# load in adnuts ans associated packages for MCMC
+install.packages('StanEstimators', repos = c('<https://andrjohns.r-universe.dev>', '<https://cloud.r-project.org>'))
+devtools::install_github('Cole-Monnahan-NOAA/adnuts')
+library(adnuts)
+```
+
+The `sample_snuts` function in `adnuts` runs a Bayesian MCMC analysis using the RTMB model. In this example, four chains are run for 10,000 iterations each, along with 4 Markov chains. Additionally, the `adapt_delta` is set a 0.99 to ensure that the model takes smaller steps, which helps improve MCMC model convergence. Default settings are used throughout this example `sample_snuts` and users can refer to https://cole-monnahan-noaa.github.io/adnuts/ for further details. After running MCMC diagnostics, users can then inspect summary statistics from the model object, which includes posterior means, standard deviations, effective sample sizes (`n_eff`), and convergence diagnostics (`R_hat`).
 
 ```{r eval = FALSE}
 # run MCMC
-mcmc <- SPoRC::do_mcmc(obj = francis_model,
-                       chains = 4, # number of chains to run
-                       cores = 4, # cores
-                       iter = 1e4, # number of iterations to run
-                       thin = 10, # thinning rate
-                       bounds = Inf, # bounds to help with convergence
-                       laplace = FALSE, # don't do laplace approximation on random effects during MCMC
-                       adapt_delta = 0.95 # adapt delta to take smaller step sizes
-)
+mcmc <- sample_snuts(francis_model, num_samples = 1e4, control = list(adapt_delta = 0.99))
 
 # Check MCMC summary
-mcmc_summary <- rstan::summary(mcmc)
-vals <- as.data.frame(rstan::extract(mcmc))
-vals_long <- vals %>% pivot_longer(names_to = 'par', values_to = 'val', cols = everything()) # convert to long format
-
-# Get Rhats and ess
-diag_df <- data.frame(parnames = rownames(mcmc_summary$summary),
-                      n_eff = mcmc_summary$summary[,'n_eff'],
-                      R_hat = mcmc_summary$summary[,'Rhat'])
+diag_df <- mcmc$monitor
 ```
 
-After running MCMC, the `mcmc_diag` function in SPoRC can be used to visualize diagnostic plots for selected parameters. By default, if no parameters are specified, it plots the 10 parameters with the poorest mixing based on the R-hat statistic. Here, diagnostics are generated for `ln_global_R0` and `ln_srv_q.` Four types of plots are produced: (1) a correlation plot showing posterior correlations among parameters, (2) trace plots displaying MCMC chains over iterations to assess mixing, (3) posterior density plots of parameter distributions, and (4) a comparison of MLE and MCMC estimates to evaluate consistency. 
+We can then inspect various model diagnostics, ranging from pairs plots, comparisons of the marginal distributions between MLE and MCMC, trace plots, and comparisons of uncertainty between MCMC and MLE. 
 ```{r eval = FALSE}
-mcmc_diagnostics <- SPoRC::mcmc_diag(mcmc_obj = mcmc,
-                                     tmb_sdrep = francis_model$sdrep,
-                                     plot = TRUE, pars = c("ln_global_R0", "ln_srv_q"))
-
-mcmc_diagnostics[[1]]
-mcmc_diagnostics[[2]]
-mcmc_diagnostics[[3]]
-mcmc_diagnostics[[4]]
+pairs(mcmc)
+plot_marginals(mcmc)
+plot_uncertainties(mcmc)
 ```
 
-![](figures/o_mcmc_pairs.png)
-![](figures/o_mcmc_trace.png)
+![](figures/o_mcmc_pairs_trace.png)
 ![](figures/o_mcmc_dens.png)
 ![](figures/o_mcmc_mle_comp.png)
 
 Time series of recruitment and spawning stock biomass derived from posterior samples can also readily be plotted. 
 ```{r eval = FALSE}
-mcmc_ts_plot <- get_mcmc_ssb_rec(mcmc, francis_model)
-mcmc_ts_plot[[2]] + coord_cartesian(ylim = c(0, NA))
+# get mcmc time series plots
+mcmc_ts_plot <- get_model_rep_from_mcmc(rmtb_obj = francis_model, adnuts_obj = mcmc_short, what = c("SSB", "Rec"), n_cores = 4)
+
+# ssb plot
+# summarize results
+ssb_summry <- mcmc_ts_plot$SSB %>%
+  group_by(Var1, Var2) %>%
+  summarize(median = median(value),
+            lwr = quantile(value, 0.025),
+            upr = quantile(value, 0.975))
+ggplot() +
+  geom_line(ssb_summry, mapping = aes(x = Var2, y = median)) +
+  geom_ribbon(ssb_summry, mapping = aes(x = Var2, y = median, ymin = lwr, ymax = upr), alpha = 0.3) +
+  geom_line(reshape2::melt(francis_model$rep$SSB), mapping = aes(x = Var2, y = value), col = 'red', lwd = 1.3, lty = 2) +
+  coord_cartesian(ylim = c(0, NA)) +
+  labs(x = 'Year', y = 'Spawning Stock Biomass') +
+  theme_bw(base_size = 15)
+
+# rec plot
+# summarize results
+rec_summry <- mcmc_ts_plot$Rec %>%
+  group_by(Var1, Var2) %>%
+  summarize(median = median(value),
+            lwr = quantile(value, 0.025),
+            upr = quantile(value, 0.975))
+ggplot() +
+  geom_line(rec_summry, mapping = aes(x = Var2, y = median)) +
+  geom_ribbon(rec_summry, mapping = aes(x = Var2, y = median, ymin = lwr, ymax = upr), alpha = 0.3) +
+  geom_line(reshape2::melt(francis_model$rep$Rec), mapping = aes(x = Var2, y = value), col = 'red', lwd = 1.3, lty = 2) +
+  coord_cartesian(ylim = c(0, NA)) +
+  labs(x = 'Year', y = 'Recruitment') +
+  theme_bw(base_size = 15)
 ```
-![](figures/o_mcmc_ts_plot.png)
+![](figures/o_mcmc_ssb_plot.png)
+![](figures/o_mcmc_rec_plot.png)
 
 # Reference Points and Projections
 
@@ -775,6 +792,7 @@ spr_60 <- Get_Reference_Points(data = francis_data,
 # Extract reference points
 b40 <- spr_40$b_ref_pt
 b60 <- spr_60$b_ref_pt
+b35 <- spr_35$b_ref_pt
 f40 <- spr_40$f_ref_pt
 f35 <- spr_35$f_ref_pt
 f60 <- spr_60$f_ref_pt
@@ -818,7 +836,7 @@ recruitment <- array(francis_model$rep$Rec[,3:(length(francis_data$years) - 4)],
 sexratio <- array(1, dim = c(n_regions, n_proj_yrs, n_sexes)) # recruitment sex ratio 
 ```
 
-Next, we can define the Alaska projection scenarios to understand if the stock is within sustainable limits. These scenarios vary in how fishing mortality is applied relative to biological reference points. Scenario 1 applies the harvest control rule (HCR) using $F_{40\%}$ as the maximum allowable fishing mortality, with the annual mean of catch across simulations providing the annual catch advice. Scenario 2 also uses the HCR but scales $F_{40\%}$ based on the previous year’s fishing mortality. Scenario 3 applies a constant fishing mortality equal to the average of the last five years. Scenario 4 adjusts fishing mortality under the HCR using $F_{60\%}$, while Scenario 5 assumes no fishing. Scenario 6 applies the HCR with $F_{35\%}$, representing the overfishing limit (`FOFL`). Finally, Scenario 7 applies the HCR with $F_{40\%}$ in the first two projection years and then transitions to $F_{35\%}$ in later years.
+Next, we can define the Alaska projection scenarios to understand if the stock is within sustainable limits. These scenarios vary in how fishing mortality is applied relative to biological reference points. Scenario 1 applies the harvest control rule (HCR) using $F_{40\%}$ as the maximum allowable fishing mortality, with the annual mean of catch across simulations providing the annual catch advice. Scenario 2 also uses the HCR but scales $F_{40\%}$ based on the previous year’s fishing mortality. Scenario 3 applies a constant fishing mortality equal to the average of the last five years. Scenario 4 applies fishing mortality using $F_{60\%}$, while Scenario 5 assumes no fishing. Scenario 6 applies the HCR with $F_{35\%}$, representing the overfishing limit (`FOFL`). Finally, Scenario 7 applies the HCR with $F_{40\%}$ in the first two projection years and then transitions to $F_{35\%}$ in later years.
 
 ```{r eval = FALSE}
 # Define the F used for each scenario (Based on BSAI Intro Report - Alaska Scenarios)
@@ -829,7 +847,7 @@ proj_inputs <- list(
        fmort_opt = 'HCR'
   ),
   # Scenario 2 - Using HCR to adjust maxFABC based on last year's value (constant fraction - author specified F)
-  list(f_ref_pt = array(f40 * (f40 / 0.091), dim = c(n_regions, n_proj_yrs)), # 0.091 based on 2024 F40% estiamte
+  list(f_ref_pt = array(f40 * (f40 / 0.091), dim = c(n_regions, n_proj_yrs)),
        b_ref_pt = array(b40, dim = c(n_regions, n_proj_yrs)),
        fmort_opt = 'HCR'
   ),
@@ -838,10 +856,10 @@ proj_inputs <- list(
        b_ref_pt = NULL,
        fmort_opt = 'Input'
   ),
-  # Scenario 4 - Using HCR to adjust F60
+  # Scenario 4 - Using F60
   list(f_ref_pt = array(f60, dim = c(n_regions, n_proj_yrs)),
-       b_ref_pt = array(b40, dim = c(n_regions, n_proj_yrs)),
-       fmort_opt = 'HCR'
+       b_ref_pt = NULL,
+       fmort_opt = 'Input'
   ),
   # Scenario 5 - F is set at 0
   list(f_ref_pt = array(0, dim = c(n_regions, n_proj_yrs)),
@@ -850,12 +868,12 @@ proj_inputs <- list(
   ),
   # Scenario 6 - Using HCR to adjust FOFL
   list(f_ref_pt = array(f35, dim = c(n_regions, n_proj_yrs)),
-       b_ref_pt = array(b40, dim = c(n_regions, n_proj_yrs)),
+       b_ref_pt = array(b35, dim = c(n_regions, n_proj_yrs)),
        fmort_opt = 'HCR'
   ),
   # Scenario 7 - Using HCR to adjust FABC in first 2 projection years, and then later years are adjusting FOFL
   list(f_ref_pt = array(c(rep(f40, 2), rep(f35, n_proj_yrs - 2)), dim = c(n_regions, n_proj_yrs)),
-       b_ref_pt = array(b40, dim = c(n_regions, n_proj_yrs)),
+       b_ref_pt = array(c(rep(b40, 2), rep(b35, n_proj_yrs - 2)), dim = c(n_regions, n_proj_yrs)),
        fmort_opt = 'HCR'
   )
 )

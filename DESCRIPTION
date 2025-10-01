@@ -15,14 +15,11 @@ Depends:
 Imports: 
     abind,
     afscOSA,
-    bayesplot,
     cowplot,
     data.table,
-    doSNOW,
     dplyr,
     future,
     future.apply,
-    GGally,
     ggplot2,
     grid,
     gridExtra,
@@ -34,12 +31,12 @@ Imports:
     progressr,
     randtests,
     reshape2,
-    rstan,
     stats,
     stringr,
-    tidyr,
-    tmbstan
+    tidyr
 Suggests: 
+    adnuts,
+    devtools,
     knitr,
     purrr,
     rmarkdown

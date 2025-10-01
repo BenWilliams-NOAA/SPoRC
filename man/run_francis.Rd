@@ -39,7 +39,8 @@ A list with three elements:
 \describe{
   \item{obj}{The fitted model object returned by [fit_model()],
   including all elements of a TMB object, data, parameters, mapping, random effects specified, and report.}
-  \item{mean_francis}{A summary of the mean Francis weights from the final iteration.}
+  \item{end_mean_francis}{A summary of the mean Francis weights from the first iteration.}
+  \item{end_mean_francis}{A summary of the mean Francis weights from the final iteration.}
   \item{recorded_weights}{A summary of recorded francis weights from each iteartion.}
 }
 }

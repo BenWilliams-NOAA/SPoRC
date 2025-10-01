@@ -59,19 +59,16 @@ comp_props$Fishery_Ages \%>\%
 Other Model Diagnostics: 
 \code{\link{do_jitter}()},
 \code{\link{do_likelihood_profile}()},
-\code{\link{do_mcmc}()},
 \code{\link{do_retrospective}()},
 \code{\link{do_runs_test}()},
 \code{\link{get_catch_fits_plot}()},
 \code{\link{get_idx_fits}()},
 \code{\link{get_idx_fits_plot}()},
-\code{\link{get_mcmc_ssb_rec}()},
+\code{\link{get_model_rep_from_mcmc}()},
 \code{\link{get_nLL_plot}()},
 \code{\link{get_osa}()},
 \code{\link{get_retrospective_plot}()},
 \code{\link{get_retrospective_relative_difference}()},
-\code{\link{mcmc_diag}()},
-\code{\link{mcmc_par_names}()},
 \code{\link{plot_resids}()}
 }
 \concept{Model Diagnostics}

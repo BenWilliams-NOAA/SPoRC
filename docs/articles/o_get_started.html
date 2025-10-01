@@ -916,70 +916,83 @@ spawning biomass and recruitment from these jitter results.</p>
 <div class="section level2">
 <h2 id="mcmc">MCMC<a class="anchor" aria-label="anchor" href="#mcmc"></a>
 </h2>
-<p>The final model diagnostic available in the <code>SPoRC</code>
-package is MCMC, which not only estimates parameter uncertainty but also
-samples the full joint posterior, revealing parameter correlations,
-skewed distributions, or potential multimodality that MLE may miss.
-Comparing MCMC results with maximum likelihood estimates further helps
-assess consistency in point estimates and standard errors.</p>
-<p>The <code>do_mcmc</code> function in <code>SPoRC</code> runs a
-Bayesian MCMC analysis using the <code>rstan</code> backend. In this
-example, four chains are run for 10,000 iterations each, with a thinning
-rate of 10 and an <code>adapt_delta</code> of 0.95 to improve
-convergence. Laplace approximation on random effects is disabled to
-sample the full posterior (if consistency checks are needed to ensure
-that Laplace is appropriate for random effects, this can be turned to
-<code>TRUE</code>). After running MCMC, <code>rstan::summary</code>
-provides summary statistics including posterior means, standard
-deviations, effective sample sizes (<code>n_eff</code>), and convergence
-diagnostics (<code>R_hat</code>).</p>
+<p>Lastly, SPoRC can also interact with other Bayesian software (i.e,
+<code>adnuts</code>) to conduct MCMC analysis, which not only estimates
+parameter uncertainty but also samples the full joint posterior,
+revealing parameter correlations, skewed distributions, or potential
+multimodality that MLE may miss. Comparing MCMC results with maximum
+likelihood estimates further helps assess consistency in point estimates
+and standard errors. In particular, we can utilize the native
+functionality built into <code>adnuts</code>, which seamlessly
+integrates with TMB and RTMB models, which will be demonstrated in the
+following sections. First, let us install and load in the relevant
+packages.</p>
 <div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># load in adnuts ans associated packages for MCMC</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">'StanEstimators'</span>, repos <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'&lt;https://andrjohns.r-universe.dev&gt;'</span>, <span class="st">'&lt;https://cloud.r-project.org&gt;'</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">'Cole-Monnahan-NOAA/adnuts'</span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://Cole-Monnahan-NOAA.github.io/adnuts" class="external-link">adnuts</a></span><span class="op">)</span></span></code></pre></div>
+<p>The <code>sample_snuts</code> function in <code>adnuts</code> runs a
+Bayesian MCMC analysis using the RTMB model. In this example, four
+chains are run for 10,000 iterations each, along with 4 Markov chains.
+Additionally, the <code>adapt_delta</code> is set a 0.99 to ensure that
+the model takes smaller steps, which helps improve MCMC model
+convergence. Default settings are used throughout this example
+<code>sample_snuts</code> and users can refer to <a href="https://cole-monnahan-noaa.github.io/adnuts/" class="external-link uri">https://cole-monnahan-noaa.github.io/adnuts/</a> for further
+details. After running MCMC diagnostics, users can then inspect summary
+statistics from the model object, which includes posterior means,
+standard deviations, effective sample sizes (<code>n_eff</code>), and
+convergence diagnostics (<code>R_hat</code>).</p>
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># run MCMC</span></span>
-<span><span class="va">mcmc</span> <span class="op">&lt;-</span> <span class="fu">SPoRC</span><span class="fu">::</span><span class="fu"><a href="../reference/do_mcmc.html">do_mcmc</a></span><span class="op">(</span>obj <span class="op">=</span> <span class="va">francis_model</span>,</span>
-<span>                       chains <span class="op">=</span> <span class="fl">4</span>, <span class="co"># number of chains to run</span></span>
-<span>                       cores <span class="op">=</span> <span class="fl">4</span>, <span class="co"># cores</span></span>
-<span>                       iter <span class="op">=</span> <span class="fl">1e4</span>, <span class="co"># number of iterations to run</span></span>
-<span>                       thin <span class="op">=</span> <span class="fl">10</span>, <span class="co"># thinning rate</span></span>
-<span>                       bounds <span class="op">=</span> <span class="cn">Inf</span>, <span class="co"># bounds to help with convergence</span></span>
-<span>                       laplace <span class="op">=</span> <span class="cn">FALSE</span>, <span class="co"># don't do laplace approximation on random effects during MCMC</span></span>
-<span>                       adapt_delta <span class="op">=</span> <span class="fl">0.95</span> <span class="co"># adapt delta to take smaller step sizes</span></span>
-<span><span class="op">)</span></span>
+<span><span class="va">mcmc</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://Cole-Monnahan-NOAA.github.io/adnuts/reference/sample_snuts.html" class="external-link">sample_snuts</a></span><span class="op">(</span><span class="va">francis_model</span>, num_samples <span class="op">=</span> <span class="fl">1e4</span>, control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>adapt_delta <span class="op">=</span> <span class="fl">0.99</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Check MCMC summary</span></span>
-<span><span class="va">mcmc_summary</span> <span class="op">&lt;-</span> <span class="fu">rstan</span><span class="fu">::</span><span class="fu">summary</span><span class="op">(</span><span class="va">mcmc</span><span class="op">)</span></span>
-<span><span class="va">vals</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="fu">rstan</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/rstan/reference/stanfit-method-extract.html" class="external-link">extract</a></span><span class="op">(</span><span class="va">mcmc</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">vals_long</span> <span class="op">&lt;-</span> <span class="va">vals</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_longer.html" class="external-link">pivot_longer</a></span><span class="op">(</span>names_to <span class="op">=</span> <span class="st">'par'</span>, values_to <span class="op">=</span> <span class="st">'val'</span>, cols <span class="op">=</span> <span class="fu"><a href="https://tidyselect.r-lib.org/reference/everything.html" class="external-link">everything</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="co"># convert to long format</span></span>
-<span></span>
-<span><span class="co"># Get Rhats and ess</span></span>
-<span><span class="va">diag_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>parnames <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">mcmc_summary</span><span class="op">$</span><span class="va">summary</span><span class="op">)</span>,</span>
-<span>                      n_eff <span class="op">=</span> <span class="va">mcmc_summary</span><span class="op">$</span><span class="va">summary</span><span class="op">[</span>,<span class="st">'n_eff'</span><span class="op">]</span>,</span>
-<span>                      R_hat <span class="op">=</span> <span class="va">mcmc_summary</span><span class="op">$</span><span class="va">summary</span><span class="op">[</span>,<span class="st">'Rhat'</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
-<p>After running MCMC, the <code>mcmc_diag</code> function in SPoRC can
-be used to visualize diagnostic plots for selected parameters. By
-default, if no parameters are specified, it plots the 10 parameters with
-the poorest mixing based on the R-hat statistic. Here, diagnostics are
-generated for <code>ln_global_R0</code> and <code>ln_srv_q.</code> Four
-types of plots are produced: (1) a correlation plot showing posterior
-correlations among parameters, (2) trace plots displaying MCMC chains
-over iterations to assess mixing, (3) posterior density plots of
-parameter distributions, and (4) a comparison of MLE and MCMC estimates
-to evaluate consistency.</p>
-<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">mcmc_diagnostics</span> <span class="op">&lt;-</span> <span class="fu">SPoRC</span><span class="fu">::</span><span class="fu"><a href="../reference/mcmc_diag.html">mcmc_diag</a></span><span class="op">(</span>mcmc_obj <span class="op">=</span> <span class="va">mcmc</span>,</span>
-<span>                                     tmb_sdrep <span class="op">=</span> <span class="va">francis_model</span><span class="op">$</span><span class="va">sdrep</span>,</span>
-<span>                                     plot <span class="op">=</span> <span class="cn">TRUE</span>, pars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"ln_global_R0"</span>, <span class="st">"ln_srv_q"</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">mcmc_diagnostics</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
-<span><span class="va">mcmc_diagnostics</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span></span>
-<span><span class="va">mcmc_diagnostics</span><span class="op">[[</span><span class="fl">3</span><span class="op">]</span><span class="op">]</span></span>
-<span><span class="va">mcmc_diagnostics</span><span class="op">[[</span><span class="fl">4</span><span class="op">]</span><span class="op">]</span></span></code></pre></div>
-<p><img src="figures/o_mcmc_pairs.png"><img src="figures/o_mcmc_trace.png"><img src="figures/o_mcmc_dens.png"><img src="figures/o_mcmc_mle_comp.png"></p>
+<span><span class="va">diag_df</span> <span class="op">&lt;-</span> <span class="va">mcmc</span><span class="op">$</span><span class="va">monitor</span></span></code></pre></div>
+<p>We can then inspect various model diagnostics, ranging from pairs
+plots, comparisons of the marginal distributions between MLE and MCMC,
+trace plots, and comparisons of uncertainty between MCMC and MLE.</p>
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/pairs.html" class="external-link">pairs</a></span><span class="op">(</span><span class="va">mcmc</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://Cole-Monnahan-NOAA.github.io/adnuts/reference/plot_marginals.html" class="external-link">plot_marginals</a></span><span class="op">(</span><span class="va">mcmc</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://Cole-Monnahan-NOAA.github.io/adnuts/reference/plot_uncertainties.html" class="external-link">plot_uncertainties</a></span><span class="op">(</span><span class="va">mcmc</span><span class="op">)</span></span></code></pre></div>
+<p><img src="figures/o_mcmc_pairs_trace.png"><img src="figures/o_mcmc_dens.png"><img src="figures/o_mcmc_mle_comp.png"></p>
 <p>Time series of recruitment and spawning stock biomass derived from
 posterior samples can also readily be plotted.</p>
-<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">mcmc_ts_plot</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_mcmc_ssb_rec.html">get_mcmc_ssb_rec</a></span><span class="op">(</span><span class="va">mcmc</span>, <span class="va">francis_model</span><span class="op">)</span></span>
-<span><span class="va">mcmc_ts_plot</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_cartesian.html" class="external-link">coord_cartesian</a></span><span class="op">(</span>ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="cn">NA</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="figures/o_mcmc_ts_plot.png"></p>
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># get mcmc time series plots</span></span>
+<span><span class="va">mcmc_ts_plot</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_model_rep_from_mcmc.html">get_model_rep_from_mcmc</a></span><span class="op">(</span>rmtb_obj <span class="op">=</span> <span class="va">francis_model</span>, adnuts_obj <span class="op">=</span> <span class="va">mcmc_short</span>, what <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"SSB"</span>, <span class="st">"Rec"</span><span class="op">)</span>, n_cores <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># ssb plot</span></span>
+<span><span class="co"># summarize results</span></span>
+<span><span class="va">ssb_summry</span> <span class="op">&lt;-</span> <span class="va">mcmc_ts_plot</span><span class="op">$</span><span class="va">SSB</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">Var1</span>, <span class="va">Var2</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarize</a></span><span class="op">(</span>median <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/median.html" class="external-link">median</a></span><span class="op">(</span><span class="va">value</span><span class="op">)</span>,</span>
+<span>            lwr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/quantile.html" class="external-link">quantile</a></span><span class="op">(</span><span class="va">value</span>, <span class="fl">0.025</span><span class="op">)</span>,</span>
+<span>            upr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/quantile.html" class="external-link">quantile</a></span><span class="op">(</span><span class="va">value</span>, <span class="fl">0.975</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="va">ssb_summry</span>, mapping <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">Var2</span>, y <span class="op">=</span> <span class="va">median</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_ribbon.html" class="external-link">geom_ribbon</a></span><span class="op">(</span><span class="va">ssb_summry</span>, mapping <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">Var2</span>, y <span class="op">=</span> <span class="va">median</span>, ymin <span class="op">=</span> <span class="va">lwr</span>, ymax <span class="op">=</span> <span class="va">upr</span><span class="op">)</span>, alpha <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="fu">reshape2</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/reshape2/man/melt.html" class="external-link">melt</a></span><span class="op">(</span><span class="va">francis_model</span><span class="op">$</span><span class="va">rep</span><span class="op">$</span><span class="va">SSB</span><span class="op">)</span>, mapping <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">Var2</span>, y <span class="op">=</span> <span class="va">value</span><span class="op">)</span>, col <span class="op">=</span> <span class="st">'red'</span>, lwd <span class="op">=</span> <span class="fl">1.3</span>, lty <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_cartesian.html" class="external-link">coord_cartesian</a></span><span class="op">(</span>ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="cn">NA</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">'Year'</span>, y <span class="op">=</span> <span class="st">'Spawning Stock Biomass'</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># rec plot</span></span>
+<span><span class="co"># summarize results</span></span>
+<span><span class="va">rec_summry</span> <span class="op">&lt;-</span> <span class="va">mcmc_ts_plot</span><span class="op">$</span><span class="va">Rec</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">Var1</span>, <span class="va">Var2</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarize</a></span><span class="op">(</span>median <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/median.html" class="external-link">median</a></span><span class="op">(</span><span class="va">value</span><span class="op">)</span>,</span>
+<span>            lwr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/quantile.html" class="external-link">quantile</a></span><span class="op">(</span><span class="va">value</span>, <span class="fl">0.025</span><span class="op">)</span>,</span>
+<span>            upr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/quantile.html" class="external-link">quantile</a></span><span class="op">(</span><span class="va">value</span>, <span class="fl">0.975</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="va">rec_summry</span>, mapping <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">Var2</span>, y <span class="op">=</span> <span class="va">median</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_ribbon.html" class="external-link">geom_ribbon</a></span><span class="op">(</span><span class="va">rec_summry</span>, mapping <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">Var2</span>, y <span class="op">=</span> <span class="va">median</span>, ymin <span class="op">=</span> <span class="va">lwr</span>, ymax <span class="op">=</span> <span class="va">upr</span><span class="op">)</span>, alpha <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="fu">reshape2</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/reshape2/man/melt.html" class="external-link">melt</a></span><span class="op">(</span><span class="va">francis_model</span><span class="op">$</span><span class="va">rep</span><span class="op">$</span><span class="va">Rec</span><span class="op">)</span>, mapping <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">Var2</span>, y <span class="op">=</span> <span class="va">value</span><span class="op">)</span>, col <span class="op">=</span> <span class="st">'red'</span>, lwd <span class="op">=</span> <span class="fl">1.3</span>, lty <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_cartesian.html" class="external-link">coord_cartesian</a></span><span class="op">(</span>ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="cn">NA</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">'Year'</span>, y <span class="op">=</span> <span class="st">'Recruitment'</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span></code></pre></div>
+<p><img src="figures/o_mcmc_ssb_plot.png"><img src="figures/o_mcmc_rec_plot.png"></p>
 </div>
 <div class="section level2">
 <h2 id="reference-points-and-projections">Reference Points and Projections<a class="anchor" aria-label="anchor" href="#reference-points-and-projections"></a>
@@ -1011,7 +1024,7 @@ vector of estimated recruitment starting from year 3 (which corresponds
 to 1979), and subtracts the terminal year by <code>rec_age = 4</code> to
 compute the mean recruitment used in calculating
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>B</mi><mrow><mi>x</mi><mi>%</mi></mrow></msub><annotation encoding="application/x-tex">B_{x\%}</annotation></semantics></math>.</p>
-<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># get reference points</span></span>
 <span><span class="va">spr_35</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/Get_Reference_Points.html">Get_Reference_Points</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">francis_data</span>,</span>
 <span>                               rep <span class="op">=</span> <span class="va">francis_model</span><span class="op">$</span><span class="va">rep</span>,</span>
@@ -1037,6 +1050,7 @@ compute the mean recruitment used in calculating
 <span><span class="co"># Extract reference points</span></span>
 <span><span class="va">b40</span> <span class="op">&lt;-</span> <span class="va">spr_40</span><span class="op">$</span><span class="va">b_ref_pt</span></span>
 <span><span class="va">b60</span> <span class="op">&lt;-</span> <span class="va">spr_60</span><span class="op">$</span><span class="va">b_ref_pt</span></span>
+<span><span class="va">b35</span> <span class="op">&lt;-</span> <span class="va">spr_35</span><span class="op">$</span><span class="va">b_ref_pt</span></span>
 <span><span class="va">f40</span> <span class="op">&lt;-</span> <span class="va">spr_40</span><span class="op">$</span><span class="va">f_ref_pt</span></span>
 <span><span class="va">f35</span> <span class="op">&lt;-</span> <span class="va">spr_35</span><span class="op">$</span><span class="va">f_ref_pt</span></span>
 <span><span class="va">f60</span> <span class="op">&lt;-</span> <span class="va">spr_60</span><span class="op">$</span><span class="va">f_ref_pt</span></span></code></pre></div>
@@ -1067,7 +1081,7 @@ recruitment, using the terminal values and historical recruitment from
 the fitted Francis re-weighted model. These inputs then form the basis
 for projecting future population dynamics and deriving catch advice
 under the specified HCR.</p>
-<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Define HCR to use for projections</span></span>
 <span><span class="va">HCR_function</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span>, <span class="va">frp</span>, <span class="va">brp</span>, <span class="va">alpha</span> <span class="op">=</span> <span class="fl">0.05</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">stock_status</span> <span class="op">&lt;-</span> <span class="va">x</span> <span class="op">/</span> <span class="va">brp</span> <span class="co"># define stock status</span></span>
@@ -1111,7 +1125,7 @@ also uses the HCR but scales
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>F</mi><mrow><mn>40</mn><mi>%</mi></mrow></msub><annotation encoding="application/x-tex">F_{40\%}</annotation></semantics></math>
 based on the previous year’s fishing mortality. Scenario 3 applies a
 constant fishing mortality equal to the average of the last five years.
-Scenario 4 adjusts fishing mortality under the HCR using
+Scenario 4 applies fishing mortality using
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>F</mi><mrow><mn>60</mn><mi>%</mi></mrow></msub><annotation encoding="application/x-tex">F_{60\%}</annotation></semantics></math>,
 while Scenario 5 assumes no fishing. Scenario 6 applies the HCR with
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>F</mi><mrow><mn>35</mn><mi>%</mi></mrow></msub><annotation encoding="application/x-tex">F_{35\%}</annotation></semantics></math>,
@@ -1121,7 +1135,7 @@ Scenario 7 applies the HCR with
 in the first two projection years and then transitions to
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>F</mi><mrow><mn>35</mn><mi>%</mi></mrow></msub><annotation encoding="application/x-tex">F_{35\%}</annotation></semantics></math>
 in later years.</p>
-<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Define the F used for each scenario (Based on BSAI Intro Report - Alaska Scenarios)</span></span>
 <span><span class="va">proj_inputs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>  <span class="co"># Scenario 1 - Using HCR to adjust maxFABC</span></span>
@@ -1130,7 +1144,7 @@ in later years.</p>
 <span>       fmort_opt <span class="op">=</span> <span class="st">'HCR'</span></span>
 <span>  <span class="op">)</span>,</span>
 <span>  <span class="co"># Scenario 2 - Using HCR to adjust maxFABC based on last year's value (constant fraction - author specified F)</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>f_ref_pt <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="va">f40</span> <span class="op">*</span> <span class="op">(</span><span class="va">f40</span> <span class="op">/</span> <span class="fl">0.091</span><span class="op">)</span>, dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">n_regions</span>, <span class="va">n_proj_yrs</span><span class="op">)</span><span class="op">)</span>, <span class="co"># 0.091 based on 2024 F40% estiamte</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>f_ref_pt <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="va">f40</span> <span class="op">*</span> <span class="op">(</span><span class="va">f40</span> <span class="op">/</span> <span class="fl">0.091</span><span class="op">)</span>, dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">n_regions</span>, <span class="va">n_proj_yrs</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>       b_ref_pt <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="va">b40</span>, dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">n_regions</span>, <span class="va">n_proj_yrs</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>       fmort_opt <span class="op">=</span> <span class="st">'HCR'</span></span>
 <span>  <span class="op">)</span>,</span>
@@ -1139,10 +1153,10 @@ in later years.</p>
 <span>       b_ref_pt <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>       fmort_opt <span class="op">=</span> <span class="st">'Input'</span></span>
 <span>  <span class="op">)</span>,</span>
-<span>  <span class="co"># Scenario 4 - Using HCR to adjust F60</span></span>
+<span>  <span class="co"># Scenario 4 - Using F60</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>f_ref_pt <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="va">f60</span>, dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">n_regions</span>, <span class="va">n_proj_yrs</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>       b_ref_pt <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="va">b40</span>, dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">n_regions</span>, <span class="va">n_proj_yrs</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>       fmort_opt <span class="op">=</span> <span class="st">'HCR'</span></span>
+<span>       b_ref_pt <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>       fmort_opt <span class="op">=</span> <span class="st">'Input'</span></span>
 <span>  <span class="op">)</span>,</span>
 <span>  <span class="co"># Scenario 5 - F is set at 0</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>f_ref_pt <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="fl">0</span>, dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">n_regions</span>, <span class="va">n_proj_yrs</span><span class="op">)</span><span class="op">)</span>,</span>
@@ -1151,12 +1165,12 @@ in later years.</p>
 <span>  <span class="op">)</span>,</span>
 <span>  <span class="co"># Scenario 6 - Using HCR to adjust FOFL</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>f_ref_pt <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="va">f35</span>, dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">n_regions</span>, <span class="va">n_proj_yrs</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>       b_ref_pt <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="va">b40</span>, dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">n_regions</span>, <span class="va">n_proj_yrs</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>       b_ref_pt <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="va">b35</span>, dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">n_regions</span>, <span class="va">n_proj_yrs</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>       fmort_opt <span class="op">=</span> <span class="st">'HCR'</span></span>
 <span>  <span class="op">)</span>,</span>
 <span>  <span class="co"># Scenario 7 - Using HCR to adjust FABC in first 2 projection years, and then later years are adjusting FOFL</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>f_ref_pt <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="va">f40</span>, <span class="fl">2</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="va">f35</span>, <span class="va">n_proj_yrs</span> <span class="op">-</span> <span class="fl">2</span><span class="op">)</span><span class="op">)</span>, dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">n_regions</span>, <span class="va">n_proj_yrs</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>       b_ref_pt <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="va">b40</span>, dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">n_regions</span>, <span class="va">n_proj_yrs</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>       b_ref_pt <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="va">b40</span>, <span class="fl">2</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="va">b35</span>, <span class="va">n_proj_yrs</span> <span class="op">-</span> <span class="fl">2</span><span class="op">)</span><span class="op">)</span>, dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">n_regions</span>, <span class="va">n_proj_yrs</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>       fmort_opt <span class="op">=</span> <span class="st">'HCR'</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -1165,7 +1179,7 @@ simulate the population dynamics forward under each case to evaluate
 future spawning biomass, fishing mortality, and catch. The code below
 loops over all projection scenarios and simulation replicates, keeping
 record of spawning stock biomass, fishing mortality, and catch,</p>
-<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># store outputs</span></span>
 <span><span class="va">all_scenarios_f</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="fl">0</span>, dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">n_regions</span>, <span class="va">n_proj_yrs</span>, <span class="va">n_sims</span>, <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">proj_inputs</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">all_scenarios_ssb</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="fl">0</span>, dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">n_regions</span>, <span class="va">n_proj_yrs</span>, <span class="va">n_sims</span>, <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">proj_inputs</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
@@ -1211,7 +1225,7 @@ mortality can then be visualized as follows.</p>
 <div class="section level4">
 <h4 id="spawning-biomass-projections">Spawning Biomass Projections<a class="anchor" aria-label="anchor" href="#spawning-biomass-projections"></a>
 </h4>
-<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Get historical SSB</span></span>
 <span><span class="va">historical</span> <span class="op">&lt;-</span> <span class="fu">reshape2</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/reshape2/man/melt.html" class="external-link">melt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="va">francis_model</span><span class="op">$</span><span class="va">rep</span><span class="op">$</span><span class="va">SSB</span>, <span class="va">n_sims</span><span class="op">)</span>,</span>
 <span>                                   dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">n_regions</span>, <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">francis_data</span><span class="op">$</span><span class="va">years</span><span class="op">)</span>, <span class="va">n_sims</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
@@ -1243,7 +1257,7 @@ mortality can then be visualized as follows.</p>
 <span></span>
 <span><span class="co"># combine</span></span>
 <span><span class="va">combined_ssb</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/bind_rows.html" class="external-link">bind_rows</a></span><span class="op">(</span><span class="va">historical_expanded</span>, <span class="va">scenarios</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">combined_ssb</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">Year</span>, y <span class="op">=</span> <span class="va">SSB</span>, group <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/interaction.html" class="external-link">interaction</a></span><span class="op">(</span><span class="va">Scenario</span>, <span class="va">Simulation</span><span class="op">)</span>, color <span class="op">=</span> <span class="va">Type</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span>alpha <span class="op">=</span> <span class="fl">0.05</span><span class="op">)</span> <span class="op">+</span></span>
@@ -1253,7 +1267,7 @@ mortality can then be visualized as follows.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">15</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">'none'</span><span class="op">)</span></span></code></pre></div>
 <p><img src="figures/o_projall_ssb.png"></p>
-<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">combined_ssb</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">Year</span> <span class="op">&gt;</span> <span class="fl">2024</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">Year</span>, <span class="va">Scenario</span>, <span class="va">Type</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
@@ -1273,7 +1287,7 @@ mortality can then be visualized as follows.</p>
 <div class="section level4">
 <h4 id="catch-projections">Catch Projections<a class="anchor" aria-label="anchor" href="#catch-projections"></a>
 </h4>
-<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Get historical catch</span></span>
 <span><span class="va">historical</span> <span class="op">&lt;-</span> <span class="fu">reshape2</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/reshape2/man/melt.html" class="external-link">melt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="va">francis_data</span><span class="op">$</span><span class="va">ObsCatch</span>, <span class="va">n_sims</span><span class="op">)</span>,</span>
 <span>                                   dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">n_regions</span>, <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">francis_data</span><span class="op">$</span><span class="va">years</span><span class="op">)</span>, <span class="va">francis_data</span><span class="op">$</span><span class="va">n_fish_fleets</span>, <span class="va">n_sims</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
@@ -1309,7 +1323,7 @@ mortality can then be visualized as follows.</p>
 <span></span>
 <span><span class="co"># combine</span></span>
 <span><span class="va">combined_cat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/bind_rows.html" class="external-link">bind_rows</a></span><span class="op">(</span><span class="va">historical_expanded</span>, <span class="va">scenarios</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">combined_cat</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">Year</span>, <span class="va">Scenario</span>, <span class="va">Simulation</span>, <span class="va">Type</span>, <span class="va">Region</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarize</a></span><span class="op">(</span>Catch <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">Catch</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
@@ -1321,7 +1335,7 @@ mortality can then be visualized as follows.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">15</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">'none'</span><span class="op">)</span></span></code></pre></div>
 <p><img src="figures/o_projall_catch.png"></p>
-<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">combined_cat</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">Year</span> <span class="op">&gt;</span> <span class="fl">2024</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">Year</span>, <span class="va">Scenario</span>, <span class="va">Simulation</span>, <span class="va">Type</span>, <span class="va">Region</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
@@ -1350,7 +1364,7 @@ as the maximum allowable fishing mortality. The plots show the mean
 projected catch with 95% uncertainty intervals across simulations,
 providing the expected range of allowable catch in future years under
 this strategy.</p>
-<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">combined_cat</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">Year</span> <span class="op">&gt;</span> <span class="fl">2024</span>, <span class="va">Scenario</span> <span class="op">==</span> <span class="st">"S1: FABC (F40)"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">Year</span>, <span class="va">Scenario</span>, <span class="va">Simulation</span>, <span class="va">Type</span>, <span class="va">Region</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
@@ -1359,7 +1373,7 @@ this strategy.</p>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarize</a></span><span class="op">(</span>lwr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/quantile.html" class="external-link">quantile</a></span><span class="op">(</span><span class="va">Catch</span>, <span class="fl">0.025</span><span class="op">)</span>,</span>
 <span>            upr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/quantile.html" class="external-link">quantile</a></span><span class="op">(</span><span class="va">Catch</span>, <span class="fl">0.975</span><span class="op">)</span>,</span>
 <span>            Catch <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">Catch</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">combined_cat</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">Year</span> <span class="op">&gt;</span> <span class="fl">2024</span>, <span class="va">Scenario</span> <span class="op">==</span> <span class="st">"S1: FABC (F40)"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">Year</span>, <span class="va">Scenario</span>, <span class="va">Simulation</span>, <span class="va">Type</span>, <span class="va">Region</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
@@ -1379,7 +1393,7 @@ this strategy.</p>
 <div class="section level4">
 <h4 id="fishing-mortality-projections">Fishing Mortality Projections<a class="anchor" aria-label="anchor" href="#fishing-mortality-projections"></a>
 </h4>
-<div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Get historical F</span></span>
 <span><span class="va">historical</span> <span class="op">&lt;-</span> <span class="fu">reshape2</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/reshape2/man/melt.html" class="external-link">melt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">francis_model</span><span class="op">$</span><span class="va">rep</span><span class="op">$</span><span class="va">Fmort</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span><span class="op">)</span>, <span class="va">sum</span><span class="op">)</span><span class="op">)</span>, <span class="va">n_sims</span><span class="op">)</span>,</span>
 <span>                                   dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">n_regions</span>, <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">francis_data</span><span class="op">$</span><span class="va">years</span><span class="op">)</span>, <span class="va">n_sims</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
@@ -1411,7 +1425,7 @@ this strategy.</p>
 <span></span>
 <span><span class="co"># combine</span></span>
 <span><span class="va">combined_fmort</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/bind_rows.html" class="external-link">bind_rows</a></span><span class="op">(</span><span class="va">historical_expanded</span>, <span class="va">scenarios</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">combined_fmort</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">Year</span>, y <span class="op">=</span> <span class="va">Fmort</span>, group <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/interaction.html" class="external-link">interaction</a></span><span class="op">(</span><span class="va">Scenario</span>, <span class="va">Simulation</span><span class="op">)</span>, color <span class="op">=</span> <span class="va">Type</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span>alpha <span class="op">=</span> <span class="fl">0.05</span><span class="op">)</span> <span class="op">+</span></span>
@@ -1421,7 +1435,7 @@ this strategy.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">'none'</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>y <span class="op">=</span> <span class="st">'Fully Selected Fishing Mortality'</span><span class="op">)</span></span></code></pre></div>
 <p><img src="figures/o_projall_f.png"></p>
-<div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">combined_fmort</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">Year</span> <span class="op">&gt;</span> <span class="fl">2024</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">Year</span>, <span class="va">Scenario</span>, <span class="va">Type</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>

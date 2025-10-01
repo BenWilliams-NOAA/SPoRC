@@ -470,3 +470,64 @@ set_data_indicator_unused <- function(data,
 
   return(data)
 }
+
+#' Extract model report from MCMC posterior samples
+#'
+#' This function collapses MCMC chains from an RTMB/ADNUTS object,
+#' generates model reports for each posterior draw, and extracts
+#' specified components of the report.
+#'
+#' @param rmtb_obj An RTMB object created via `ADFun`.
+#' @param adnuts_obj An `adnuts` object containing MCMC samples.
+#' @param what Character vector specifying the names of components
+#'   in the model report to extract.
+#' @param n_cores Number of cores to use
+#'
+#' @return A named list of `data.table`s, one for each element in
+#'   `what`. Each table contains the melted report component across
+#'   all posterior samples, with an additional column
+#'   `posterior_sample` indicating the MCMC draw index.
+#' @family Model Diagnostics
+#' @examples
+#' \dontrun{
+#' model_reports <- get_model_rep_from_mcmc(rmtb_obj, adnuts_obj,
+#'                                          what = c("SSB", "Rec"))
+#' }
+#'
+#' @export get_model_rep_from_mcmc
+get_model_rep_from_mcmc <- function(rmtb_obj, adnuts_obj, what, n_cores) {
+
+  # define dimensions
+  n_iter <- dim(adnuts_obj$samples)[1]
+  n_chain <- dim(adnuts_obj$samples)[2]
+  n_param <- dim(adnuts_obj$samples)[3]
+
+  # collapse chains and iterations into a single posterior draw
+  samples_collapsed <- matrix(adnuts_obj$samples, nrow = n_iter * n_chain, ncol = n_param)
+  colnames(samples_collapsed) <- dimnames(adnuts_obj$samples)[[3]] # rename columns
+  what_list <- vector("list", length(what)) # create list to store
+  names(what_list) <- what # name list
+
+  future::plan(future::multisession, workers = n_cores)
+  all_results <- progressr::with_progress({
+    p <- progressr::progressor(steps = nrow(samples_collapsed)) # progress
+    future.apply::future_lapply(1:nrow(samples_collapsed), function(idx) {
+      tmp_rep <- rmtb_obj$report(par = samples_collapsed[idx, ])
+      what_results <- vector("list", length(what)) # empty list
+      names(what_results) <- what
+      for (w in seq_along(what)) {
+        tmp_what <- reshape2::melt(tmp_rep[[what[w]]]) # reshape2 in df
+        tmp_what$posterior_sample <- idx # get posterior idx
+        what_results[[w]] <- tmp_what # in[ut]
+      } # end w loop
+      p()  # upd prog
+      what_results
+    }, future.seed = TRUE)
+  })
+
+  # combine results
+  what_list <- lapply(what, function(w) data.table::rbindlist(lapply(all_results, `[[`, w)))
+  names(what_list) <- what # rename
+
+  return(what_list)
+}

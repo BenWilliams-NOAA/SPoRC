@@ -102,10 +102,7 @@ reference:
       - get_catch_fits_plot
       - get_retrospective_plot
       - do_likelihood_profile
-      - do_mcmc
-      - mcmc_par_names
-      - mcmc_diag
-      - get_mcmc_ssb_rec
+      - get_model_rep_from_mcmc
 
   - title: "Utility"
     desc: "Functions for convenience"
