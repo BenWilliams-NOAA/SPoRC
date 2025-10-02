@@ -54,6 +54,7 @@ model <- fit_model(data,
 Other Utility: 
 \code{\link{get_par_est_info}()},
 \code{\link{post_optim_sanity_checks}()},
+\code{\link{rho_trans}()},
 \code{\link{set_data_indicator_unused}()}
 }
 \concept{Utility}

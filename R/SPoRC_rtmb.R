@@ -1188,10 +1188,5 @@ SPoRC_rtmb = function(pars, data) {
   RTMB::ADREPORT(log(Aggregated_SSB))
   RTMB::ADREPORT(log(Dynamic_Aggregated_SSB0))
 
-  RTMB::ADREPORT(Total_Biom)
-  RTMB::ADREPORT(SSB)
-  RTMB::ADREPORT(Rec)
-
-
   return(jnLL)
 } # end function

@@ -19,6 +19,7 @@ Setup_Sim_Containers <- function(sim_list) {
   sim_list$Dynamic_SSB0 <- array(0, dim = c(sim_list$n_regions, sim_list$n_yrs, sim_list$n_sims)) # Dynamic unfished spawning biomass
   sim_list$Total_Biom <- array(0, dim = c(sim_list$n_regions, sim_list$n_yrs, sim_list$n_sims)) # total biomass
   sim_list$ln_RecDevs <- array(0, dim = c(sim_list$n_regions, sim_list$n_yrs, sim_list$n_sims)) # rec devs
+  sim_list$ln_InitDevs <- array(0, dim = c(sim_list$n_regions, sim_list$n_ages - 1, sim_list$n_sims)) # initial age devs
 
   # Fishery Containers
   sim_list$ObsCatch <- array(0, dim = c(sim_list$n_regions, sim_list$n_yrs, sim_list$n_fish_fleets, sim_list$n_sims)) # observed catch

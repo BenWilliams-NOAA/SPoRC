@@ -70,6 +70,7 @@ Get_Comp_Likelihoods = function(Exp,
   # Aggregated comps by sex and region
   if(Comp_Type == 0) {
     tmp_Exp = matrix(rowSums(matrix(Exp, nrow = n_model_bins)) / (n_sexes * n_regions), nrow = 1) # aggregate
+    tmp_Exp = tmp_Exp / sum(tmp_Exp) # normalize
 
     # Expected age bins get collapsed to observed age bins if ageing error is non-square
     if(age_or_len == 0) {

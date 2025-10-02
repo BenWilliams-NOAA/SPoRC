@@ -35,7 +35,7 @@ sequential order:
 These processes are modeled across four primary model partitions: region
 ($r$), year ($y$), age ($a$ and $a_{+}$, where $a_{+}$ is the plus
 group), and sex ($s$). In single-region and/or single-sex models, these
-equations generally reduce by setting $r = 1$ and/or $s = 1$.
+equations generally reduce by setting $r = 1$ and/or $s = 1$. In general, the same equations are used for both simulation and estimation. 
 
 ## Process Equations
 

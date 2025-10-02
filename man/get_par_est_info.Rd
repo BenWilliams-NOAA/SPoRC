@@ -23,6 +23,7 @@ Helper function for extracting parameter information and names from TMB
 Other Utility: 
 \code{\link{fit_model}()},
 \code{\link{post_optim_sanity_checks}()},
+\code{\link{rho_trans}()},
 \code{\link{set_data_indicator_unused}()}
 }
 \concept{Utility}

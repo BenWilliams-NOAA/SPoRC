@@ -30,6 +30,7 @@ Post Optimization Model Convergence Checks
 Other Utility: 
 \code{\link{fit_model}()},
 \code{\link{get_par_est_info}()},
+\code{\link{rho_trans}()},
 \code{\link{set_data_indicator_unused}()}
 }
 \concept{Utility}

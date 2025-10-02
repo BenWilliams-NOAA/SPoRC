@@ -38,6 +38,7 @@ Set Data Indicators to Unused for Specified Years
 Other Utility: 
 \code{\link{fit_model}()},
 \code{\link{get_par_est_info}()},
-\code{\link{post_optim_sanity_checks}()}
+\code{\link{post_optim_sanity_checks}()},
+\code{\link{rho_trans}()}
 }
 \concept{Utility}

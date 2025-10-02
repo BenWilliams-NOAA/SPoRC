@@ -531,3 +531,14 @@ get_model_rep_from_mcmc <- function(rmtb_obj, adnuts_obj, what, n_cores) {
 
   return(what_list)
 }
+
+#' Title Constrains value between -1 and 1
+#'
+#' @param x Numeric value to constrain
+#'
+#' @returns Constrained value between -1 and 1
+#' @export rho_trans
+#' @family Utility
+rho_trans <- function(x){
+  2/(1+ exp(-2 * x)) - 1 # constraint between -1 and 1
+}
