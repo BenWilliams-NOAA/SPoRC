@@ -35,8 +35,6 @@ Imports:
     stringr,
     tidyr
 Suggests: 
-    adnuts,
-    devtools,
     knitr,
     purrr,
     rmarkdown

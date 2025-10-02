@@ -144,6 +144,9 @@ run_annual_cycle <- function(y,
 
       }
 
+      # Initialize Unfished NAA
+      NAA0[,1,,,sim] <- NAA[,1,,,sim]
+
     } # end initializing age structure
 
     # Run Annual Cycle --------------------------------------------------------
@@ -191,6 +194,7 @@ run_annual_cycle <- function(y,
         }
 
         Rec[r,1,sim] <- sum(NAA[r,1,1,,sim]) # Save recruitment estimates
+        NAA0[r,y,1,,sim] = NAA[r,y,1,,sim] # populate unfished NAA
 
       } # end r loop
     } # end if first year recruitment
@@ -198,20 +202,48 @@ run_annual_cycle <- function(y,
     #### Movement ----------------------------------------------------------------
     if(n_regions > 1) {
       # Recruits don't move
-      if(do_recruits_move == 0) for(a in 2:n_ages) for(s in 1:n_sexes) NAA[,y,a,s,sim] = t(NAA[,y,a,s,sim]) %*% Movement[,,y,a,s,sim]
+      if(do_recruits_move == 0) {
+        # Apply movement after ageing processes - start movement at age 2
+        for(a in 2:n_ages) {
+          for(s in 1:n_sexes) {
+            NAA[,y,a,s,sim] <- t(NAA[,y,a,s,sim]) %*% Movement[,,y,a,s,sim] # Fished
+            NAA0[,y,a,s,sim] <- t(NAA0[,y,a,s,sim]) %*% Movement[,,y,a,s,sim] # Unfished
+          } # end s loop
+        } # end a loop
+      } # end if recruits don't move
+
       # Recruits move here
-      if(do_recruits_move == 1) for(a in 1:n_ages) for(s in 1:n_sexes) NAA[,y,a,s,sim] = t(NAA[,y,a,s,sim]) %*% Movement[,,y,a,s,sim]
+      if(do_recruits_move == 1) {
+        for(a in 1:n_ages) {
+          for(s in 1:n_sexes) {
+            NAA[,y,a,s,sim] <- t(NAA[,y,a,s,sim]) %*% Movement[,,y,a,s,sim] # Fished
+            NAA0[,y,a,s,sim] <- t(NAA0[,y,a,s,sim]) %*% Movement[,,y,a,s,sim] # Unfished
+          } # end s loop
+        } # end a loop
+      } # end if
     } # only compute if spatial
 
     ### Mortality and Ageing ----------------------------------------------------
     for(r in 1:n_regions) for(a in 1:n_ages) for(s in 1:n_sexes) ZAA[r,y,a,s,sim] <- natmort[r,y,a,s,sim] + sum(Fmort[r,y,,sim] * fish_sel[r,y,a,s,,sim])
+
+    # Fished
     NAA[,y+1,2:n_ages,,sim] = NAA[,y,1:(n_ages-1),,sim] * exp(-ZAA[,y,1:(n_ages-1),,sim]) # Exponential mortality for individuals not in plus group
     NAA[,y+1,n_ages,,sim] = NAA[,y+1,n_ages,,sim] + NAA[,y,n_ages,,sim] * exp(-ZAA[,y,n_ages,,sim]) # Acuumulate plus group
+
+    # Unfished
+    NAA0[,y+1,2:n_ages,,sim] <- NAA0[,y,1:(n_ages-1),,sim] * exp(-natmort[,y,1:(n_ages-1),,sim]) # Exponential mortality for individuals not in plus group
+    NAA0[,y+1,n_ages,,sim] <- NAA0[,y+1,n_ages,,sim] + NAA0[,y,n_ages,,sim] * exp(-natmort[,y,n_ages,,sim]) # Acuumulate plus group
 
     ### Compute Biomass Quantities ----------------------------------------------
     Total_Biom[, y, sim] <- apply(NAA[, y, , , sim,drop = FALSE] * WAA[, y, , , sim,drop = FALSE], 1, sum) # Total Biomass
     SSB[, y, sim] <- apply(NAA[, y, , 1, sim,drop = FALSE] * WAA[, y, , 1, sim,drop = FALSE] * MatAA[, y, , 1, sim,drop = FALSE] * exp(-ZAA[, y, , 1, sim,drop = FALSE] * t_spawn), 1, sum) # Spawning Stock Biomass
-    if(n_sexes == 1) SSB[,y,sim] <- SSB[,y,sim] * 0.5 # If single sex model, multiply SSB calculations by 0.5
+    Dynamic_SSB0[,y,sim] <- apply(NAA0[, y, , 1, sim,drop = FALSE] * WAA[, y, , 1, sim,drop = FALSE] * MatAA[, y, , 1, sim,drop = FALSE] * exp(-ZAA[, y, , 1, sim,drop = FALSE] * t_spawn), 1, sum) # Dynamic B0
+
+    # If single sex model, multiply SSB calculations by 0.5
+    if(n_sexes == 1) {
+      SSB[,y,sim] <- SSB[,y,sim] * 0.5
+      Dynamic_SSB0[,y,sim] <- Dynamic_SSB0[,y,sim] * 0.5
+    }
 
     for(r in 1:n_regions) {
 
@@ -947,6 +979,7 @@ run_annual_cycle <- function(y,
         }
 
         Rec[r,y+1,sim] <- sum(NAA[r,y+1,1,,sim]) # Save recruitment estimates
+        NAA0[r,y+1,1,,sim] <- NAA[r,y+1,1,,sim] # populate unfished NAA
 
       } # end r loop
     } # end if
@@ -986,6 +1019,7 @@ Simulate_Pop_Static <- function(sim_list,
                   fish_sel = sim_env$fish_sel,
                   fish_q = sim_env$fish_q,
                   ln_RecDevs = sim_env$ln_RecDevs,
+                  ln_InitDevs = sim_env$ln_InitDevs,
                   natmort = sim_env$natmort,
                   ZAA = sim_env$ZAA,
                   sexratio = sim_env$sexratio,
@@ -999,6 +1033,8 @@ Simulate_Pop_Static <- function(sim_list,
                   Movement = sim_env$Movement,
                   Init_NAA = sim_env$Init_NAA,
                   NAA = sim_env$NAA,
+                  NAA0 = sim_env$NAA0,
+                  Dynamic_SSB0 = sim_env$Dynamic_SSB0,
                   SSB = sim_env$SSB,
                   Total_Biom = sim_env$Total_Biom,
                   TrueCatch = sim_env$TrueCatch,
@@ -1022,8 +1058,8 @@ Simulate_Pop_Static <- function(sim_list,
                   tag_release_indicator = as.matrix(sim_env$tag_release_indicator),
                   Tag_Reporting = sim_env$Tag_Reporting,
                   Tagged_Fish = sim_env$Tagged_Fish,
-                  Tag_Ind_Mort = sim_env$Tag_Ind_Mort,
-                  Tag_Shed = sim_env$Tag_Shed,
+                  ln_Init_Tag_Mort = sim_env$ln_Init_Tag_Mort,
+                  ln_Tag_Shed = sim_env$ln_Tag_Shed,
                   Tag_Avail = sim_env$Tag_Avail,
                   UseTagging = sim_env$UseTagging,
                   Pred_Tag_Recap = sim_env$Pred_Tag_Recap,

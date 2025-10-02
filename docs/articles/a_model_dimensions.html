@@ -61,7 +61,7 @@
 <p>The following tables describes all elements contained within
 <code>input_list$data</code>, which is generated using the
 <code>SPoRC::Setup_x</code> functions. Note that they do not detail how
-the <code>SPoRC::Setup_x</code> functions should be utilized, rather,
+the <code>SPoRC::Setup_x</code> functions should be utilized. Rather,
 they detail the components of <code>input_list$data</code>. Thus, for
 further details on how arguments for <code>SPoRC::Setup_x</code>
 functions should be defined, users should refer to the function
@@ -178,7 +178,7 @@ with geometric series solution.</td>
 </tr>
 <tr class="odd">
 <td><code>equil_init_age_strc</code></td>
-<td>Value specifying how intial age deviations arise. 0 == equilibrium,
+<td>Value specifying how initial age deviations arise. 0 == equilibrium,
 1 == stochastic except for plus group, 2 == stochastic for all ages
 (including the plus group)</td>
 </tr>
@@ -514,13 +514,13 @@ recaptures when fitting to these data</td>
 <tr class="even">
 <td><code>Tag_Reporting_blocks</code></td>
 <td>Array dimensioned by n_regions and n_years indicating the regions
-and years for which a block is specified as</td>
+and years for which a block is specified</td>
 </tr>
 <tr class="odd">
 <td><code>map_Tag_Reporting_Pars</code></td>
 <td>Array dimensioned by n_regions and n_years indicating the regions
 and years for which a block is specified and which tagging parameters
-are mapped of / shared.</td>
+are mapped off / shared.</td>
 </tr>
 </tbody>
 </table>
@@ -673,7 +673,7 @@ Available. More options and details can be found in
 <td>Vector dimensioned by n_fish_fleets specifying the likelihood to use
 for fitting fishery length compositions. 0: Multinomial, 1:
 Dirichlet-multinomial, 2: Logistic-normal with iid covariance, 999: None
-Available More options and details can be found in
+Available. More options and details can be found in
 <code>Get_Comp_Likelihoods.R</code>
 </td>
 </tr>
@@ -682,7 +682,7 @@ Available More options and details can be found in
 <td>Matrix dimensioned by n_years, n_fish_fleets specifying how age
 composition data should be structured and fit to. 0: Aggregated across
 sexes and regions, 1: Split by sexes and regions, 2: Joint by sex but
-split by region, 999: None Available More options and details can be
+split by region, 999: None Available. More options and details can be
 found in <code>Get_Comp_Likelihoods.R</code>
 </td>
 </tr>
@@ -691,7 +691,7 @@ found in <code>Get_Comp_Likelihoods.R</code>
 <td>Matrix dimensioned by n_years, n_fish_fleets specifying how length
 composition data should be structured and fit to. 0: Aggregated across
 sexes and regions, 1: Split by sexes and regions, 2: Joint by sex but
-split by region, 999: None Available More options and details can be
+split by region, 999: None Available. More options and details can be
 found in <code>Get_Comp_Likelihoods.R</code>
 </td>
 </tr>
@@ -816,8 +816,8 @@ found in <code>Get_Comp_Likelihoods.R</code>
 </tr>
 <tr class="even">
 <td><code>t_srv</code></td>
-<td>Matrixum dimensioned by n_years, n_srv_fleets specifying survey
-timing as a proportion of the year.</td>
+<td>Matrix dimensioned by n_years, n_srv_fleets specifying survey timing
+as a proportion of the year.</td>
 </tr>
 </tbody>
 </table>
@@ -1008,11 +1008,11 @@ n_srv_fleets indicating which values are mapped off</td>
 <tr class="odd">
 <td><code>do_srv_q_cov</code></td>
 <td>Numeric value indicating whether a survey catchability covariate is
-used in the model. 0 == Not used, 1 == Used,</td>
+used in the model. 0 == Not used, 1 == Used</td>
 </tr>
 <tr class="even">
 <td><code>srv_q_cov</code></td>
-<td>Array dimensioned by <code>n_regions</code>, <code>n_yrs</code>,
+<td>Array dimensioned by <code>n_regions</code>, <code>n_years</code>,
 <code>n_srv_fleets</code>, <code>n_covariates</code> representing the
 covariates used to compute survey catchability.</td>
 </tr>
@@ -1053,22 +1053,19 @@ prior N(log(mu), sd) for one selectivity parameter.</td>
 <td><code>Wt_Catch</code></td>
 <td>Weight applied to fishery catch likelihoods. Either a numeric scalar
 or an array of scalars dimensioned by <code>n_regions</code>,
-<code>n_years</code>, <code>n_fish_fleets.</code>
-</td>
+<code>n_years</code>, <code>n_fish_fleets</code>.</td>
 </tr>
 <tr class="even">
 <td><code>Wt_FishIdx</code></td>
 <td>Weight applied to fishery index likelihoods. Either a numeric scalar
 or an array of scalars dimensioned by <code>n_regions</code>,
-<code>n_years</code>, <code>n_fish_fleets.</code>
-</td>
+<code>n_years</code>, <code>n_fish_fleets</code>.</td>
 </tr>
 <tr class="odd">
 <td><code>Wt_SrvIdx</code></td>
 <td>Weight applied to survey index likelihoods. Either a numeric scalar
 or an array of scalars dimensioned by <code>n_regions</code>,
-<code>n_years</code>, <code>n_srv_fleets.</code>
-</td>
+<code>n_years</code>, <code>n_srv_fleets</code>.</td>
 </tr>
 <tr class="even">
 <td><code>Wt_Rec</code></td>

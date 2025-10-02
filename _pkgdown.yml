@@ -28,6 +28,7 @@ articles:
       - h_closed_loop_simulations
       - i_reference_points
       - l_simulation_testing
+      - m_simulation_dimensions
 
   - title: "Advanced"
     contents:

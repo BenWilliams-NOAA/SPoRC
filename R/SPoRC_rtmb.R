@@ -1162,7 +1162,6 @@ SPoRC_rtmb = function(pars, data) {
   RTMB::REPORT(Fmort_nLL)
   RTMB::REPORT(Rec_nLL)
   RTMB::REPORT(Init_Rec_nLL)
-  RTMB::REPORT(Rec_nLL)
   RTMB::REPORT(Tag_nLL)
   RTMB::REPORT(h_nLL)
   RTMB::REPORT(fish_q_nLL)
