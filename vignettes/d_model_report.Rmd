@@ -24,6 +24,7 @@ The following tables describes all elements contained within `obj$rep`, which is
 | `sexratio`       | Recruitment sex ratio                                                | `n_regions × n_years × n_sexes`                      |
 | `h_trans`        | Steepness parameter by region; ignored if mean recruitment specified | `n_regions`                                          |
 | `NAA`            | Numbers-at-age                                                       | `n_regions × n_years × n_ages × n_sexes`             |
+| `NAA0`          | Unfished Numbers-at-age                                               | `n_regions × n_years × n_ages × n_sexes`             |
 | `ZAA`            | Total instantaneous mortality                                        | `n_regions × n_years × n_ages × n_sexes`             |
 | `natmort`        | Instantaneous natural mortality                                      | `n_regions × n_years × n_ages × n_sexes`             |
 | `bias_ramp`      | Vector of bias ramp values                                           | `n_years`                                            |

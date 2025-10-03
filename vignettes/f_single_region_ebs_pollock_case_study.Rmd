@@ -257,7 +257,7 @@ Fishery selectivity is specified to vary semi-parametrically for the pollock mod
     cont_tv_fish_sel = c("2dar1_Fleet_1"),
     fishsel_pe_pars_spec = "fix", # doing penalized likelihood for selex devs
     fish_sel_devs_spec = "est_all", # estimating all sel devs
-    corr_opt_semipar = "corr_zero_y_a_c", # making sure 2d correaltions are 0, collapses to a simple iid case
+    corr_opt_semipar = "corr_zero_y_b", # making sure 2d correaltions are 0, collapses to a simple iid case
     # fishery selectivity blocks
     fish_sel_blocks = c("none_Fleet_1"),
     # fishery selectivity form
@@ -284,7 +284,7 @@ Survey selectivity is setup in a similar way. Here, we specify that the first su
     cont_tv_srv_sel = c("iid_Fleet_1", "2dar1_Fleet_2", "2dar1_Fleet_3"),
     srvsel_pe_pars_spec = c("fix", "fix", "fix"), # penalize survey selex devs
     srv_sel_devs_spec = c("est_all", "est_all", "est_shared_f_2"), # estimating all srv selex devs but sharing fleet 3 and 2 together
-    corr_opt_semipar = c(NA, "corr_zero_y_a_c", "corr_zero_y_a_c"), # setting corelations at 0, so 2dar1 collapses to simple iid semi-parametric devs
+    corr_opt_semipar = c(NA, "corr_zero_y_b", "corr_zero_y_b"), # setting corelations at 0, so 2dar1 collapses to simple iid semi-parametric devs
 
     # survey selectivity blocks
     srv_sel_blocks = c("none_Fleet_1", "none_Fleet_2", "none_Fleet_3"),
@@ -367,12 +367,12 @@ Next, we can extract out parameter estimates of recruitment and spawning biomass
 ```{r Compare Models, eval = F}
 # Get recruitment
 rec_series <- reshape2::melt((ebswp_rtmb_model$rep$Rec)) %>%
-  mutate(se = ebswp_rtmb_model$sdrep$sd[names(ebswp_rtmb_model$sdrep$value) == 'Rec'])
+  mutate(se = ebswp_rtmb_model$sdrep$sd[names(ebswp_rtmb_model$sdrep$value) == 'log(Rec)'] * t(ebswp_rtmb_model$rep$Rec))
 rec_series$Par <- "Recruitment"
 
 # Get SSB time-series
 ssb_series <- reshape2::melt((ebswp_rtmb_model$rep$SSB)) %>%
-  mutate(se = ebswp_rtmb_model$sdrep$sd[names(ebswp_rtmb_model$sdrep$value) == 'SSB'])
+  mutate(se = ebswp_rtmb_model$sdrep$sd[names(ebswp_rtmb_model$sdrep$value) == 'log(SSB)'] * t(ebswp_rtmb_model$rep$SSB))
 ssb_series$Par <- "Spawning Biomass"
 
 # bind together

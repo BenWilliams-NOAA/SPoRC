@@ -383,7 +383,7 @@ run_annual_cycle <- function(y,
     ### Compute Biomass Quantities ----------------------------------------------
     Total_Biom[, y, sim] <- apply(NAA[, y, , , sim,drop = FALSE] * WAA[, y, , , sim,drop = FALSE], 1, sum) # Total Biomass
     SSB[, y, sim] <- apply(NAA[, y, , 1, sim,drop = FALSE] * WAA[, y, , 1, sim,drop = FALSE] * MatAA[, y, , 1, sim,drop = FALSE] * exp(-ZAA[, y, , 1, sim,drop = FALSE] * t_spawn), 1, sum) # Spawning Stock Biomass
-    Dynamic_SSB0[,y,sim] <- apply(NAA0[, y, , 1, sim,drop = FALSE] * WAA[, y, , 1, sim,drop = FALSE] * MatAA[, y, , 1, sim,drop = FALSE] * exp(-ZAA[, y, , 1, sim,drop = FALSE] * t_spawn), 1, sum) # Dynamic B0
+    Dynamic_SSB0[,y,sim] <- apply(NAA0[, y, , 1, sim,drop = FALSE] * WAA[, y, , 1, sim,drop = FALSE] * MatAA[, y, , 1, sim,drop = FALSE] * exp(-natmort[, y, , 1, sim,drop = FALSE] * t_spawn), 1, sum) # Dynamic B0
     if(n_sexes == 1) { # If single sex model, multiply SSB calculations by 0.5
       SSB[,y,sim] <- SSB[,y,sim] * 0.5
       Dynamic_SSB0[,y,sim] <- Dynamic_SSB0[,y,sim] * 0.5

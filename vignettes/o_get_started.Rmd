@@ -825,6 +825,7 @@ n_fish_fleets <- 1
 n_sexes <- 1
 do_recruits_move <- 0
 terminal_NAA <- array(francis_model$rep$NAA[,length(francis_data$years),,], dim = c(n_regions, n_ages, n_sexes))
+terminal_NAA0 <- array(francis_model$rep$NAA0[,length(francis_data$years),,], dim = c(n_regions, n_ages, n_sexes))
 WAA <- array(rep(francis_data$WAA[,length(francis_data$years),,], each = n_proj_yrs), dim = c(n_regions, n_proj_yrs, n_ages, n_sexes)) # weight at age
 WAA_fish <- array(rep(francis_data$WAA[,length(francis_data$years),,], each = n_proj_yrs), dim = c(n_regions, n_proj_yrs, n_ages, n_sexes, n_fish_fleets)) # weight at age for fishery
 MatAA <- array(rep(francis_data$MatAA[,length(francis_data$years),,], each = n_proj_yrs), dim = c(n_regions, n_proj_yrs, n_ages, n_sexes)) # maturity at age
@@ -901,6 +902,7 @@ for (i in seq_along(proj_inputs)) {
                                            do_recruits_move = do_recruits_move,
                                            recruitment = recruitment,
                                            terminal_NAA = terminal_NAA,
+                                           terminal_NAA0 = terminal_NAA0,
                                            terminal_F = terminal_F,
                                            natmort = natmort,
                                            WAA = WAA,

@@ -785,6 +785,7 @@ n_sexes <- sgl_rg_sable_data$n_sexes # number of sexes
 n_fish_fleets <- sgl_rg_sable_data$n_fish_fleets # number of fishery fleets
 do_recruits_move <- 0 # recruits don't move
 terminal_NAA <- array(sgl_rg_sable_rep$NAA[,length(sgl_rg_sable_data$years),,], dim = c(n_regions, n_ages, n_sexes)) # terminal numbers at age
+terminal_NAA0 <- array(sgl_rg_sable_rep$NAA0[,length(sgl_rg_sable_data$years),,], dim = c(n_regions, n_ages, n_sexes)) # terminal numbers at age
 WAA <- array(rep(sgl_rg_sable_data$WAA[,length(sgl_rg_sable_data$years),,], each = n_proj_yrs), dim = c(n_regions, n_proj_yrs, n_ages, n_sexes)) # weight at age
 WAA_fish <- array(rep(sgl_rg_sable_data$WAA[,length(sgl_rg_sable_data$years),,], each = n_proj_yrs), dim = c(n_regions, n_proj_yrs, n_ages, n_sexes, n_fish_fleets)) # weight at age for fishery
 MatAA <- array(rep(sgl_rg_sable_data$MatAA[,length(sgl_rg_sable_data$years),,], each = n_proj_yrs), dim = c(n_regions, n_proj_yrs, n_ages, n_sexes)) # maturity at age
@@ -813,6 +814,7 @@ out <- Do_Population_Projection(n_proj_yrs = n_proj_yrs, # Number of projection 
                                do_recruits_move = do_recruits_move, # whether recruits move (not used since single area)
                                recruitment = recruitment, # recruitment values to use for mean recruitment 
                                terminal_NAA = terminal_NAA, # terminal numbers at age
+                               terminal_NAA0 = terminal_NAA0, 
                                terminal_F = terminal_F, # terminal F
                                natmort = natmort, # natural mortality values to use in projection
                                WAA = WAA, # weight at age values to use in projection spawning
@@ -938,6 +940,7 @@ n_sexes <- mlt_rg_sable_data$n_sexes # number of sexes
 n_fish_fleets <- mlt_rg_sable_data$n_fish_fleets # number of fishery fleets
 do_recruits_move <- 0 # recruits don't move
 terminal_NAA <- array(mlt_rg_sable_rep$NAA[,length(mlt_rg_sable_data$years),,], dim = c(n_regions, n_ages, n_sexes)) # terminal numbers at age
+terminal_NAA0 <- array(mlt_rg_sable_rep$NAA0[,length(mlt_rg_sable_data$years),,], dim = c(n_regions, n_ages, n_sexes)) # terminal numbers at age
 WAA <- array(rep(mlt_rg_sable_data$WAA[,length(mlt_rg_sable_data$years),,], each = n_proj_yrs), dim = c(n_regions, n_proj_yrs, n_ages, n_sexes)) # weight at age
 WAA_fish <- array(rep(mlt_rg_sable_data$WAA[,length(mlt_rg_sable_data$years),,], each = n_proj_yrs), dim = c(n_regions, n_proj_yrs, n_ages, n_sexes, n_fish_fleets)) # weight at age
 MatAA <- array(rep(mlt_rg_sable_data$MatAA[,length(mlt_rg_sable_data$years),,], each = n_proj_yrs), dim = c(n_regions, n_proj_yrs, n_ages, n_sexes)) # maturity at age
@@ -985,6 +988,7 @@ out <- Do_Population_Projection(n_proj_yrs = n_proj_yrs, # Number of projection 
                               do_recruits_move = do_recruits_move, # whether recruits move (not used since single area)
                               recruitment = recruitment, # recruitment values to use for mean recruitment 
                               terminal_NAA = terminal_NAA, # terminal numbers at age
+                              terminal_NAA0 = terminal_NAA0,
                               terminal_F = terminal_F, # terminal F
                               natmort = natmort, # natural mortality values to use in projection
                               WAA = WAA, # weight at age values to use in projection spawning
@@ -1065,6 +1069,7 @@ n_sexes <- sgl_rg_sable_data$n_sexes # number of sexes
 n_fish_fleets <- sgl_rg_sable_data$n_fish_fleets # number of fishery fleets
 do_recruits_move <- 0 # recruits don't move
 terminal_NAA <- array(sgl_rg_sable_rep$NAA[,length(sgl_rg_sable_data$years),,], dim = c(n_regions, n_ages, n_sexes)) # terminal numbers at age
+terminal_NAA0 <- array(sgl_rg_sable_rep$NAA0[,length(sgl_rg_sable_data$years),,], dim = c(n_regions, n_ages, n_sexes)) # terminal numbers at age
 WAA <- array(rep(sgl_rg_sable_data$WAA[,length(sgl_rg_sable_data$years),,], each = n_proj_yrs), dim = c(n_regions, n_proj_yrs, n_ages, n_sexes)) # weight at age
 WAA_fish <- array(rep(sgl_rg_sable_data$WAA[,length(sgl_rg_sable_data$years),,], each = n_proj_yrs), dim = c(n_regions, n_proj_yrs, n_ages, n_sexes, n_fish_fleets)) # weight at age for the fishery
 MatAA <- array(rep(sgl_rg_sable_data$MatAA[,length(sgl_rg_sable_data$years),,], each = n_proj_yrs), dim = c(n_regions, n_proj_yrs, n_ages, n_sexes)) # maturity at age
@@ -1117,6 +1122,7 @@ for (i in seq_along(proj_inputs)) {
                                     do_recruits_move = do_recruits_move, # whether recruits move
                                     recruitment = recruitment, # recruitment values to use to parameterize inverse gaussian
                                     terminal_NAA = terminal_NAA, # terminal numbers at age
+                                    terminal_NAA0 = terminal_NAA0, # terminal unfished numbers at age
                                     terminal_F = terminal_F, # terminal fishing mortality at age
                                     natmort = natmort, # natural mortality 
                                     WAA = WAA, # weight at age for spawning

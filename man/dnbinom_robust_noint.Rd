@@ -2,7 +2,7 @@
 % Please edit documentation in R/Distributions.R
 \name{dnbinom_robust_noint}
 \alias{dnbinom_robust_noint}
-\title{Negative binomial that can take non-integer values}
+\title{Negative Binomial Likelihood}
 \usage{
 dnbinom_robust_noint(x, log_mu, log_var_minus_mu, give_log = TRUE)
 }
@@ -19,6 +19,6 @@ dnbinom_robust_noint(x, log_mu, log_var_minus_mu, give_log = TRUE)
 Returns likelihood values from a robust negative binomial
 }
 \description{
-Negative binomial that can take non-integer values
+Approximates negative binomial when non-integer values are provided
 }
 \keyword{internal}

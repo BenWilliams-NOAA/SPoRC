@@ -9,6 +9,7 @@
 #' @param do_recruits_move Whether recruits move (0 == don't move, 1 == move)
 #' @param recruitment Recruitment matrix dimensioned by n_regions, and n_yrs that we want to summarize across, or condition our projection on
 #' @param terminal_NAA Terminal Numbers at Age dimensioned by n_regions, n_ages, n_sexes
+#' @param terminal_NAA0 Terminal Unfished Numbers at Age dimensioned by n_regions, n_ages, n_sexes
 #' @param terminal_F Terminal fishing mortality rate, dimensioned by n_regions, n_fish_fleets
 #' @param natmort Natural mortality, dimensioned by n_regions, n_proj_yrs, n_ages, n_sexes
 #' @param WAA Weight at age, dimensioned by n_regions, n_proj_yrs, n_ages, n_sexes
@@ -35,157 +36,9 @@
 #' \item{SSB}{All SSB values estimated from a given model, dimensioned by n_regions and n_yrs}
 #' }
 #'
-#' @returns A list containing projected F, catch, SSB, and Numbers at Age. (Objects are generally dimensioned in the following order: n_regions, n_yrs, n_ages, n_sexes, n_fleets)
+#' @returns A list containing projected F, catch, SSB (and dynamic unfished), and Numbers at Age (and dynamic unfished). (Objects are generally dimensioned in the following order: n_regions, n_yrs, n_ages, n_sexes, n_fleets)
 #' @export Do_Population_Projection
 #' @family Reference Points and Projections
-#' @examples
-#' \dontrun{
-#' # Define HCR to use
-#' HCR_function <- function(x, frp, brp, alpha = 0.05) {
-#'   stock_status <- x / brp # define stock status
-#'   # If stock status is > 1
-#'   if(stock_status >= 1) f <- frp
-#'   # If stock status is between brp and alpha
-#'   if(stock_status > alpha && stock_status < 1) f <- frp * (stock_status - alpha) / (1 - alpha)
-#'   # If stock status is less than alpha
-#'   if(stock_status < alpha) f <- 0
-#'   return(f)
-#' }
-#' rep <- obj$report(obj$env$last.par.best) # need to have an RTMB object first
-#' # Setup necessary inputs
-#' n_sims <- 1000
-#' t_spawn <- 0
-#' n_proj_yrs <- 15
-#' n_regions <- 1
-#' n_ages <- length(data$ages)
-#' n_sexes <- 1 # single sex
-#' n_fish_fleets <- 2
-#' do_recruits_move <- 0
-#' terminal_NAA <- array(obj$rep$NAA[,length(data$years),,], dim = c(n_regions, n_ages, n_sexes))
-#' WAA <- array(rep(data$WAA[,length(data$years),,], each = n_proj_yrs), dim = c(n_regions, n_proj_yrs, n_ages, n_sexes)) # weight at age
-#' WAA_fish <- array(rep(data$WAA_fish[,length(data$years),,,], each = n_proj_yrs), dim = c(n_regions, n_proj_yrs, n_ages, n_sexes, n_fish_fleets)) # weight at age for fishery
-#' MatAA <- array(rep(data$MatAA[,length(data$years),,], each = n_proj_yrs), dim = c(n_regions, n_proj_yrs, n_ages, n_sexes)) # maturity at age
-#' fish_sel <- array(rep(obj$rep$fish_sel[,length(data$years),,,], each = n_proj_yrs), dim = c(n_regions, n_proj_yrs, n_ages, n_sexes, n_fish_fleets)) # selectivity
-#' Movement <- array(rep(obj$rep$Movement[,,length(data$years),,], each = n_proj_yrs), dim = c(n_regions, n_regions, n_proj_yrs, n_ages, n_sexes))
-#' terminal_F <- array(obj$rep$Fmort[,length(data$years),], dim = c(n_regions, n_fish_fleets))
-#' natmort <- array(obj$rep$natmort[,length(data$years),,], dim = c(n_regions, n_proj_yrs, n_ages, n_sexes))
-#' recruitment <- array(obj$rep$Rec[,20:(length(data$years) - 2)], dim = c(n_regions, length(20:length(data$years) - 2)))
-#' sexratio <- array(1, dim = c(n_regions, n_proj_yrs, n_sexes)) # recruitment sex ratio
-#' # Define reference points
-#' spr_35 <- Get_Reference_Points(data = data,
-#'                                rep = rep,
-#'                                SPR_x = 0.35, t_spwn = 0, sex_ratio_f = 0.5,
-#'                                calc_rec_st_yr = 20, rec_age = 2)
-#'
-#' spr_40 <- Get_Reference_Points(data = data,
-#'                                rep = rep,
-#'                                SPR_x = 0.4, t_spwn = 0, sex_ratio_f = 0.5,
-#'                                calc_rec_st_yr = 20, rec_age = 2)
-#'
-#' spr_60 <- Get_Reference_Points(data = data,
-#'                                rep = rep,
-#'                                SPR_x = 0.6, t_spwn = 0, sex_ratio_f = 0.5,
-#'                                calc_rec_st_yr = 20, rec_age = 2)
-#'
-#' # Extract reference points
-#' b40 <- spr_40$b_ref_pt
-#' b60 <- spr_60$b_ref_pt
-#' f40 <- spr_40$f_ref_pt
-#' f35 <- spr_35$f_ref_pt
-#' f60 <- spr_60$f_ref_pt
-#' # Define the F used for each scenario (Based on BSAI Intro Report)
-#' proj_inputs <- list(
-#'   # Scenario 1 - Using HCR to adjust maxFABC
-#'   list(f_ref_pt = array(f40, dim = c(n_regions, n_proj_yrs)),
-#'        b_ref_pt = array(b40, dim = c(n_regions, n_proj_yrs)),
-#'        fmort_opt = 'HCR'
-#'   ),
-#'   # Scenario 2 - Using HCR to adjust maxFABC based on last year's value (constant fraction - author specified F)
-#'   list(f_ref_pt = array(f40 * (f40 / 0.086), dim = c(n_regions, n_proj_yrs)),
-#'        b_ref_pt = array(b40, dim = c(n_regions, n_proj_yrs)),
-#'        fmort_opt = 'HCR'
-#'   ),
-#'   # Scenario 3 - Using an F input of last 5 years average F, and
-#'   list(f_ref_pt = array(mean(rowSums(sabie_rtmb_model$rep$Fmort[1, 60:64, ])), dim = c(n_regions, n_proj_yrs)),
-#'        b_ref_pt = NULL,
-#'        fmort_opt = 'Input'
-#'   ),
-#'   # Scenario 4 - Using HCR to adjust F60
-#'   list(f_ref_pt = array(f60, dim = c(n_regions, n_proj_yrs)),
-#'        b_ref_pt = array(b40, dim = c(n_regions, n_proj_yrs)),
-#'        fmort_opt = 'HCR'
-#'   ),
-#'   # Scenario 5 - F is set at 0
-#'   list(f_ref_pt = array(0, dim = c(n_regions, n_proj_yrs)),
-#'        b_ref_pt = NULL,
-#'        fmort_opt = 'Input'
-#'   ),
-#'   # Scenario 6 - Using HCR to adjust FOFL
-#'   list(f_ref_pt = array(f35, dim = c(n_regions, n_proj_yrs)),
-#'        b_ref_pt = array(b40, dim = c(n_regions, n_proj_yrs)),
-#'        fmort_opt = 'HCR'
-#'   ),
-#'   # Scenario 7 - Using HCR to adjust FABC in first 2 projection years, and then later years are adjusting FOFL
-#'   list(f_ref_pt = array(c(rep(f40, 2), rep(f35, n_proj_yrs - 2)), dim = c(n_regions, n_proj_yrs)),
-#'        b_ref_pt = array(b40, dim = c(n_regions, n_proj_yrs)),
-#'        fmort_opt = 'HCR'
-#'   )
-#' )
-#'
-#' # store outputs
-#' all_scenarios_f <- array(0, dim = c(n_regions, n_proj_yrs, n_sims, length(proj_inputs)))
-#' all_scenarios_ssb <- array(0, dim = c(n_regions, n_proj_yrs, n_sims, length(proj_inputs)))
-#' all_scenarios_catch <- array(0, dim = c(n_regions, n_proj_yrs, n_fish_fleets, n_sims, length(proj_inputs)))
-#'
-#' for (i in seq_along(proj_inputs)) {
-#'   for (sim in 1:n_sims) {
-#'
-#'     # do population projection
-#'     out <- Do_Population_Projection(n_proj_yrs = n_proj_yrs,
-#'                                     n_regions = n_regions,
-#'                                     n_ages = n_ages,
-#'                                     n_sexes = n_sexes,
-#'                                     sexratio = sexratio,
-#'                                     n_fish_fleets = n_fish_fleets,
-#'                                     do_recruits_move = do_recruits_move,
-#'                                     recruitment = recruitment,
-#'                                     terminal_NAA = terminal_NAA,
-#'                                     terminal_F = terminal_F,
-#'                                     natmort = natmort,
-#'                                     WAA = WAA,
-#'                                     WAA_fish = WAA_fish,
-#'                                     MatAA = MatAA,
-#'                                     fish_sel = fish_sel,
-#'                                     Movement = Movement,
-#'                                     f_ref_pt = proj_inputs[[i]]$f_ref_pt,
-#'                                     b_ref_pt = proj_inputs[[i]]$b_ref_pt,
-#'                                     HCR_function = HCR_function,
-#'                                     recruitment_opt = "inv_gauss",
-#'                                     fmort_opt = proj_inputs[[i]]$fmort_opt,
-#'                                     t_spawn = t_spawn
-#'     )
-#'
-#'     all_scenarios_ssb[,,sim,i] <- out$proj_SSB
-#'     all_scenarios_catch[,,,sim,i] <- out$proj_Catch
-#'     all_scenarios_f[,,sim,i] <- out$proj_F[,-(n_proj_yrs+1)] # remove last year, since it's not used
-#'   } # end sim loop
-#'   print(i)
-#' } # end i loop
-#'
-#' # If users were to specify "bh_rec" for recruitment_opt, a list of specifications for projecting deterministic recruitment is required. An example
-#' # of this is provided below:
-#' bh_rec_opt <- list(
-#'   recruitment_dd = 1,
-#'   rec_lag = 1,
-#'   R0 = rep$R0,
-#'   h = rep$h_trans,
-#'   Rec_Prop = 1,
-#'   WAA = array(data$WAA[,1,,], dim = c(1, n_ages, n_sexes)),
-#'   MatAA = array(data$MatAA[,1,,], dim = c(1, n_ages, n_sexes)),
-#'   natmort = array(data$Fixed_natmort[,1,,], dim = c(1, n_ages, n_sexes)),
-#'   SSB = rep$SSB
-#' )
-#' }
 Do_Population_Projection <- function(n_proj_yrs = 2,
                                      n_regions,
                                      n_ages,
@@ -195,6 +48,7 @@ Do_Population_Projection <- function(n_proj_yrs = 2,
                                      do_recruits_move = 0,
                                      recruitment,
                                      terminal_NAA,
+                                     terminal_NAA0,
                                      terminal_F,
                                      natmort,
                                      WAA,
@@ -225,16 +79,19 @@ Do_Population_Projection <- function(n_proj_yrs = 2,
 # Define Containers -------------------------------------------------------
   fratio <- terminal_F / apply(terminal_F, 1, sum) # get fishing mortality ratio among fleets
   proj_NAA <- array(0, dim = c(n_regions, n_proj_yrs + 1, n_ages, n_sexes))
+  proj_NAA0 <- array(0, dim = c(n_regions, n_proj_yrs + 1, n_ages, n_sexes))
   proj_ZAA <- array(0, dim = c(n_regions, n_proj_yrs + 1, n_ages, n_sexes))
   proj_FAA <- array(0, dim = c(n_regions, n_proj_yrs + 1, n_ages, n_sexes, n_fish_fleets))
   proj_CAA <- array(0, dim = c(n_regions, n_proj_yrs, n_ages, n_sexes, n_fish_fleets))
   proj_Catch <- array(0, dim = c(n_regions, n_proj_yrs, n_fish_fleets))
   proj_SSB <- array(0, dim = c(n_regions, n_proj_yrs))
+  proj_Dynamic_SSB0 <- array(0, dim = c(n_regions, n_proj_yrs))
   proj_F <- array(0, dim = c(n_regions, n_proj_yrs + 1))
 
 # Start Projection --------------------------------------------------------
   # Input terminal year assessment at age
   proj_NAA[,1,,] <- terminal_NAA
+  proj_NAA0[,1,,] <- terminal_NAA0
 
   for(y in 1:n_proj_yrs) {
 
@@ -295,7 +152,7 @@ Do_Population_Projection <- function(n_proj_yrs = 2,
       for(r in 1:n_regions) {
         if(n_sexes == 2) tmp <- tmp_rec[r] * sexratio[r,y,]
         if(n_sexes == 1) tmp <- tmp_rec[r]
-        proj_NAA[r,y,1,] <- tmp
+        proj_NAA[r,y,1,] <- proj_NAA0[r,y,1,]  <- tmp
       } # end r loop
 
     }
@@ -306,27 +163,37 @@ Do_Population_Projection <- function(n_proj_yrs = 2,
       # Recruits don't move
       if(do_recruits_move == 0) {
         # Apply movement after ageing processes - start movement at age 2
-        for(a in 2:n_ages) for(s in 1:n_sexes) proj_NAA[,y,a,s] = t(proj_NAA[,y,a,s]) %*% Movement[,,y,a,s]
+        for(a in 2:n_ages) for(s in 1:n_sexes) proj_NAA[,y,a,s] = t(proj_NAA[,y,a,s]) %*% Movement[,,y,a,s] # fished
+        for(a in 2:n_ages) for(s in 1:n_sexes) proj_NAA0[,y,a,s] = t(proj_NAA0[,y,a,s]) %*% Movement[,,y,a,s] # unfished
 
         # Apply recruitment to projected NAA
         for(r in 1:n_regions) {
           if(n_sexes == 2) tmp <- tmp_rec[r] * sexratio[r,y,]
           if(n_sexes == 1) tmp <- tmp_rec[r]
-          proj_NAA[r,y,1,] <- tmp
+          proj_NAA[r,y,1,] <- proj_NAA0[r,y,1,]  <- tmp
         } # end r loop
 
       } # end if recruits don't move
       # Recruits move here
-      if(do_recruits_move == 1) for(a in 1:n_ages) for(s in 1:n_sexes) proj_NAA[,y,a,s] = t(proj_NAA[,y,a,s]) %*% Movement[,,y,a,s]
+      if(do_recruits_move == 1) {
+        for(a in 1:n_ages) for(s in 1:n_sexes) proj_NAA[,y,a,s] = t(proj_NAA[,y,a,s]) %*% Movement[,,y,a,s] # fished
+        for(a in 1:n_ages) for(s in 1:n_sexes) proj_NAA0[,y,a,s] = t(proj_NAA0[,y,a,s]) %*% Movement[,,y,a,s] # unfished
+      }
     } # only compute if spatial
 
 # Mortality and Ageing ----------------------------------------------------
-    proj_NAA[,y+1,2:n_ages,] = proj_NAA[,y,1:(n_ages-1),] * exp(-proj_ZAA[,y,1:(n_ages-1),]) # Exponential mortality for individuals not in plus group
-    proj_NAA[,y+1,n_ages,] = proj_NAA[,y+1,n_ages,] + proj_NAA[,y,n_ages,] * exp(-proj_ZAA[,y,n_ages,]) # Accumulate plus group
+    proj_NAA[,y+1,2:n_ages,] = proj_NAA[,y,1:(n_ages-1),] * exp(-proj_ZAA[,y,1:(n_ages-1),]) # Exponential mortality for individuals not in plus group (fished)
+    proj_NAA[,y+1,n_ages,] = proj_NAA[,y+1,n_ages,] + proj_NAA[,y,n_ages,] * exp(-proj_ZAA[,y,n_ages,]) # Accumulate plus group (fished)
+    proj_NAA0[,y+1,2:n_ages,] = proj_NAA0[,y,1:(n_ages-1),] * exp(-natmort[,y,1:(n_ages-1),]) # Exponential mortality for individuals not in plus group (unfished)
+    proj_NAA0[,y+1,n_ages,] = proj_NAA0[,y+1,n_ages,] + proj_NAA0[,y,n_ages,] * exp(-natmort[,y,n_ages,]) # Accumulate plus group (unfished)
 
 # Derive Biomass ----------------------------------------------------------
     proj_SSB[,y] = apply(proj_NAA[,y,,1,drop = FALSE] * exp(-proj_ZAA[,y,,1,drop = FALSE] * t_spawn) * WAA[,y,,1,drop = FALSE] * MatAA[,y,,1,drop = FALSE], 1, sum) # Spawning Stock Biomass
-    if(n_sexes == 1) proj_SSB[,y] = proj_SSB[,y] * 0.5 # If single sex model, multiply SSB calculations by 0.5
+    proj_Dynamic_SSB0[,y] = apply(proj_NAA0[,y,,1,drop = FALSE] * exp(-natmort[,y,,1,drop = FALSE] * t_spawn) * WAA[,y,,1,drop = FALSE] * MatAA[,y,,1,drop = FALSE], 1, sum) # Spawning Stock Biomass
+    if(n_sexes == 1) {  # If single sex model, multiply SSB calculations by 0.5
+      proj_SSB[,y] = proj_SSB[,y] * 0.5
+      proj_Dynamic_SSB0[,y] = proj_Dynamic_SSB0[,y] * 0.5
+    }
 
 # Derive Catches ----------------------------------------------------------
     for(r in 1:n_regions) {
@@ -359,7 +226,9 @@ Do_Population_Projection <- function(n_proj_yrs = 2,
   return(list(proj_F = proj_F,
               proj_Catch = proj_Catch,
               proj_SSB = proj_SSB,
+              proj_Dynamic_SSB0 = proj_Dynamic_SSB0,
               proj_NAA = proj_NAA,
+              proj_NAA0 = proj_NAA0,
               proj_ZAA = proj_ZAA)
   )
 

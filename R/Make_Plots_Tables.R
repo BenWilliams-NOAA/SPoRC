@@ -817,6 +817,7 @@ get_key_quants <- function(data,
 
     # terminal estimates
     terminal_NAA <-  array(rep[[i]]$NAA[,length(data[[i]]$years),,], dim = c(data[[i]]$n_regions, length(data[[i]]$ages), data[[i]]$n_sexes)) # terminal NAA
+    terminal_NAA0 <-  array(rep[[i]]$NAA0[,length(data[[i]]$years),,], dim = c(data[[i]]$n_regions, length(data[[i]]$ages), data[[i]]$n_sexes)) # terminal NAA
     terminal_F <- array(rep[[i]]$Fmort[,length(data[[i]]$years),], dim = c(data[[i]]$n_regions, data[[i]]$n_fish_fleets)) # terminal F
     recruitment <- array(rep[[i]]$Rec[,reference_points_opt$calc_rec_st_yr:(length(data[[i]]$years) - reference_points_opt$rec_age)],
                          dim = c(data[[i]]$n_regions, length(reference_points_opt$calc_rec_st_yr:(length(data[[i]]$years) - reference_points_opt$rec_age)))) # recruitment
@@ -875,7 +876,7 @@ get_key_quants <- function(data,
         natmort = rep[[i]]$natmort[,1,,,drop = FALSE]
       )
     } else {
-      bh_rec_opt = NULL
+      bh_rec_opt <- NULL
     }
 
     # do population projection
@@ -888,6 +889,7 @@ get_key_quants <- function(data,
                                          do_recruits_move = data[[i]]$do_recruits_move, # whether recruits move
                                          recruitment = recruitment, # recruitment values to use for mean recruitment
                                          terminal_NAA = terminal_NAA, # terminal numbers at age
+                                         terminal_NAA0 = terminal_NAA0, # terminal unfished numbers at age
                                          terminal_F = terminal_F, # terminal F
                                          natmort = natmort, # natural mortality values to use in projection
                                          WAA = WAA, # spawning weight at age values to use in projection
@@ -908,11 +910,13 @@ get_key_quants <- function(data,
     key_quants_tmp <- data.frame(Model = model_names[i],
                                  Region = 1:data[[i]]$n_regions,
                                  Terminal_SSB = round(out_proj$proj_SSB[,1], 5),
+                                 Terminal_SSB0 = round(out_proj$proj_Dynamic_SSB0[,1], 5),
                                  Terminal_F = rowSums(terminal_F),
                                  Catch_Advice = round(apply(out_proj$proj_Catch[,2,,drop = FALSE], c(1,2), sum), 5), # sum across fleets
                                  B_Ref_Pt = round(tmp_ref_pts$b_ref_pt, 5),
                                  F_Ref_Pt = round(tmp_ref_pts$f_ref_pt, 5),
                                  B_over_B_Ref = round(out_proj$proj_SSB[,1] / tmp_ref_pts$b_ref_pt, 5),
+                                 B_over_DynB_Ref = round(out_proj$proj_SSB[,1] / out_proj$proj_Dynamic_SSB0[,1], 5),
                                  F_over_F_Ref = round(rowSums(terminal_F) / tmp_ref_pts$f_ref_pt, 5)
     )
 

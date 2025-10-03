@@ -2,8 +2,7 @@
 % Please edit documentation in R/Distributions.R
 \name{ddirmult}
 \alias{ddirmult}
-\title{Dirichlet Mutlinomial Likelihood
-From https://github.com/James-Thorson/CCSRA/blob/main/inst/executables/CCSRA_v9.cpp}
+\title{Dirichlet Multinomial Likelihood}
 \usage{
 ddirmult(obs, pred, Ntotal, ln_theta, give_log = TRUE)
 }
@@ -22,7 +21,6 @@ ddirmult(obs, pred, Ntotal, ln_theta, give_log = TRUE)
 returns likelihood values from a dirihclet multinomial
 }
 \description{
-Dirichlet Mutlinomial Likelihood
 From https://github.com/James-Thorson/CCSRA/blob/main/inst/executables/CCSRA_v9.cpp
 }
 \keyword{internal}

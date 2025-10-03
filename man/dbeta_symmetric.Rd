@@ -18,7 +18,7 @@ dbeta_symmetric(p_val, p_ub, p_lb, p_prsd, log = TRUE)
 \item{log}{whether or not to return the log likelihood}
 }
 \value{
-Returns likelihood values from a symmetric beta
+Returns likelihood values from a symmetric beta distribution
 }
 \description{
 Symmetric Beta Function

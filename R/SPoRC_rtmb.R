@@ -445,7 +445,7 @@ SPoRC_rtmb = function(pars, data) {
     ### Compute Biomass Quantities ----------------------------------------------
     Total_Biom[,y] = apply(NAA[,y,,,drop = FALSE] * WAA[,y,,,drop = FALSE], 1, sum) # Total biomass
     SSB[,y] = apply(NAA[,y,,1,drop = FALSE] * WAA[,y,,1,drop = FALSE] * MatAA[,y,,1,drop = FALSE] * exp(-ZAA[,y,,1,drop = FALSE] * t_spawn), 1, sum)
-    Dynamic_SSB0[,y] = apply(NAA0[,y,,1,drop = FALSE] * WAA[,y,,1,drop = FALSE] * MatAA[,y,,1,drop = FALSE] * exp(-ZAA[,y,,1,drop = FALSE] * t_spawn), 1, sum)
+    Dynamic_SSB0[,y] = apply(NAA0[,y,,1,drop = FALSE] * WAA[,y,,1,drop = FALSE] * MatAA[,y,,1,drop = FALSE] * exp(-natmort[,y,,1,drop = FALSE] * t_spawn), 1, sum)
 
     # If single sex model, multiply SSB calculations by 0.5
     if(n_sexes == 1) {
@@ -1112,6 +1112,7 @@ SPoRC_rtmb = function(pars, data) {
   RTMB::REPORT(Rec_trans_prop)
   RTMB::REPORT(h_trans)
   RTMB::REPORT(NAA)
+  RTMB::REPORT(NAA0)
   RTMB::REPORT(ZAA)
   RTMB::REPORT(natmort)
   RTMB::REPORT(bias_ramp)

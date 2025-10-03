@@ -4,10 +4,10 @@
 \alias{get_model_rep_from_mcmc}
 \title{Extract model report from MCMC posterior samples}
 \usage{
-get_model_rep_from_mcmc(rmtb_obj, adnuts_obj, what, n_cores)
+get_model_rep_from_mcmc(rtmb_obj, adnuts_obj, what, n_cores)
 }
 \arguments{
-\item{rmtb_obj}{An RTMB object created via `ADFun`.}
+\item{rtmb_obj}{An RTMB object created via `ADFun`.}
 
 \item{adnuts_obj}{An `adnuts` object containing MCMC samples.}
 
@@ -29,7 +29,7 @@ specified components of the report.
 }
 \examples{
 \dontrun{
-model_reports <- get_model_rep_from_mcmc(rmtb_obj, adnuts_obj,
+model_reports <- get_model_rep_from_mcmc(rtmb_obj, adnuts_obj,
                                          what = c("SSB", "Rec"))
 }
 

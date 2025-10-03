@@ -975,7 +975,7 @@ do_srvsel_pe_pars_mapping <- function(input_list, srvsel_pe_pars_spec, corr_opt_
   map_srvsel_pe_pars <- input_list$par$srvsel_pe_pars # initalize array
   map_srvsel_pe_pars[] <- NA
 
-  # Srvery process error parameters
+  # Survey process error parameters
   for(f in 1:input_list$data$n_srv_fleets) {
 
     # Validate options
@@ -1088,23 +1088,27 @@ do_srvsel_pe_pars_mapping <- function(input_list, srvsel_pe_pars_spec, corr_opt_
             # Options to set correaltions to 0 for 3dgmrf
             if(!is.null(corr_opt_semipar)) {
 
-              # Validate options
-              if(!corr_opt_semipar[f] %in% c(NA, "corr_zero_y", "corr_zero_a", "corr_zero_y_a", "corr_zero_c", "corr_zero_y_c", "corr_zero_a_c", "corr_zero_y_a_c"))
-                stop("corr_opt_semipar not correctly specfied. Should be one of these: corr_zero_y, corr_zero_a, corr_zero_y_a, corr_zero_c, corr_zero_y_c, corr_zero_a_c, corr_zero_y_a_c, NA")
+              opt <- input_list$data$cont_tv_srv_sel[r,f] # get random effects options
 
-              # if either 2dar1 or 3dgmrf
-              if(input_list$data$cont_tv_srv_sel[r,f] %in% c(3,4,5)) {
-                if(corr_opt_semipar[f] == "corr_zero_y") map_srvsel_pe_pars[,2,,f] <- NA
-                if(corr_opt_semipar[f] == "corr_zero_a") map_srvsel_pe_pars[,1,,f] <- NA
-                if(corr_opt_semipar[f] == "corr_zero_y_a") map_srvsel_pe_pars[,1:2,,f] <- NA
+              # Validate options
+              if(!corr_opt_semipar[f] %in% c(NA, "corr_zero_y", "corr_zero_b", "corr_zero_y_b", "corr_zero_c", "corr_zero_y_c", "corr_zero_b_c", "corr_zero_y_b_c"))
+                stop("corr_opt_semipar not correctly specfied. Should be one of these: corr_zero_y, corr_zero_b, corr_zero_y_b, corr_zero_c, corr_zero_y_c, corr_zero_b_c, corr_zero_y_b_c, NA")
+              if(opt == 5 && corr_opt_semipar[f] %in% c("corr_zero_c","corr_zero_y_c","corr_zero_b_c","corr_zero_y_b_c"))
+                stop("Invalid corr_opt_semipar for 2dar1 (opt=5): cohort correlations are not allowed.")
+
+              if (opt %in% c(3,4,5)) {
+                # 2d and 3d options
+                if (corr_opt_semipar[f] == "corr_zero_y")    map_srvsel_pe_pars[,2,,f]     <- NA
+                if (corr_opt_semipar[f] == "corr_zero_b")    map_srvsel_pe_pars[,1,,f]     <- NA
+                if (corr_opt_semipar[f] == "corr_zero_y_b")  map_srvsel_pe_pars[,1:2,,f]   <- NA
               }
 
-              # if 3dgmrf only
-              if(input_list$data$cont_tv_srv_sel[r,f] %in% c(3,4)) {
-                if(corr_opt_semipar[f] == "corr_zero_c") map_srvsel_pe_pars[,3,,f] <- NA
-                if(corr_opt_semipar[f] == "corr_zero_y_c") map_srvsel_pe_pars[,2:3,,f] <- NA
-                if(corr_opt_semipar[f] == "corr_zero_a_c") map_srvsel_pe_pars[,c(1,3),,f] <- NA
-                if(corr_opt_semipar[f] == "corr_zero_y_a_c") map_srvsel_pe_pars[,1:3,,f] <- NA
+              if(opt %in% c(3,4)) {
+                # 3d gmrf options only (adds the cohort dimension)
+                if (corr_opt_semipar[f] == "corr_zero_c")      map_srvsel_pe_pars[,3,,f]   <- NA
+                if (corr_opt_semipar[f] == "corr_zero_y_c")    map_srvsel_pe_pars[,2:3,,f] <- NA
+                if (corr_opt_semipar[f] == "corr_zero_b_c")    map_srvsel_pe_pars[,c(1,3),,f] <- NA
+                if (corr_opt_semipar[f] == "corr_zero_y_b_c")  map_srvsel_pe_pars[,1:3,,f] <- NA
               }
 
               # Reset numbering for mapping off correlation parameters for clarity
@@ -1441,12 +1445,12 @@ do_srvsel_devs_mapping <- function(input_list, srv_sel_devs_spec) {
 #'   Available options:
 #'   \itemize{
 #'     \item \code{"corr_zero_y"}: Sets year (temporal) correlations to 0.
-#'     \item \code{"corr_zero_a"}: Sets age correlations to 0.
-#'     \item \code{"corr_zero_y_a"}: Sets both year and age correlations to 0.
+#'     \item \code{"corr_zero_b"}: Sets bin correlations to 0.
+#'     \item \code{"corr_zero_y_b"}: Sets both year and bin correlations to 0.
 #'     \item \code{"corr_zero_c"}: Sets cohort correlations to 0. Only valid for \code{cont_tv_sel} = \code{"3dmarg"} or \code{"3dcond"}.
 #'     \item \code{"corr_zero_y_c"}: Sets year and cohort correlations to 0. Only valid for \code{cont_tv_sel} = \code{"3dmarg"} or \code{"3dcond"}.
-#'     \item \code{"corr_zero_a_c"}: Sets age and cohort correlations to 0. Only valid for \code{cont_tv_sel} = \code{"3dmarg"} or \code{"3dcond"}.
-#'     \item \code{"corr_zero_y_a_c"}: Sets all correlations (year, age, and cohort) to 0.
+#'     \item \code{"corr_zero_b_c"}: Sets bin (age) and cohort correlations to 0. Only valid for \code{cont_tv_sel} = \code{"3dmarg"} or \code{"3dcond"}.
+#'     \item \code{"corr_zero_y_b_c"}: Sets all correlations (year, bin (age), and cohort) to 0.
 #'       Only valid for \code{cont_tv_sel} = \code{"3dmarg"} or \code{"3dcond"}; equivalent to an iid structure.
 #'   }
 #'

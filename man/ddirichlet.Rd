@@ -14,7 +14,7 @@ ddirichlet(x, alpha, log = TRUE)
 \item{log}{Whether to give log or not}
 }
 \value{
-Returns likelihood values form a dirichlet
+Returns likelihood values from a Dirichlet distribution
 }
 \description{
 Dirichlet Likelihood

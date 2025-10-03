@@ -6,7 +6,7 @@
 #' @param p_prsd SD of parameter, higher values have a stronger penalty on bounds, lower values have a more difuse penalty on bounds
 #' @param log whether or not to return the log likelihood
 #'
-#' @returns Returns likelihood values from a symmetric beta
+#' @returns Returns likelihood values from a symmetric beta distribution
 #' @keywords internal
 #'
 dbeta_symmetric <- function(p_val, p_ub, p_lb, p_prsd, log = TRUE) {
@@ -28,7 +28,7 @@ dbeta_symmetric <- function(p_val, p_ub, p_lb, p_prsd, log = TRUE) {
 #' @param alpha Expected values w/ concentration sum(alpha)
 #' @param log Whether to give log or not
 #'
-#' @returns Returns likelihood values form a dirichlet
+#' @returns Returns likelihood values from a Dirichlet distribution
 #' @keywords internal
 #'
 ddirichlet <- function(x, alpha, log = TRUE) {
@@ -36,8 +36,10 @@ ddirichlet <- function(x, alpha, log = TRUE) {
   if(log == TRUE) return(logres) else return(exp(logres))
 } # end function
 
-#' Dirichlet Mutlinomial Likelihood
+#' Dirichlet Multinomial Likelihood
+#'
 #' From https://github.com/James-Thorson/CCSRA/blob/main/inst/executables/CCSRA_v9.cpp
+#'
 #' @param obs Vector of observed values in proportions
 #' @param pred Vector or predicted values in proportions
 #' @param Ntotal Input sample size scalar
@@ -92,7 +94,9 @@ dlogistnormal = function(obs, pred, Sigma, give_log = TRUE) {
 }
 
 
-#' Negative binomial that can take non-integer values
+#' Negative Binomial Likelihood
+#'
+#' Approximates negative binomial when non-integer values are provided
 #'
 #' @param x observations
 #' @param give_log whether to give log
@@ -111,7 +115,9 @@ dnbinom_robust_noint <- function(x, log_mu, log_var_minus_mu, give_log = TRUE) {
 }
 
 
-#' Poisson that can take non-integer values
+#' Poisson Likelihood
+#'
+#' Approximates Poisson when non-integer values are provided
 #'
 #' @param x observations
 #' @param pred predicted
@@ -125,7 +131,9 @@ dpois_noint <- function(x, pred, give_log = TRUE) {
   if(give_log == TRUE) return(logres) else return(exp(logres))
 }
 
-#' Get scaled alpha beta parameters for a scaled beta distribution (for steepness) from https://stackoverflow.com/questions/75165770/beta-distribution-with-bounds-at-0-1-0-5
+#' Get scaled parameters for a scaled beta distribution
+#'
+#' From https://stackoverflow.com/questions/75165770/beta-distribution-with-bounds-at-0-1-0-5
 #'
 #' @param low lower bound
 #' @param high upper bound

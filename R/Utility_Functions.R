@@ -477,7 +477,7 @@ set_data_indicator_unused <- function(data,
 #' generates model reports for each posterior draw, and extracts
 #' specified components of the report.
 #'
-#' @param rmtb_obj An RTMB object created via `ADFun`.
+#' @param rtmb_obj An RTMB object created via `ADFun`.
 #' @param adnuts_obj An `adnuts` object containing MCMC samples.
 #' @param what Character vector specifying the names of components
 #'   in the model report to extract.
@@ -490,12 +490,12 @@ set_data_indicator_unused <- function(data,
 #' @family Model Diagnostics
 #' @examples
 #' \dontrun{
-#' model_reports <- get_model_rep_from_mcmc(rmtb_obj, adnuts_obj,
+#' model_reports <- get_model_rep_from_mcmc(rtmb_obj, adnuts_obj,
 #'                                          what = c("SSB", "Rec"))
 #' }
 #'
 #' @export get_model_rep_from_mcmc
-get_model_rep_from_mcmc <- function(rmtb_obj, adnuts_obj, what, n_cores) {
+get_model_rep_from_mcmc <- function(rtmb_obj, adnuts_obj, what, n_cores) {
 
   # define dimensions
   n_iter <- dim(adnuts_obj$samples)[1]
@@ -512,7 +512,7 @@ get_model_rep_from_mcmc <- function(rmtb_obj, adnuts_obj, what, n_cores) {
   all_results <- progressr::with_progress({
     p <- progressr::progressor(steps = nrow(samples_collapsed)) # progress
     future.apply::future_lapply(1:nrow(samples_collapsed), function(idx) {
-      tmp_rep <- rmtb_obj$report(par = samples_collapsed[idx, ])
+      tmp_rep <- rtmb_obj$report(par = samples_collapsed[idx, ])
       what_results <- vector("list", length(what)) # empty list
       names(what_results) <- what
       for (w in seq_along(what)) {

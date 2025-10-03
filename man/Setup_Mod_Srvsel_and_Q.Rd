@@ -194,12 +194,12 @@ This argument is only used when a continuous time-varying selectivity form is sp
   Available options:
   \itemize{
     \item \code{"corr_zero_y"}: Sets year (temporal) correlations to 0.
-    \item \code{"corr_zero_a"}: Sets age correlations to 0.
-    \item \code{"corr_zero_y_a"}: Sets both year and age correlations to 0.
+    \item \code{"corr_zero_b"}: Sets bin correlations to 0.
+    \item \code{"corr_zero_y_b"}: Sets both year and bin correlations to 0.
     \item \code{"corr_zero_c"}: Sets cohort correlations to 0. Only valid for \code{cont_tv_sel} = \code{"3dmarg"} or \code{"3dcond"}.
     \item \code{"corr_zero_y_c"}: Sets year and cohort correlations to 0. Only valid for \code{cont_tv_sel} = \code{"3dmarg"} or \code{"3dcond"}.
-    \item \code{"corr_zero_a_c"}: Sets age and cohort correlations to 0. Only valid for \code{cont_tv_sel} = \code{"3dmarg"} or \code{"3dcond"}.
-    \item \code{"corr_zero_y_a_c"}: Sets all correlations (year, age, and cohort) to 0.
+    \item \code{"corr_zero_b_c"}: Sets bin (age) and cohort correlations to 0. Only valid for \code{cont_tv_sel} = \code{"3dmarg"} or \code{"3dcond"}.
+    \item \code{"corr_zero_y_b_c"}: Sets all correlations (year, bin (age), and cohort) to 0.
       Only valid for \code{cont_tv_sel} = \code{"3dmarg"} or \code{"3dcond"}; equivalent to an iid structure.
   }
 

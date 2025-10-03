@@ -2,7 +2,7 @@
 % Please edit documentation in R/Distributions.R
 \name{dpois_noint}
 \alias{dpois_noint}
-\title{Poisson that can take non-integer values}
+\title{Poisson Likelihood}
 \usage{
 dpois_noint(x, pred, give_log = TRUE)
 }
@@ -17,6 +17,6 @@ dpois_noint(x, pred, give_log = TRUE)
 Returns likelihood values from a poisson
 }
 \description{
-Poisson that can take non-integer values
+Approximates Poisson when non-integer values are provided
 }
 \keyword{internal}

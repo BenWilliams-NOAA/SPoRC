@@ -2,7 +2,7 @@
 % Please edit documentation in R/Distributions.R
 \name{get_beta_scaled_pars}
 \alias{get_beta_scaled_pars}
-\title{Get scaled alpha beta parameters for a scaled beta distribution (for steepness) from https://stackoverflow.com/questions/75165770/beta-distribution-with-bounds-at-0-1-0-5}
+\title{Get scaled parameters for a scaled beta distribution}
 \usage{
 get_beta_scaled_pars(low, high, mu, sigma)
 }
@@ -19,6 +19,6 @@ get_beta_scaled_pars(low, high, mu, sigma)
 Returns beta distribution parmeters with bounds
 }
 \description{
-Get scaled alpha beta parameters for a scaled beta distribution (for steepness) from https://stackoverflow.com/questions/75165770/beta-distribution-with-bounds-at-0-1-0-5
+From https://stackoverflow.com/questions/75165770/beta-distribution-with-bounds-at-0-1-0-5
 }
 \keyword{internal}
