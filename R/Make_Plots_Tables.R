@@ -580,9 +580,12 @@ get_catch_fits_plot <- function(data,
       dplyr::rename(Region = Var1, Year = Var2, Fleet = Var3) %>%
       dplyr::left_join(
         reshape2::melt(data[[i]]$ObsCatch) %>%
+          dplyr::left_join(reshape2::melt(exp(rep[[i]]$ln_sigmaC) / data[[i]]$Wt_Catch) %>%
+                             dplyr::rename(se = value),
+                           by = c("Var1", "Var2", "Var3")) %>%
           dplyr::rename(Region = Var1, Year = Var2, Fleet = Var3, obs = value),
         by = c("Region", "Year", "Fleet")
-        ) %>%
+      ) %>%
       dplyr::mutate(Model = model_names[i],
                     Region = paste('Region', Region),
                     Fleet = paste('Fleet', Fleet))
@@ -593,8 +596,9 @@ get_catch_fits_plot <- function(data,
   catch_fit_plot <- ggplot2::ggplot() +
     ggplot2::geom_line(catch_fits_all %>% dplyr::filter(obs != 0),
                        mapping = ggplot2::aes(x = Year, y = value, color = factor(Model)), lwd = 1.3) +
-    ggplot2::geom_point(catch_fits_all %>% dplyr::filter(obs != 0),
-                             mapping = ggplot2::aes(x = Year, y = obs), color = 'black') +
+    ggplot2::geom_pointrange(catch_fits_all %>% dplyr::filter(obs != 0),
+                             mapping = ggplot2::aes(x = Year, y = obs, ymin = exp(log(obs) - 1.96 * se),
+                                                    ymax = exp(log(obs) + 1.96 * se)), color = 'black') +
     ggplot2::labs(x = "Year", y = 'Catch', color = 'Model') +
     theme_sablefish() +
     ggplot2::coord_cartesian(ylim = c(0,NA)) +

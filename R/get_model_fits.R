@@ -47,7 +47,7 @@ get_idx_fits <- function(data,
 
   # Observed survey index
   obs_srv <- reshape2::melt(data$ObsSrvIdx) %>% dplyr::rename(obs = value) %>%
-    dplyr::left_join(reshape2::melt(data$ObsSrvIdx_SE) %>%  dplyr::rename(se = value), by = c("Var1", "Var2", "Var3")) %>%
+    dplyr::left_join(reshape2::melt(data$ObsSrvIdx_SE / sqrt(data$Wt_SrvIdx)) %>%  dplyr::rename(se = value), by = c("Var1", "Var2", "Var3")) %>%
     dplyr::mutate(lci = exp(log(obs) - (1.96 * se)), uci = exp(log(obs) + (1.96 * se)), Type = 'Survey') %>%
     tidyr::drop_na() %>%
     dplyr::rename(Region = Var1, Year = Var2, Fleet = Var3)
@@ -72,7 +72,7 @@ get_idx_fits <- function(data,
   # Observed fishery index
   obs_fish <- reshape2::melt(data$ObsFishIdx) %>%
     dplyr::rename(obs = value) %>%
-    dplyr::left_join(reshape2::melt(data$ObsFishIdx_SE) %>%
+    dplyr::left_join(reshape2::melt(data$ObsFishIdx_SE / sqrt(data$Wt_FishIdx)) %>%
                        dplyr::rename(se = value), by = c("Var1", "Var2", "Var3")) %>%
     dplyr::mutate(lci = exp(log(obs) - (1.96 * se)), uci = exp(log(obs) + (1.96 * se)), Type = 'Fishery') %>%
     tidyr::drop_na() %>%
@@ -503,102 +503,102 @@ run_osa <- function(obs,
 
   if (!requireNamespace("compResidual", quietly = TRUE)) {
     stop("Package 'compResidual' is required for get_osa(). Please install it with remotes::install_github('fishfollower/compResidual').")
+  } else{
+    set.seed(722533474)
+
+    # Multinomial
+    if(comp_like == 0) {
+      if(is.null(N)) stop("N is NULL. Please provide the appropriate values for the Multinomial!")
+      o <- round(N * obs/rowSums(obs), 0) # get observed (needs to be integers)
+      p <- exp/rowSums(exp) # get expected
+      res <- compResidual::resMulti(t(o), t(p)) # get residuals
+      # clean up residual dataframe
+      mat <- t(matrix(res, nrow = nrow(res), ncol = ncol(res))) # coerce into matrix
+      dimnames(mat) <- list(year = years, index = index[1:(length(index) - 1)]) # name matrix
+    }
+
+    # Dirichlet-Multinomial
+    if(comp_like == 1) {
+      if(is.null(N) || is.null(DM_theta)) stop("N or DM_theta is NULL. Please provide the appropriate values for the Dirichlet-multinomial!")
+      o <- round(N * obs/rowSums(obs), 0) # get observed (needs to be integers)
+      p <- N * DM_theta * exp/rowSums(exp) # get expected
+      res <- compResidual::resDirM(obs = t(o), alpha = t(p)) # get residuals
+      # clean up residual dataframe
+      mat <- t(matrix(res, nrow = nrow(res), ncol = ncol(res))) # coerce into matrix
+      dimnames(mat) <- list(year = years, index = index[1:(length(index) - 1)]) # name matrix
+    }
+
+    # Logistic Normal
+    if(comp_like %in% c(2:4)) {
+      if(is.null(LN_Sigma)) stop("LN_Sigma is NULL. Please provide the appropriate values for the Logistic Normal!")
+      # create residual dataframe
+      mat <-  matrix(NA, ncol = ncol(t(obs)), nrow = nrow(t(obs)) - 1)
+      # Transpose
+      obs <- t(obs)
+      exp <- t(exp)
+
+      # loop through to normalize compositions and get OSAs
+      for(i in 1:length(years)) {
+
+        # normalize compositions
+        tmp_obs <- obs[,i] / sum(obs[,i])
+        tmp_exp <- exp[,i] / sum(exp[,i])
+
+        # figure out zeros and keep track of original indices
+        zeros <- which(tmp_obs == 0)
+        original_length <- length(tmp_obs)
+
+        if(length(zeros) > 0) {
+          # Keep track of non-zero indices for mapping back
+          non_zero_indices <- setdiff(1:original_length, zeros)
+          tmp_obs <- tmp_obs[-zeros] / sum(tmp_obs[-zeros]) # renormalize w/o zeros
+          tmp_exp <- tmp_exp[-zeros] / sum(tmp_exp[-zeros]) # renormalize w/o zeros
+          tmp_Sigma <- LN_Sigma[-zeros, -zeros]
+        } else {
+          tmp_Sigma <- LN_Sigma
+          non_zero_indices <- 1:original_length
+        }
+
+        # transform and drop last bin after filtering zeros
+        tmp_obs <- compResidual::logistictransf(tmp_obs, FALSE)
+        tmp_exp <- compResidual::logistictransf(tmp_exp, FALSE)
+        tmp_Sigma <- tmp_Sigma[-nrow(tmp_Sigma), -ncol(tmp_Sigma)] # remove last bins
+
+        # Update non_zero_indices to account for dropped last bin
+        non_zero_indices <- non_zero_indices[-length(non_zero_indices)]
+
+        # set up TMB OSA lists
+        dat <- list()
+        dat$code <- 4
+        dat$obs <- tmp_obs
+        dat$mu <- tmp_exp
+        dat$Sigma <- tmp_Sigma
+        param <- list(dummy = 0)
+
+        # get OSAs
+        obj <- TMB::MakeADFun(dat, param, DLL = "compResidual", silent = F)
+        opt <- nlminb(obj$par, obj$fn, obj$gr)
+        tmp <- TMB::oneStepPredict(obj, observation.name = "obs",
+                                   data.term.indicator = "keep",
+                                   method = "oneStepGaussianOffMode",
+                                   trace = FALSE, reverse = T)
+
+        # store OSAs
+        mat[non_zero_indices, i] <- tmp$residual
+      } # end i loop
+
+      # clean up amtrix
+      mat <- t(mat) # transpose to year x bins
+      dimnames(mat) <- list(year = years, index = index[1:(length(index) - 1)]) # name matrix
+
+    } # end logistic normal
+
+    res_df <- reshape2::melt(mat, value.name = "resid") %>% # turn into dataframe
+      dplyr::mutate(fleet = fleet, index_label = index_label) %>%
+      dplyr::relocate(fleet, index_label, .before = year)
+
+    return(list(res = res_df))
   }
-
-  set.seed(722533474)
-
-  # Multinomial
-  if(comp_like == 0) {
-    if(is.null(N)) stop("N is NULL. Please provide the appropriate values for the Multinomial!")
-    o <- round(N * obs/rowSums(obs), 0) # get observed (needs to be integers)
-    p <- exp/rowSums(exp) # get expected
-    res <- compResidual::resMulti(t(o), t(p)) # get residuals
-    # clean up residual dataframe
-    mat <- t(matrix(res, nrow = nrow(res), ncol = ncol(res))) # coerce into matrix
-    dimnames(mat) <- list(year = years, index = index[1:(length(index) - 1)]) # name matrix
-  }
-
-  # Dirichlet-Multinomial
-  if(comp_like == 1) {
-    if(is.null(N) || is.null(DM_theta)) stop("N or DM_theta is NULL. Please provide the appropriate values for the Dirichlet-multinomial!")
-    o <- round(N * obs/rowSums(obs), 0) # get observed (needs to be integers)
-    p <- N * DM_theta * exp/rowSums(exp) # get expected
-    res <- compResidual::resDirM(obs = t(o), alpha = t(p)) # get residuals
-    # clean up residual dataframe
-    mat <- t(matrix(res, nrow = nrow(res), ncol = ncol(res))) # coerce into matrix
-    dimnames(mat) <- list(year = years, index = index[1:(length(index) - 1)]) # name matrix
-  }
-
-  # Logistic Normal
-  if(comp_like %in% c(2:4)) {
-    if(is.null(LN_Sigma)) stop("LN_Sigma is NULL. Please provide the appropriate values for the Logistic Normal!")
-    # create residual dataframe
-    mat <-  matrix(NA, ncol = ncol(t(obs)), nrow = nrow(t(obs)) - 1)
-    # Transpose
-    obs <- t(obs)
-    exp <- t(exp)
-
-    # loop through to normalize compositions and get OSAs
-    for(i in 1:length(years)) {
-
-      # normalize compositions
-      tmp_obs <- obs[,i] / sum(obs[,i])
-      tmp_exp <- exp[,i] / sum(exp[,i])
-
-      # figure out zeros and keep track of original indices
-      zeros <- which(tmp_obs == 0)
-      original_length <- length(tmp_obs)
-
-      if(length(zeros) > 0) {
-        # Keep track of non-zero indices for mapping back
-        non_zero_indices <- setdiff(1:original_length, zeros)
-        tmp_obs <- tmp_obs[-zeros] / sum(tmp_obs[-zeros]) # renormalize w/o zeros
-        tmp_exp <- tmp_exp[-zeros] / sum(tmp_exp[-zeros]) # renormalize w/o zeros
-        tmp_Sigma <- LN_Sigma[-zeros, -zeros]
-      } else {
-        tmp_Sigma <- LN_Sigma
-        non_zero_indices <- 1:original_length
-      }
-
-      # transform and drop last bin after filtering zeros
-      tmp_obs <- compResidual::logistictransf(tmp_obs, FALSE)
-      tmp_exp <- compResidual::logistictransf(tmp_exp, FALSE)
-      tmp_Sigma <- tmp_Sigma[-nrow(tmp_Sigma), -ncol(tmp_Sigma)] # remove last bins
-
-      # Update non_zero_indices to account for dropped last bin
-      non_zero_indices <- non_zero_indices[-length(non_zero_indices)]
-
-      # set up TMB OSA lists
-      dat <- list()
-      dat$code <- 4
-      dat$obs <- tmp_obs
-      dat$mu <- tmp_exp
-      dat$Sigma <- tmp_Sigma
-      param <- list(dummy = 0)
-
-      # get OSAs
-      obj <- TMB::MakeADFun(dat, param, DLL = "compResidual", silent = F)
-      opt <- nlminb(obj$par, obj$fn, obj$gr)
-      tmp <- TMB::oneStepPredict(obj, observation.name = "obs",
-                                 data.term.indicator = "keep",
-                                 method = "oneStepGaussianOffMode",
-                                 trace = FALSE, reverse = T)
-
-      # store OSAs
-      mat[non_zero_indices, i] <- tmp$residual
-    } # end i loop
-
-    # clean up amtrix
-    mat <- t(mat) # transpose to year x bins
-    dimnames(mat) <- list(year = years, index = index[1:(length(index) - 1)]) # name matrix
-
-  } # end logistic normal
-
-  res_df <- reshape2::melt(mat, value.name = "resid") %>% # turn into dataframe
-    dplyr::mutate(fleet = fleet, index_label = index_label) %>%
-    dplyr::relocate(fleet, index_label, .before = year)
-
-  return(list(res = res_df))
 
 }
 
@@ -683,99 +683,101 @@ get_osa <- function(obs_mat,
 
   if (!requireNamespace("compResidual", quietly = TRUE)) {
     stop("Package 'compResidual' is required for get_osa(). Please follow installation instructions from https://github.com/fishfollower/compResidual.")
-  }
+  } else{
+    obs <- obs_mat[,years,,,fleet, drop = FALSE] # get filtered observed matrix
+    exp <- exp_mat[,years,,,fleet, drop = FALSE] # get filtered expected matrix
+    n_regions <- dim(obs)[1]
+    n_sexes <- dim(obs)[4]
 
-  obs <- obs_mat[,years,,,fleet, drop = FALSE] # get filtered observed matrix
-  exp <- exp_mat[,years,,,fleet, drop = FALSE] # get filtered expected matrix
-  n_regions <- dim(obs)[1]
-  n_sexes <- dim(obs)[4]
-
-  # if comps are aggregated
-  if(comp_type == 0) {
-    tmp_obs <- obs[1,,,1,1] # only get a single sex out
-    tmp_exp <- exp[1,,,1,1] # only get a single sex out
-
-    # compute OSA
-    tmp_osa <- run_osa(obs = tmp_obs, exp = tmp_exp, N = N, DM_theta = DM_theta,
-                       years = years, comp_like = comp_like, LN_Sigma = LN_Sigma,
-                       index = bins, fleet = as.character(fleet), index_label = bin_label)
-
-    # Doing some naming stuff
-    tmp_osa$res$region <- 1 # 1s below b/c aggregated across all dimensions
-    tmp_osa$res$sex <- 1
-    tmp_osa$res$comp_type <- "Aggregated"
-    osa_all <- tmp_osa
-  }
-
-  # if comps are split by region and sex
-  if(comp_type == 1) {
-
-    # empty dataframes to bind to
-    res_all <- data.frame()
-    agg_all <- data.frame()
-
-    for(r in 1:n_regions) {
-      for(s in 1:n_sexes) {
-        tmp_obs <- obs[r,,,s,1] # get observations
-        tmp_exp <- exp[r,,,s,1] # get expected
-
-        # compute OSA
-        tmp_osa <- run_osa(obs = tmp_obs, exp = tmp_exp, N = N[r,,s], DM_theta = DM_theta[r,s],
-                           years = years, comp_like = comp_like, LN_Sigma = LN_Sigma[r,,,s],
-                           index = bins, fleet = as.character(fleet), index_label = bin_label)
-
-        # Doing some naming stuff
-        tmp_osa$res$region <- r
-        tmp_osa$res$sex <- s
-        tmp_osa$res$comp_type <- "SpltR_SpltS"
-
-        res_all <- rbind(res_all, tmp_osa$res)
-
-      } # end s loop
-    } # end r loop
-
-    osa_all <- list(res = res_all)
-
-  } # end split region and sex
-
-  # if comp types are join by sex, split by region
-  if(comp_type == 2) {
-
-    # empty dataframes to bind to
-    res_all <- data.frame()
-    agg_all <- data.frame()
-
-    for(r in 1:n_regions) {
-
-      # initialize to cbind
-      tmp_obs <- NULL
-      tmp_exp <- NULL
-
-      for(s in 1:n_sexes) {
-        tmp_obs <- cbind(tmp_obs, obs[r,,,s,1]) # get observations
-        tmp_exp <- cbind(tmp_exp, exp[r,,,s,1]) # get expected
-      } # end s loop
+    # if comps are aggregated
+    if(comp_type == 0) {
+      tmp_obs <- obs[1,,,1,1] # only get a single sex out
+      tmp_exp <- exp[1,,,1,1] # only get a single sex out
 
       # compute OSA
-      tmp_osa <- run_osa(obs = tmp_obs, exp = tmp_exp, N = N[r,], DM_theta = DM_theta[r], years = years, comp_like = comp_like, LN_Sigma = LN_Sigma[r,,],
-                         index = paste(rep(1:n_sexes, each = length(bins)), "_", rep(bins, times = n_sexes), sep = ""),
-                         fleet = as.character(fleet), index_label = bin_label)
+      tmp_osa <- run_osa(obs = tmp_obs, exp = tmp_exp, N = N, DM_theta = DM_theta,
+                         years = years, comp_like = comp_like, LN_Sigma = LN_Sigma,
+                         index = bins, fleet = as.character(fleet), index_label = bin_label)
+
+      # Doing some naming stuff
+      tmp_osa$res$region <- 1 # 1s below b/c aggregated across all dimensions
+      tmp_osa$res$sex <- 1
+      tmp_osa$res$comp_type <- "Aggregated"
+      osa_all <- tmp_osa
+    }
+
+    # if comps are split by region and sex
+    if(comp_type == 1) {
+
+      # empty dataframes to bind to
+      res_all <- data.frame()
+      agg_all <- data.frame()
+
+      for(r in 1:n_regions) {
+        for(s in 1:n_sexes) {
+          tmp_obs <- obs[r,,,s,1] # get observations
+          tmp_exp <- exp[r,,,s,1] # get expected
+
+          # compute OSA
+          tmp_osa <- run_osa(obs = tmp_obs, exp = tmp_exp, N = N[r,,s], DM_theta = DM_theta[r,s],
+                             years = years, comp_like = comp_like, LN_Sigma = LN_Sigma[r,,,s],
+                             index = bins, fleet = as.character(fleet), index_label = bin_label)
+
+          # Doing some naming stuff
+          tmp_osa$res$region <- r
+          tmp_osa$res$sex <- s
+          tmp_osa$res$comp_type <- "SpltR_SpltS"
+
+          res_all <- rbind(res_all, tmp_osa$res)
+
+        } # end s loop
+      } # end r loop
+
+      osa_all <- list(res = res_all)
+
+    } # end split region and sex
+
+    # if comp types are join by sex, split by region
+    if(comp_type == 2) {
+
+      # empty dataframes to bind to
+      res_all <- data.frame()
+      agg_all <- data.frame()
+
+      for(r in 1:n_regions) {
+
+        # initialize to cbind
+        tmp_obs <- NULL
+        tmp_exp <- NULL
+
+        for(s in 1:n_sexes) {
+          tmp_obs <- cbind(tmp_obs, obs[r,,,s,1]) # get observations
+          tmp_exp <- cbind(tmp_exp, exp[r,,,s,1]) # get expected
+        } # end s loop
+
+        # compute OSA
+        tmp_osa <- run_osa(obs = tmp_obs, exp = tmp_exp, N = N[r,], DM_theta = DM_theta[r], years = years, comp_like = comp_like, LN_Sigma = LN_Sigma[r,,],
+                           index = paste(rep(1:n_sexes, each = length(bins)), "_", rep(bins, times = n_sexes), sep = ""),
+                           fleet = as.character(fleet), index_label = bin_label)
 
         # Doing some naming stuff
         tmp_osa$res$region <- r
         tmp_osa$res <- tmp_osa$res %>% dplyr::mutate(split_index = str_split(index, "_"),  # Split once and store as list
-                                              sex = sapply(split_index, `[`, 1),
-                                              index = sapply(split_index, `[`, 2)) %>% dplyr::select(-split_index)
+                                                     sex = sapply(split_index, `[`, 1),
+                                                     index = sapply(split_index, `[`, 2)) %>% dplyr::select(-split_index)
         tmp_osa$res$comp_type <- "SpltR_JntS"
 
         res_all <- rbind(res_all, tmp_osa$res)
-    } # end r loop
+      } # end r loop
 
-    osa_all <- list(res = res_all)
+      osa_all <- list(res = res_all)
 
-  } # end split region, joint by sex
+    } # end split region, joint by sex
 
-  return(osa_all)
+    return(osa_all)
+  }
+
+
 }
 
 #' Plots OSA residuals from outputs from get_osa. Much of this code is taken from the afscOM package, but with modificaitons to plot features.
