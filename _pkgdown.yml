@@ -34,6 +34,7 @@ articles:
     contents:
       - j_starting_mapping
       - k_defining_priors
+      - n_single_region_ebs_pollock_randomeff_case_study
 
 reference:
   - title: "Model Setup"
