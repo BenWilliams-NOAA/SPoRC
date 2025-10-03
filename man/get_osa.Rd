@@ -2,45 +2,95 @@
 % Please edit documentation in R/get_model_fits.R
 \name{get_osa}
 \alias{get_osa}
-\title{Function to format comp data and get OSA residuals from afscOSA (uses afscOSA and compresid as backend to get OSA residuals)}
+\title{Compute OSA residuals for composition data}
 \usage{
-get_osa(obs_mat, exp_mat, N, years, fleet, bins, comp_type, bin_label)
+get_osa(
+  obs_mat,
+  exp_mat,
+  N = NULL,
+  DM_theta = NULL,
+  LN_Sigma = NULL,
+  years,
+  fleet,
+  bins,
+  comp_type,
+  bin_label,
+  comp_like = 0
+)
 }
 \arguments{
-\item{obs_mat}{Matrix of observed values, which can have NAs - gets removed with years arge (dimensioned by region, year, age, sex, fleet)}
+\item{obs_mat}{Array of observed compositions, dimensioned by
+\code{[region, year, bin, sex, fleet]}. May contain \code{NA}s, which are
+removed when filtering by \code{years}.}
 
-\item{exp_mat}{Matrix of expceted values, which can have NAs - gets removed with years arg (dimensioned by region, year, age, sex, fleet)}
+\item{exp_mat}{Array of expected compositions, dimensioned the same as
+\code{obs_mat}. May contain \code{NA}s, which are removed when filtering by
+\code{years}.}
 
-\item{N}{Input or effective sample size. If aggregated (comp_type == 0), then a vector of n_years is provided. If split by region, split by sex (comp_type == 1), then provide a array dimensioned by n_regions x n_years x n_sexes. If joint by sex, by split by region (comp_type == 2), then provide a matrix of n_regions x n_years}
+\item{N}{Input (or effective if Multinomial) sample size. Dimensions depend on \code{comp_type}:
+\itemize{
+  \item \code{comp_type = 0} (aggregated): vector of length \code{n_years}.
+  \item \code{comp_type = 1} (split by region and sex): array
+    \code{[n_regions, n_years, n_sexes]}.
+  \item \code{comp_type = 2} (split by region, joint by sex): matrix
+    \code{[n_regions, n_years]}.
+}}
 
-\item{years}{Years we want to point to and filter to}
+\item{DM_theta}{Dirichlet-multinomial overdispersion parameter(s). Dimensions
+must match \code{N}:
+\itemize{
+  \item aggregated: scalar
+  \item split by sex: matrix \code{[n_regions, n_sexes]}
+  \item joint by sex: vector of length \code{n_regions}
+}}
 
-\item{fleet}{Fleet we want to filter to}
+\item{LN_Sigma}{Logistic-normal covariance matrix. Dimensions depend on
+\code{comp_type}:
+\itemize{
+  \item aggregated: matrix \code{[n_bins, n_bins]}
+  \item split by region and sex: array \code{[n_regions, n_bins, n_bins, n_sexes]}
+  \item joint by sex: array \code{[n_regions, n_bins, n_bins]}
+}
+Use [get_logistN_Sigma()] to help construct this input.}
 
-\item{bins}{Vector of age or length bins}
+\item{years}{Vector of years to filter to. Must match dimensions of
+\code{obs_mat} and \code{exp_mat}.}
 
-\item{comp_type}{Composition type - whether this is aggregated == 0, split by region and sex == 1, split by region joint by sex = =2, and joint by region and sex == 3}
+\item{fleet}{Fleet identifier (character or numeric) to filter to.}
 
-\item{bin_label}{Bin label for whether these are ages or lengths}
+\item{bins}{Vector of age or length bin labels corresponding to the
+composition categories.}
+
+\item{comp_type}{Integer specifying how compositions are structured:
+\itemize{
+  \item 0 = aggregated across regions and sexes
+  \item 1 = split by region and sex
+  \item 2 = split by region, joint by sex
+}}
+
+\item{bin_label}{Character label describing whether bins represent ages or
+lengths.}
+
+\item{comp_like}{Integer specifying the likelihood type (defaults to 0):
+\itemize{
+  \item 0 = multinomial
+  \item 1 = Dirichlet-multinomial
+  \item 2–4 = logistic-normal variants
+}}
 }
 \value{
-OSA residuals
+A list with one element:
+\describe{
+  \item{res}{Data frame of OSA residuals. Columns include:
+    \code{fleet}, \code{index_label}, \code{year}, \code{index},
+    \code{resid}, \code{region}, \code{sex}, and \code{comp_type}.}
+}
 }
 \description{
-Function to format comp data and get OSA residuals from afscOSA (uses afscOSA and compresid as backend to get OSA residuals)
-}
-\examples{
-\dontrun{
-comp_props <- get_comp_prop(data = data, rep = rep, age_labels = 2:31, len_labels = seq(41, 99, 2), year_labels = 1960:2024)
-osa_results <- get_osa(obs_mat = comp_props$Obs_FishAge_mat,
-                      exp_mat = comp_props$Pred_FishAge_mat,
-                      N = 20 * data$Wt_FishAgeComps[1,1,1],
-                      years = 1999:2023,
-                      fleet = 1,
-                      bins = 2:31,
-                      comp_type = 0,
-                      bin_label = "Age")
-}
+Formats observed and expected composition data and calculates one-step-ahead
+(OSA) residuals using multinomial, Dirichlet-multinomial, or logistic-normal
+likelihoods. This function is the main interface for residual diagnostics,
+internally calling [run_osa()] to perform the residual calculations.
 }
 \seealso{
 Other Model Diagnostics: 

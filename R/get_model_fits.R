@@ -458,56 +458,232 @@ get_comp_prop <- function(data,
 
 } # end function
 
-
-#' Function to format comp data and get OSA residuals from afscOSA (uses afscOSA and compresid as backend to get OSA residuals)
+#' Internal function to compute OSA residuals for a single composition slice
 #'
-#' @param obs_mat Matrix of observed values, which can have NAs - gets removed with years arge (dimensioned by region, year, age, sex, fleet)
-#' @param exp_mat Matrix of expceted values, which can have NAs - gets removed with years arg (dimensioned by region, year, age, sex, fleet)
-#' @param N Input or effective sample size. If aggregated (comp_type == 0), then a vector of n_years is provided. If split by region, split by sex (comp_type == 1), then provide a array dimensioned by n_regions x n_years x n_sexes. If joint by sex, by split by region (comp_type == 2), then provide a matrix of n_regions x n_years
-#' @param years Years we want to point to and filter to
-#' @param fleet Fleet we want to filter to
-#' @param bins Vector of age or length bins
-#' @param comp_type Composition type - whether this is aggregated == 0, split by region and sex == 1, split by region joint by sex = =2, and joint by region and sex == 3
-#' @param bin_label Bin label for whether these are ages or lengths
+#' Backend function used by [get_osa()] to calculate one-step-ahead (OSA) residuals
+#' from observed and expected composition data.
 #'
-#' @import dplyr
-#' @returns OSA residuals
-#' @family Model Diagnostics
-#' @export get_osa
+#' @param obs Matrix of observed compositions (rows = years, columns = bins)
+#' @param exp Matrix of expected compositions (same shape as obs)
+#' @param N Sample size for multinomial/Dirichlet-multinomial
+#' @param DM_theta Dirichlet-multinomial overdispersion parameter(s)
+#' @param LN_Sigma Logistic-normal covariance matrix
+#' @param fleet Fleet identifier
+#' @param index Vector of composition bins (last entry dropped for logistic-normal)
+#' @param years Vector of years corresponding to rows of obs/exp
+#' @param index_label Character describing ages or lengths
+#' @param comp_like Integer specifying likelihood:
+#'   \describe{
+#'     \item{0}{multinomial}
+#'     \item{1}{Dirichlet-multinomial}
+#'     \item{2-4}{logistic-normal variants}
+#'   }
 #'
-#' @examples
-#' \dontrun{
-#' comp_props <- get_comp_prop(data = data, rep = rep, age_labels = 2:31, len_labels = seq(41, 99, 2), year_labels = 1960:2024)
-#' osa_results <- get_osa(obs_mat = comp_props$Obs_FishAge_mat,
-#'                       exp_mat = comp_props$Pred_FishAge_mat,
-#'                       N = 20 * data$Wt_FishAgeComps[1,1,1],
-#'                       years = 1999:2023,
-#'                       fleet = 1,
-#'                       bins = 2:31,
-#'                       comp_type = 0,
-#'                       bin_label = "Age")
+#' @return A list with one element:
+#' \describe{
+#'   \item{res}{Data frame of OSA residuals with columns fleet, index_label, year, index, resid}
 #' }
+#'
+#' @details
+#' For multinomial and Dirichlet-multinomial, observed proportions are scaled to counts.
+#' For logistic-normal, bins with zeros are removed, compositions renormalized,
+#' residuals computed in log-ratio space, and mapped back to original bins.
+#'
+#' @keywords internal
+run_osa <- function(obs,
+                    exp,
+                    N = NULL,
+                    DM_theta = NULL,
+                    LN_Sigma = NULL,
+                    fleet,
+                    index,
+                    years,
+                    index_label,
+                    comp_like) {
+
+  if (!requireNamespace("compResidual", quietly = TRUE)) {
+    stop("Package 'compResidual' is required for get_osa(). Please install it with remotes::install_github('fishfollower/compResidual').")
+  }
+
+  set.seed(722533474)
+
+  # Multinomial
+  if(comp_like == 0) {
+    if(is.null(N)) stop("N is NULL. Please provide the appropriate values for the Multinomial!")
+    o <- round(N * obs/rowSums(obs), 0) # get observed (needs to be integers)
+    p <- exp/rowSums(exp) # get expected
+    res <- compResidual::resMulti(t(o), t(p)) # get residuals
+    # clean up residual dataframe
+    mat <- t(matrix(res, nrow = nrow(res), ncol = ncol(res))) # coerce into matrix
+    dimnames(mat) <- list(year = years, index = index[1:(length(index) - 1)]) # name matrix
+  }
+
+  # Dirichlet-Multinomial
+  if(comp_like == 1) {
+    if(is.null(N) || is.null(DM_theta)) stop("N or DM_theta is NULL. Please provide the appropriate values for the Dirichlet-multinomial!")
+    o <- round(N * obs/rowSums(obs), 0) # get observed (needs to be integers)
+    p <- N * DM_theta * exp/rowSums(exp) # get expected
+    res <- compResidual::resDirM(obs = t(o), alpha = t(p)) # get residuals
+    # clean up residual dataframe
+    mat <- t(matrix(res, nrow = nrow(res), ncol = ncol(res))) # coerce into matrix
+    dimnames(mat) <- list(year = years, index = index[1:(length(index) - 1)]) # name matrix
+  }
+
+  # Logistic Normal
+  if(comp_like %in% c(2:4)) {
+    if(is.null(LN_Sigma)) stop("LN_Sigma is NULL. Please provide the appropriate values for the Logistic Normal!")
+    # create residual dataframe
+    mat <-  matrix(NA, ncol = ncol(t(obs)), nrow = nrow(t(obs)) - 1)
+    # Transpose
+    obs <- t(obs)
+    exp <- t(exp)
+
+    # loop through to normalize compositions and get OSAs
+    for(i in 1:length(years)) {
+
+      # normalize compositions
+      tmp_obs <- obs[,i] / sum(obs[,i])
+      tmp_exp <- exp[,i] / sum(exp[,i])
+
+      # figure out zeros and keep track of original indices
+      zeros <- which(tmp_obs == 0)
+      original_length <- length(tmp_obs)
+
+      if(length(zeros) > 0) {
+        # Keep track of non-zero indices for mapping back
+        non_zero_indices <- setdiff(1:original_length, zeros)
+        tmp_obs <- tmp_obs[-zeros] / sum(tmp_obs[-zeros]) # renormalize w/o zeros
+        tmp_exp <- tmp_exp[-zeros] / sum(tmp_exp[-zeros]) # renormalize w/o zeros
+        tmp_Sigma <- LN_Sigma[-zeros, -zeros]
+      } else {
+        tmp_Sigma <- LN_Sigma
+        non_zero_indices <- 1:original_length
+      }
+
+      # transform and drop last bin after filtering zeros
+      tmp_obs <- compResidual::logistictransf(tmp_obs, FALSE)
+      tmp_exp <- compResidual::logistictransf(tmp_exp, FALSE)
+      tmp_Sigma <- tmp_Sigma[-nrow(tmp_Sigma), -ncol(tmp_Sigma)] # remove last bins
+
+      # Update non_zero_indices to account for dropped last bin
+      non_zero_indices <- non_zero_indices[-length(non_zero_indices)]
+
+      # set up TMB OSA lists
+      dat <- list()
+      dat$code <- 4
+      dat$obs <- tmp_obs
+      dat$mu <- tmp_exp
+      dat$Sigma <- tmp_Sigma
+      param <- list(dummy = 0)
+
+      # get OSAs
+      obj <- TMB::MakeADFun(dat, param, DLL = "compResidual", silent = F)
+      opt <- nlminb(obj$par, obj$fn, obj$gr)
+      tmp <- TMB::oneStepPredict(obj, observation.name = "obs",
+                                 data.term.indicator = "keep",
+                                 method = "oneStepGaussianOffMode",
+                                 trace = FALSE, reverse = T)
+
+      # store OSAs
+      mat[non_zero_indices, i] <- tmp$residual
+    } # end i loop
+
+    # clean up amtrix
+    mat <- t(mat) # transpose to year x bins
+    dimnames(mat) <- list(year = years, index = index[1:(length(index) - 1)]) # name matrix
+
+  } # end logistic normal
+
+  res_df <- reshape2::melt(mat, value.name = "resid") %>% # turn into dataframe
+    dplyr::mutate(fleet = fleet, index_label = index_label) %>%
+    dplyr::relocate(fleet, index_label, .before = year)
+
+  return(list(res = res_df))
+
+}
+
+#' Compute OSA residuals for composition data
+#'
+#' Formats observed and expected composition data and calculates one-step-ahead
+#' (OSA) residuals using multinomial, Dirichlet-multinomial, or logistic-normal
+#' likelihoods. This function is the main interface for residual diagnostics,
+#' internally calling [run_osa()] to perform the residual calculations.
+#'
+#' @param obs_mat Array of observed compositions, dimensioned by
+#'   \code{[region, year, bin, sex, fleet]}. May contain \code{NA}s, which are
+#'   removed when filtering by \code{years}.
+#' @param exp_mat Array of expected compositions, dimensioned the same as
+#'   \code{obs_mat}. May contain \code{NA}s, which are removed when filtering by
+#'   \code{years}.
+#' @param N Input (or effective if Multinomial) sample size. Dimensions depend on \code{comp_type}:
+#'   \itemize{
+#'     \item \code{comp_type = 0} (aggregated): vector of length \code{n_years}.
+#'     \item \code{comp_type = 1} (split by region and sex): array
+#'       \code{[n_regions, n_years, n_sexes]}.
+#'     \item \code{comp_type = 2} (split by region, joint by sex): matrix
+#'       \code{[n_regions, n_years]}.
+#'   }
+#' @param years Vector of years to filter to. Must match dimensions of
+#'   \code{obs_mat} and \code{exp_mat}.
+#' @param fleet Fleet identifier (character or numeric) to filter to.
+#' @param bins Vector of age or length bin labels corresponding to the
+#'   composition categories.
+#' @param comp_type Integer specifying how compositions are structured:
+#'   \itemize{
+#'     \item 0 = aggregated across regions and sexes
+#'     \item 1 = split by region and sex
+#'     \item 2 = split by region, joint by sex
+#'   }
+#' @param bin_label Character label describing whether bins represent ages or
+#'   lengths.
+#' @param comp_like Integer specifying the likelihood type (defaults to 0):
+#'   \itemize{
+#'     \item 0 = multinomial
+#'     \item 1 = Dirichlet-multinomial
+#'     \item 2–4 = logistic-normal variants
+#'   }
+#' @param DM_theta Dirichlet-multinomial overdispersion parameter(s). Dimensions
+#'   must match \code{N}:
+#'   \itemize{
+#'     \item aggregated: scalar
+#'     \item split by sex: matrix \code{[n_regions, n_sexes]}
+#'     \item joint by sex: vector of length \code{n_regions}
+#'   }
+#' @param LN_Sigma Logistic-normal covariance matrix. Dimensions depend on
+#'   \code{comp_type}:
+#'   \itemize{
+#'     \item aggregated: matrix \code{[n_bins, n_bins]}
+#'     \item split by region and sex: array \code{[n_regions, n_bins, n_bins, n_sexes]}
+#'     \item joint by sex: array \code{[n_regions, n_bins, n_bins]}
+#'   }
+#'   Use [get_logistN_Sigma()] to help construct this input.
+#'
+#' @return A list with one element:
+#' \describe{
+#'   \item{res}{Data frame of OSA residuals. Columns include:
+#'     \code{fleet}, \code{index_label}, \code{year}, \code{index},
+#'     \code{resid}, \code{region}, \code{sex}, and \code{comp_type}.}
+#' }
+#'
+#' @family Model Diagnostics
+#' @import dplyr
+#' @export get_osa
 get_osa <- function(obs_mat,
                     exp_mat,
-                    N,
+                    N = NULL,
+                    DM_theta = NULL,
+                    LN_Sigma = NULL,
                     years,
                     fleet,
                     bins,
                     comp_type,
-                    bin_label
+                    bin_label,
+                    comp_like = 0
                     ) {
 
-  # Check if afscOSA and compResidual are installed
-  if (!is_package_available("afscOSA")) {
-    stop("afscOSA package is required but not installed. Please refer to the installation instructions on the main page if you want to use get_osa.", call. = FALSE)
+  if (!requireNamespace("compResidual", quietly = TRUE)) {
+    stop("Package 'compResidual' is required for get_osa(). Please follow installation instructions from https://github.com/fishfollower/compResidual.")
   }
-  if (!is_package_available("compResidual")) {
-    stop("compResidual package is required but not installed. Please refer to the installation instructions on the main page if you want to use get_osa.", call. = FALSE)
-  }
-
-  # now load packages
-  afscOSA <- asNamespace("afscOSA")
-  compResidual <- asNamespace("compResidual")
 
   obs <- obs_mat[,years,,,fleet, drop = FALSE] # get filtered observed matrix
   exp <- exp_mat[,years,,,fleet, drop = FALSE] # get filtered expected matrix
@@ -520,8 +696,9 @@ get_osa <- function(obs_mat,
     tmp_exp <- exp[1,,,1,1] # only get a single sex out
 
     # compute OSA
-    tmp_osa <- afscOSA::run_osa(obs = tmp_obs, exp = tmp_exp, N = N, years = years,
-                   index = bins, fleet = as.character(fleet), index_label = bin_label)
+    tmp_osa <- run_osa(obs = tmp_obs, exp = tmp_exp, N = N, DM_theta = DM_theta,
+                       years = years, comp_like = comp_like, LN_Sigma = LN_Sigma,
+                       index = bins, fleet = as.character(fleet), index_label = bin_label)
 
     # Doing some naming stuff
     tmp_osa$res$region <- 1 # 1s below b/c aggregated across all dimensions
@@ -543,8 +720,9 @@ get_osa <- function(obs_mat,
         tmp_exp <- exp[r,,,s,1] # get expected
 
         # compute OSA
-        tmp_osa <- afscOSA::run_osa(obs = tmp_obs, exp = tmp_exp, N = N[r,,s], years = years,
-                       index = bins, fleet = as.character(fleet), index_label = bin_label)
+        tmp_osa <- run_osa(obs = tmp_obs, exp = tmp_exp, N = N[r,,s], DM_theta = DM_theta[r,s],
+                           years = years, comp_like = comp_like, LN_Sigma = LN_Sigma[r,,,s],
+                           index = bins, fleet = as.character(fleet), index_label = bin_label)
 
         # Doing some naming stuff
         tmp_osa$res$region <- r
@@ -579,7 +757,7 @@ get_osa <- function(obs_mat,
       } # end s loop
 
       # compute OSA
-      tmp_osa <- afscOSA::run_osa(obs = tmp_obs, exp = tmp_exp, N = N[r,], years = years,
+      tmp_osa <- run_osa(obs = tmp_obs, exp = tmp_exp, N = N[r,], DM_theta = DM_theta[r], years = years, comp_like = comp_like, LN_Sigma = LN_Sigma[r,,],
                          index = paste(rep(1:n_sexes, each = length(bins)), "_", rep(bins, times = n_sexes), sep = ""),
                          fleet = as.character(fleet), index_label = bin_label)
 
@@ -612,40 +790,29 @@ get_osa <- function(obs_mat,
 #'
 #' @examples
 #' \dontrun{
-#' comp_props <- get_comp_prop(data = data, rep = rep, age_labels = 2:31, len_labels = seq(41, 99, 2), year_labels = 1960:2024)
-#' osa_results <- get_osa(obs_mat = comp_props$Obs_FishLen_mat,
-#'                        exp_mat = comp_props$Pred_FishLen_mat,
-#'                        N = 20 * data$Wt_FishAgeComps[1,1,1],
-#'                        years = 1999:2023,
-#'                        fleet = 1,
-#'                        bins = 2:31,
-#'                        comp_type = 1,
-#'                        bin_label = "Age")
-#'
+#' comp_props <- get_comp_prop(data = data, rep = sabie_rtmb_model$rep, age_labels = 2:31, len_labels = seq(41, 99, 2), year_labels = 1960:2024)
+#' plot_resids(get_osa(obs_mat = comp_props$Obs_FishAge_mat,
+#'                     exp_mat = comp_props$Pred_FishAge_mat,
+#'                     N = rep(16.52215, length(1999:2023)),
+#'                     years = which(1960:2024 %in% 1999:2023),
+#'                     LN_Sigma = LN_Sigma,
+#'                     fleet = 1,
+#'                     bins = 2:31,
+#'                     comp_type = 0,
+#'                     comp_like = 0,
+#'                     bin_label = "Age"))
 #' osa_plot <- plot_resids(osa_results)
 #' }
 plot_resids <- function(osa_results) {
 
-  # Check if afscOSA and compResidual are installed
-  if (!is_package_available("afscOSA")) {
-    stop("afscOSA package is required but not installed. Please refer to the installation instructions on the main page if you want to use get_osa.", call. = FALSE)
-  }
-  if (!is_package_available("compResidual")) {
-    stop("compResidual package is required but not installed. Please refer to the installation instructions on the main page if you want to use get_osa.", call. = FALSE)
-  }
-
-  # now load packages
-  afscOSA <- asNamespace("afscOSA")
-  compResidual <- asNamespace("compResidual")
-
   # extract results
-  res <- osa_results$res %>% dplyr::mutate(sign = ifelse(resid < 0, "Neg", "Pos"), Outlier = ifelse(abs(resid) > 3, "Yes", "No"))
+  res <- osa_results$res %>% dplyr::mutate(sign = ifelse(resid < 0, "Neg", "Pos"))
 
   # Aggregated Comps
   if(unique(res$comp_type) == "Aggregated") {
 
     # Get standarized normal residuals
-    sdnr <- res %>% dplyr::summarise(sdnr = paste0("SDNR = ", formatC(round(sd(resid), 3), format = "f", digits = 2)))
+    sdnr <- res %>% dplyr::summarise(sdnr = paste0("SDNR = ", formatC(round(sd(resid, na.rm = TRUE), 3), format = "f", digits = 2)))
 
     # sdnr plot
     sdnr_plot <- ggplot() +
@@ -661,7 +828,7 @@ plot_resids <- function(osa_results) {
 
     # Get standarized normal residuals
     sdnr <- res %>% dplyr::group_by(region, sex) %>%
-      dplyr::summarise(sdnr = paste0("SDNR = ", formatC(round(sd(resid), 3), format = "f", digits = 2)))
+      dplyr::summarise(sdnr = paste0("SDNR = ", formatC(round(sd(resid, na.rm = TRUE), 3), format = "f", digits = 2)))
 
     # sdnr plot
     sdnr_plot <- ggplot() +
@@ -682,7 +849,7 @@ plot_resids <- function(osa_results) {
 
     # Get standarized normal residuals
     sdnr <- res %>% dplyr::group_by(region) %>%
-      dplyr::summarise(sdnr = paste0("SDNR = ", formatC(round(sd(resid), 3), format = "f", digits = 2)))
+      dplyr::summarise(sdnr = paste0("SDNR = ", formatC(round(sd(resid, na.rm = TRUE), 3), format = "f", digits = 2)))
 
     # sdnr plot
     sdnr_plot <- ggplot() +
@@ -698,11 +865,10 @@ plot_resids <- function(osa_results) {
 
   # bubble plot
   bubble_plot <- ggplot(data = res, aes(x = year, y = as.numeric(index),
-                                        color = sign, size = abs(resid), shape = Outlier, alpha = abs(resid))) +
+                                        color = sign, size = abs(resid), alpha = abs(resid))) +
     geom_point() +
     scale_color_manual(values = c("blue", "red")) +
-    labs(x = "Year", y = unique(res$index_label), color = "Sign",
-         sign = "abs(Resid)", size = "abs(Resid)", alpha = "abs(Resid)") +
+    labs(x = "Year", y = unique(res$index_label), color = "Sign", size = "abs(Resid)", alpha = "abs(Resid)") +
     facet_grid(region ~ sex, labeller = labeller(
       region = function(x) paste0("Region ", x),
       sex = function(x) paste0("Sex ", x)
@@ -713,4 +879,5 @@ plot_resids <- function(osa_results) {
   return(list(sdnr_plot, bubble_plot))
 
 }
+
 

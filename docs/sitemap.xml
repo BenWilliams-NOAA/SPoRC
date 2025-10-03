@@ -121,6 +121,7 @@
 <url><loc>https://chengmatt.github.io/SPoRC/reference/get_idx_fits.html</loc></url>
 <url><loc>https://chengmatt.github.io/SPoRC/reference/get_idx_fits_plot.html</loc></url>
 <url><loc>https://chengmatt.github.io/SPoRC/reference/get_key_quants.html</loc></url>
+<url><loc>https://chengmatt.github.io/SPoRC/reference/get_logistN_Sigma.html</loc></url>
 <url><loc>https://chengmatt.github.io/SPoRC/reference/get_mcmc_ssb_rec.html</loc></url>
 <url><loc>https://chengmatt.github.io/SPoRC/reference/get_model_rep_from_mcmc.html</loc></url>
 <url><loc>https://chengmatt.github.io/SPoRC/reference/get_nLL_plot.html</loc></url>
@@ -149,6 +150,7 @@
 <url><loc>https://chengmatt.github.io/SPoRC/reference/rlogistnormal.html</loc></url>
 <url><loc>https://chengmatt.github.io/SPoRC/reference/run_annual_cycle.html</loc></url>
 <url><loc>https://chengmatt.github.io/SPoRC/reference/run_francis.html</loc></url>
+<url><loc>https://chengmatt.github.io/SPoRC/reference/run_osa.html</loc></url>
 <url><loc>https://chengmatt.github.io/SPoRC/reference/safe_extract.html</loc></url>
 <url><loc>https://chengmatt.github.io/SPoRC/reference/set_data_indicator_unused.html</loc></url>
 <url><loc>https://chengmatt.github.io/SPoRC/reference/sgl_rg_dusky_data.html</loc></url>

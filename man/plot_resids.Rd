@@ -17,16 +17,17 @@ Plots OSA residuals from outputs from get_osa. Much of this code is taken from t
 }
 \examples{
 \dontrun{
-comp_props <- get_comp_prop(data = data, rep = rep, age_labels = 2:31, len_labels = seq(41, 99, 2), year_labels = 1960:2024)
-osa_results <- get_osa(obs_mat = comp_props$Obs_FishLen_mat,
-                       exp_mat = comp_props$Pred_FishLen_mat,
-                       N = 20 * data$Wt_FishAgeComps[1,1,1],
-                       years = 1999:2023,
-                       fleet = 1,
-                       bins = 2:31,
-                       comp_type = 1,
-                       bin_label = "Age")
-
+comp_props <- get_comp_prop(data = data, rep = sabie_rtmb_model$rep, age_labels = 2:31, len_labels = seq(41, 99, 2), year_labels = 1960:2024)
+plot_resids(get_osa(obs_mat = comp_props$Obs_FishAge_mat,
+                    exp_mat = comp_props$Pred_FishAge_mat,
+                    N = rep(16.52215, length(1999:2023)),
+                    years = which(1960:2024 \%in\% 1999:2023),
+                    LN_Sigma = LN_Sigma,
+                    fleet = 1,
+                    bins = 2:31,
+                    comp_type = 0,
+                    comp_like = 0,
+                    bin_label = "Age"))
 osa_plot <- plot_resids(osa_results)
 }
 }

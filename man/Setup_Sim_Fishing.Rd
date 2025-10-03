@@ -153,18 +153,6 @@ Setup_Sim_Fishing(
 \description{
 Setup values and dimensions of fishing processes
 }
-\section{Fishery indices}{
-
-}
-
-\section{Fishery age compositions}{
-
-}
-
-\section{Fishery length compositions}{
-
-}
-
 \seealso{
 Other Simulation Setup: 
 \code{\link{Setup_Sim_Biologicals}()},

@@ -16,7 +16,6 @@
 #'   [n_regions × n_yrs × n_fish_fleets × n_sims]
 #'   (default: `1`)
 #'
-#' @section Fishery indices:
 #' @param ObsFishIdx_SE Observation error of fishery index
 #'   [n_regions × n_yrs × n_fish_fleets]
 #'   (default: `0.2`)
@@ -27,7 +26,6 @@
 #'     \item \code{1}: Biomass index
 #'   }
 #'
-#' @section Fishery age compositions:
 #' @param comp_fishage_like Vector [n_fish_fleets] specifying likelihood for simulating age comps
 #'   (default: all `0` = multinomial)
 #'   \itemize{
@@ -61,7 +59,6 @@
 #'     \item \code{999}: Not simulated
 #'   }
 #'
-#' @section Fishery length compositions:
 #' @param comp_fishlen_like Vector [n_fish_fleets] specifying likelihood for simulating length comps
 #'   (default: all `0` = multinomial)
 #'   \itemize{

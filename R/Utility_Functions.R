@@ -497,6 +497,9 @@ set_data_indicator_unused <- function(data,
 #' @export get_model_rep_from_mcmc
 get_model_rep_from_mcmc <- function(rtmb_obj, adnuts_obj, what, n_cores) {
 
+  # discard warmup samples
+  adnuts_obj$samples <- adnuts_obj$samples[-c(1:adnuts_obj$warmup),,]
+
   # define dimensions
   n_iter <- dim(adnuts_obj$samples)[1]
   n_chain <- dim(adnuts_obj$samples)[2]
@@ -541,4 +544,90 @@ get_model_rep_from_mcmc <- function(rtmb_obj, adnuts_obj, what, n_cores) {
 #' @family Utility
 rho_trans <- function(x){
   2/(1+ exp(-2 * x)) - 1 # constraint between -1 and 1
+}
+
+#' Construct logistic-normal covariance matrix
+#'
+#' Helper function to generate the covariance matrix (\eqn{\Sigma}) used in
+#' logistic-normal composition models. The structure depends on the
+#' specification of \code{comp_like}:
+#' \itemize{
+#'   \item \code{comp_like = 2}: independent and identically distributed (iid)
+#'     across categories (\eqn{n_\mathrm{categories}}).
+#'   \item \code{comp_like = 3}: first-order autoregressive (AR1) correlation
+#'     across categories (\eqn{n_\mathrm{categories}}).
+#'   \item \code{comp_like = 4}: two-dimensional AR1 correlation across
+#'     categories and sexes (\eqn{n_\mathrm{categories} \times n_\mathrm{sexes}}).
+#' }
+#'
+#' @param comp_like Integer specifying the logistic-normal correlation structure:
+#'   \itemize{
+#'     \item 2 = iid across categories
+#'     \item 3 = AR1 across categories
+#'     \item 4 = AR1 across categories and sexes
+#'   }
+#' @param n_bins Number of composition categories (e.g., age or length bins).
+#'   For \code{comp_like = 2, 3}, the covariance matrix is dimensioned
+#'   \code{n_bins}. For \code{comp_like = 4}, it is dimensioned
+#'   \code{n_bins * n_sexes}.
+#' @param n_sexes Number of sexes. Required when \code{comp_like = 4}.
+#' @param theta Standard deviation parameter controlling the overall scale
+#'   of the covariance.
+#' @param corr_b Correlation parameter across categories, in the interval
+#'   \eqn{(-1, 1)}. Used when \code{comp_like = 3} or \code{4}.
+#' @param corr_s Correlation parameter across sexes, in the interval
+#'   \eqn{(-1, 1)}. Used when \code{comp_like = 4}.
+#'
+#' @return A covariance matrix \eqn{\Sigma} with dimension:
+#'   \itemize{
+#'     \item \code{n_bins} (\code{comp_like = 2, 3})
+#'     \item \code{n_bins * n_sexes} (\code{comp_like = 4})
+#'   }
+#'
+#' @export get_logistN_Sigma
+#' @family Utility
+#' @examples \dontrun{
+#' n_cat <- 5
+#' n_sexes <- 2
+#'
+#' # iid example (categories only)
+#' get_logistN_Sigma(comp_like = 2, n_bins = n_cat, n_sexes = NULL, theta = 0.5)
+#'
+#' # AR1 across categories
+#' get_logistN_Sigma(comp_like = 3, n_bins = n_cat, n_sexes = NULL, theta = 0.5,
+#'                   corr_b = 0.3)
+#'
+#' # AR1 across categories and sexes
+#' get_logistN_Sigma(comp_like = 4, n_bins = n_cat, n_sexes = n_sexes, theta = 0.5,
+#'                   corr_b = 0.3, corr_s = 0.2)
+#' }
+get_logistN_Sigma <- function(comp_like,
+                              n_bins,
+                              n_sexes,
+                              theta,
+                              corr_b = NULL,
+                              corr_s = NULL
+                              ) {
+
+  # iid
+  if(comp_like == 2) Sigma <- diag(rep(theta^2, n_bins))
+
+  # 1dar1 across
+  if(comp_like == 3) {
+    # Construct Sigma matrix
+    LN_corr_b <- corr_b # correlation by age / length
+    Sigma <- get_AR1_CorrMat(n_bins, LN_corr_b)
+    Sigma <- Sigma * theta^2
+  }
+
+  # 2dar1 across
+  if(comp_like == 4) {
+    # Construct Sigma matrix
+    LN_corr_b <- corr_b
+    LN_corr_s <- corr_s
+    Sigma <- kronecker(get_Constant_CorrMat(n_sexes, LN_corr_s), get_AR1_CorrMat(n_bins, LN_corr_b))
+    Sigma <- Sigma * theta^2
+  }
+
+  return(Sigma)
 }

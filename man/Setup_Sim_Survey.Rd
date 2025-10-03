@@ -142,15 +142,6 @@ Setup_Sim_Survey(
 \description{
 Setup values for survey parameterization
 }
-\section{Survey age compositions}{
-
-}
-
-\section{Survey length compositions}{
-
-  (no default, must be provided)
-}
-
 \seealso{
 Other Simulation Setup: 
 \code{\link{Setup_Sim_Biologicals}()},

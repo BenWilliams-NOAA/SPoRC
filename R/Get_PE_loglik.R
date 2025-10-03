@@ -91,9 +91,9 @@ Get_sel_PE_loglik <- function(PE_model,
       if(PE_model %in% c(3,4)) {
         Q = Get_3d_precision(n_ages = n_bins, # number of ages
                              n_yrs = n_yrs,  # number of years
-                             pcorr_age = PE_pars[1,1,s,1], # unconstrained partial correaltion by age
-                             pcorr_year = PE_pars[1,2,s,1], # unconstrained partial correaltion by year
-                             pcorr_cohort = PE_pars[1,3,s,1], # unconstrained partial correaltion by cohort
+                             pcorr_age = PE_pars[1,1,s,1], # unconstrained partial correlation by age
+                             pcorr_year = PE_pars[1,2,s,1], # unconstrained partial correlation by year
+                             pcorr_cohort = PE_pars[1,3,s,1], # unconstrained partial correlation by cohort
                              ln_var_value = PE_pars[1,4,s,1], # log variance
                              Var_Type = Var_Type) # variance type, == 0 (marginal), == 1 (conditional)
 

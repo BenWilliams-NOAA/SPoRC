@@ -19,8 +19,6 @@
 #'     \item \code{0}: Abundance index
 #'     \item \code{1}: Biomass index
 #'   }
-#'
-#' @section Survey age compositions:
 #' @param comp_srvage_like Vector [n_srv_fleets] specifying likelihood for simulating age comps
 #'   (default: all `0` = multinomial)
 #'   \itemize{
@@ -53,9 +51,6 @@
 #'     \item \code{2}: Joint by sex, split by region
 #'     \item \code{999}: Not simulated
 #'   }
-#'
-#' @section Survey length compositions:
-#'   (no default, must be provided)
 #' @param comp_srvlen_like Vector [n_srv_fleets] specifying likelihood for simulating length comps
 #'   (default: all `0` = multinomial)
 #'   \itemize{
