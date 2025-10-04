@@ -318,10 +318,13 @@ run_annual_cycle <- function(y,
     if(y == 1) {
       tmp_ln_RecDevs <- NULL # Initialize container vector for global recruitment deviations (remains NULL within a given year)
       for(r in 1:n_regions) {
-
-        # if recruitment input exists, use input, if not, simulate new deviates
-        if(exists("Rec_input")) for(s in 1:n_sexes) NAA[r,1,1,s,sim] <- Rec_input[r,y,sim] * sexratio[r,y,s,sim] else {
-
+        # if Rec_input exists and year index is within bounds
+        use_rec_input <- exists("Rec_input") && (y <= dim(Rec_input)[2])
+        if(use_rec_input) {
+          # recruitment input
+          for(s in 1:n_sexes) NAA[r,1,1,s,sim] <- Rec_input[r,y,sim] * sexratio[r,y,s,sim]
+        } else {
+          # Simulate new recruitment data
           if(rec_dd == 0 && is.null(tmp_ln_RecDevs)) tmp_ln_RecDevs <- stats::rnorm(1, 0, exp(ln_sigmaR[2])) # Global Recruitment Deviations
           if(rec_dd == 1) tmp_ln_RecDevs <- ln_RecDevs[r,y,sim] <- stats::rnorm(1, 0, exp(ln_sigmaR[2])) # Local Recruitment Deviations
           ln_RecDevs[r,y,sim] <- tmp_ln_RecDevs # Input recruitment deviations into vector
@@ -341,14 +344,12 @@ run_annual_cycle <- function(y,
                                              natmort = array(natmort[,y,,1,sim], dim = c(n_regions, n_ages)),
                                              SSB_vals = array(SSB[,,sim], dim = c(n_regions, n_yrs))
           )
-
           # input deviates
           for(s in 1:n_sexes) NAA[r,1,1,s,sim] <- tmp_det_rec[r] * exp(ln_RecDevs[r,y,sim] - exp(ln_sigmaR[2])^2/2) * sexratio[r,y,s,sim]
         }
 
         Rec[r,1,sim] <- sum(NAA[r,1,1,,sim]) # Save recruitment estimates
         NAA0[r,y,1,,sim] = NAA[r,y,1,,sim] # populate unfished NAA
-
       } # end r loop
     } # end if first year recruitment
 
@@ -693,14 +694,9 @@ run_annual_cycle <- function(y,
     if(y < n_yrs) { # Get Recruitment Deviations for next year
       for(r in 1:n_regions) {
 
-        # Check if Rec_input exists and year index is within bounds
+        # check if Rec_input exists and year index is within bounds
         use_rec_input <- FALSE
-        if (exists("Rec_input")) {
-          # Check if y+1 is within Rec_input's year dimension + feedback conditions
-          if ((y + 1 <= dim(Rec_input)[2]) && ((run_feedback == FALSE) || (run_feedback == TRUE && y < feedback_start_yr))) {
-            use_rec_input <- TRUE
-          }
-        }
+        if (exists("Rec_input")) if ((y + 1 <= dim(Rec_input)[2])) use_rec_input <- TRUE
 
         if (use_rec_input) { # use rec input
           for (s in 1:n_sexes) NAA[r, y+1, 1, s, sim] <- Rec_input[r, y+1, sim] * sexratio[r, y+1, s, sim]

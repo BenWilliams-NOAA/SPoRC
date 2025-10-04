@@ -1,12 +1,4 @@
----
-title: "SPoRC: Stochastic Population Model Over Regional Components"
----
-
-<div style="display: flex; align-items: center;">
-<h1 style="margin: 0;">SPoRC: Stochastic Population Model Over Regional Components</h1>
-<img src="man/figures/SPoRC_hex.png" width="300" style="margin-left: 5px; margin-top: 3px;"/>
-</div>
-
+# SPoRC: Stochastic Population Model Over Regional Components <img src="man/figures/SPoRC_hex.png" align="right" alt="" width="200" />
 ## Overview
 `SPoRC` is a flexible modeling framework for spatially structured population dynamics. It accounts for stochasticity in vital rates and movement among geographically defined components. The framework supports:
 
