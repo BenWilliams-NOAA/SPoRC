@@ -459,9 +459,9 @@ get_closed_loop_reference_points <- function(use_true_values,
   )
 
   # extract fishery and biological reference points
-  f_ref_pt <- array(reference_points$f_ref_pt, dim = c(sim_env$n_regions, proj_opt$n_proj_yrs)) # fishery reference points
-  b_ref_pt <- array(reference_points$b_ref_pt, dim = c(sim_env$n_regions, proj_opt$n_proj_yrs)) # biological reference points
-  virgin_b_ref_pt <- array(reference_points$virgin_b_ref_pt, dim = c(sim_env$n_regions, proj_opt$n_proj_yrs)) # biological reference points
+  f_ref_pt <- array(reference_points$f_ref_pt, dim = c(sim_env$n_regions, n_proj_yrs)) # fishery reference points
+  b_ref_pt <- array(reference_points$b_ref_pt, dim = c(sim_env$n_regions, n_proj_yrs)) # biological reference points
+  virgin_b_ref_pt <- array(reference_points$virgin_b_ref_pt, dim = c(sim_env$n_regions, n_proj_yrs)) # biological reference points
 
   return(list(f_ref_pt = f_ref_pt, b_ref_pt = b_ref_pt, virgin_b_ref_pt = virgin_b_ref_pt))
 }

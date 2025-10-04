@@ -3,8 +3,12 @@ Package: SPoRC
 Title: A Generalized Stochastic (S) Population (Po) Model Over Regional
     (R) Components (C)
 Version: 0.1.0
-Authors@R: 
-    person("Matthew", "Cheng", , "jane@example.com", role = c("aut", "cre"))
+Authors@R: c(
+    person("Matthew", "Cheng", , "lhcheng@alaska.edu", role = c("aut", "cre")),
+    person("Dan", "Goethel", role = "ctb"),
+    person("Pete", "Hulson", role = "ctb"),
+    person("Curry", "Cunningham", role = "ctb")
+  )
 Description: A generalized spatial population model for stock assessment,
     written in RTMB.
 License: GPL-3

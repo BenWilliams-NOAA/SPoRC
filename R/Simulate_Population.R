@@ -17,9 +17,9 @@ Setup_sim_env <- function(sim_list) {
   # Get SPoRC functions in simulation environment
   sim_env$Get_Det_Recruitment <- Get_Det_Recruitment
   sim_env$Get_Tagging_Mortality <- Get_Tagging_Mortality
-  sim_env$rdirM <- rdirM
   sim_env$predict_sim_fish_iss_fmort <- predict_sim_fish_iss_fmort
   sim_env$rho_trans <- rho_trans
+  sim_env$simulate_comps <- simulate_comps
 
   # output into simulation environment
   list2env(sim_list, envir = sim_env)
@@ -692,20 +692,24 @@ run_annual_cycle <- function(y,
     tmp_ln_RecDevs_next <- NULL # Initialize container vector for next year's recruitment deviations
     if(y < n_yrs) { # Get Recruitment Deviations for next year
       for(r in 1:n_regions) {
-        if (exists("Rec_input")) {
-          if ((y + 1 <= dim(Rec_input)[2]) || (run_feedback == FALSE) || (run_feedback == TRUE && y < feedback_start_yr)) {
-            for (s in 1:n_sexes) NAA[r, y+1, 1, s, sim] <- Rec_input[r, y+1, sim] * sexratio[r, y+1, s, sim]
-          }
-        } else {
-          # Global Recruitment Deviations
-          if(rec_dd == 0 && is.null(tmp_ln_RecDevs_next)) {
-            tmp_ln_RecDevs_next <- stats::rnorm(1, 0, exp(ln_sigmaR[2]))
-          }
 
-          # Local Recruitment Deviations
-          if(rec_dd == 1) {
-            tmp_ln_RecDevs_next <- ln_RecDevs[r,y+1,sim] <- stats::rnorm(1, 0, exp(ln_sigmaR[2]))
+        # Check if Rec_input exists and year index is within bounds
+        use_rec_input <- FALSE
+        if (exists("Rec_input")) {
+          # Check if y+1 is within Rec_input's year dimension + feedback conditions
+          if ((y + 1 <= dim(Rec_input)[2]) && ((run_feedback == FALSE) || (run_feedback == TRUE && y < feedback_start_yr))) {
+            use_rec_input <- TRUE
           }
+        }
+
+        if (use_rec_input) { # use rec input
+          for (s in 1:n_sexes) NAA[r, y+1, 1, s, sim] <- Rec_input[r, y+1, sim] * sexratio[r, y+1, s, sim]
+        } else { # sim new recs
+
+          # Global Recruitment Deviations
+          if(rec_dd == 0 && is.null(tmp_ln_RecDevs_next)) tmp_ln_RecDevs_next <- stats::rnorm(1, 0, exp(ln_sigmaR[2]))
+          # Local Recruitment Deviations
+          if(rec_dd == 1)  tmp_ln_RecDevs_next <- ln_RecDevs[r,y+1,sim] <- stats::rnorm(1, 0, exp(ln_sigmaR[2]))
 
           ln_RecDevs[r,y+1,sim] = tmp_ln_RecDevs_next # Input recruitment deviations into vector
 
@@ -714,8 +718,8 @@ run_annual_cycle <- function(y,
                                                   recruitment_dd = rec_dd,
                                                   y = y+1,
                                                   rec_lag = rec_lag,
-                                                  R0 = sum(R0[,y,sim]), # sum to get global R0
-                                                  Rec_Prop = R0[,y,sim] / sum(R0[,y,sim]), # get R0 proportion
+                                                  R0 = sum(R0[,y,sim]),
+                                                  Rec_Prop = R0[,y,sim] / sum(R0[,y,sim]),
                                                   h = h[,y,sim],
                                                   n_regions = n_regions,
                                                   n_ages = n_ages,
@@ -724,14 +728,12 @@ run_annual_cycle <- function(y,
                                                   natmort = array(natmort[,y,,1,sim], dim = c(n_regions, n_ages)),
                                                   SSB_vals = array(SSB[,,sim], dim = c(n_regions, n_yrs))
           )
+          # Store next year's recruitment
+          for(s in 1:n_sexes) NAA[r,y+1,1,s,sim] <- tmp_det_rec_next[r] * exp(ln_RecDevs[r,y+1,sim] - exp(ln_sigmaR[2])^2/2) * sexratio[r,y+1,s,sim]
 
-          # Store next year's recruitment (will be used when next year starts)
-          for(s in 1:n_sexes)  NAA[r,y+1,1,s,sim] <- tmp_det_rec_next[r] * exp(ln_RecDevs[r,y+1,sim] - exp(ln_sigmaR[2])^2/2) * sexratio[r,y+1,s,sim]
         }
-
         Rec[r,y+1,sim] <- sum(NAA[r,y+1,1,,sim]) # Save recruitment estimates
         NAA0[r,y+1,1,,sim] <- NAA[r,y+1,1,,sim] # populate unfished NAA
-
       } # end r loop
     } # end if
 

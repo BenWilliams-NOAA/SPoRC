@@ -76,7 +76,7 @@ Following the conditioning process, we define how reference points are used to s
 reference_points_opt <- list(
   n_avg_yrs = 1,           # number of years over which to average demographic rates
   SPR_x = 0.4,             # target spawning potential ratio
-  calc_rec_st_yr = 20,     # year used for recruitment in bx% calculations
+  calc_rec_st_yr = 3,     # year used for recruitment in bx% calculations
   rec_age = 4,             # age at recruitment
   type = 'single_region',  # reference points calculated for a single region
   what = "SPR"             # method for reference points calculation (SPR)
