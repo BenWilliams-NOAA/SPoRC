@@ -406,7 +406,7 @@ run_annual_cycle <- function(y,
         #### Fishery Index -------------------------------------------------------------------
         if(fish_idx_type[f] == 0) TrueFishIdx[r,y,f,sim] <- fish_q[r,y,f,sim] * sum(NAA[r,y,,,sim] * fish_sel[r,y,,,f,sim]) # True Fishery Index (abundance)
         if(fish_idx_type[f] == 1) TrueFishIdx[r,y,f,sim] <- fish_q[r,y,f,sim] * sum(NAA[r,y,,,sim] * fish_sel[r,y,,,f,sim] * WAA_fish[r,y,,,f,sim]) # True Fishery Index (biomass)
-        ObsFishIdx[r,y,f,sim] <- fish_q[r,y,f,sim] * TrueFishIdx[r,y,f,sim] * exp(stats::rnorm(1, 0, ObsFishIdx_SE[r,y,f])) # Observed Fishery index w/ lognormal deviations
+        ObsFishIdx[r,y,f,sim] <- TrueFishIdx[r,y,f,sim] * exp(stats::rnorm(1, 0, ObsFishIdx_SE[r,y,f])) # Observed Fishery index w/ lognormal deviations
 
         #### Fishery Compositions ----------------------------------------------------
         if(Fmort[r,y,f,sim] > 0) { # only simulate if Fishing Mortality > 0
@@ -478,7 +478,7 @@ run_annual_cycle <- function(y,
           #### Survey Index ------------------------------------------------------------
           if(srv_idx_type[sf] == 0) TrueSrvIdx[r,y,sf,sim] <- srv_q[r,y,sf,sim] * sum(SrvIAA[r,y,,,sf,sim]) # True Survey Index (abundance)
           if(srv_idx_type[sf] == 1) TrueSrvIdx[r,y,sf,sim] <- srv_q[r,y,sf,sim] * sum(SrvIAA[r,y,,,sf,sim] * WAA_srv[r,y,,,sf,sim]) # True Survey Index (biomass)
-          ObsSrvIdx[r,y,sf,sim] <- srv_q[r,y,sf,sim] * TrueSrvIdx[r,y,sf,sim] * exp(stats::rnorm(1, 0, ObsSrvIdx_SE[r,y,sf])) # Observed survey index w/ lognormal deviations
+          ObsSrvIdx[r,y,sf,sim] <- TrueSrvIdx[r,y,sf,sim] * exp(stats::rnorm(1, 0, ObsSrvIdx_SE[r,y,sf])) # Observed survey index w/ lognormal deviations
 
           #### Survey Compositions -----------------------------------------------------
           # Sample survey ages
@@ -1015,7 +1015,7 @@ simulation_self_test <- function(data,
     h_input = replicate(n = sim_list$n_sims, array(rep$h_trans, dim = c(sim_list$n_regions, sim_list$n_yrs))), # steepness
     R0_input = replicate(n = sim_list$n_sims, expr = array(rep$R0 * rep$Rec_trans_prop, dim = c(sim_list$n_regions, sim_list$n_yrs))), # R0
     sexratio_input = replicate(n = sim_list$n_sims, expr = rep$sexratio), # sex ratio
-    ln_sigmaR = optim_parameters_list$ln_sigmaR, # ln_sigmaR
+    ln_sigmaR = optim_parameters_list$ln_sigmaR / sqrt(data$Wt_Rec), # ln_sigmaR
     Rec_input = replicate(n = sim_list$n_sims, expr = rep$Rec), # recruitment time series
     ln_InitDevs_input = replicate(sim_list$n_sims, optim_parameters_list$ln_InitDevs) # init devs
   )
@@ -1070,16 +1070,35 @@ simulation_self_test <- function(data,
 
         # setup tagging data stuff if tagging is done
         if(tmp_data$UseTagging == 1) {
-          tmp_data$Wt_Tagging <- 1 # set to 1 because ess (original n_tags * Wt_Tagging) already baked into simulated data (tagged fish); avoids double-weighting
           tmp_data$Tagged_Fish <- array(sim_obj$Tagged_Fish[,,,i], dim = dim(tmp_data$Tagged_Fish)) # new tagged fish
           tmp_data$Obs_Tag_Recap <- array(sim_obj$Obs_Tag_Recap[,,,,,i], dim = dim(tmp_data$Obs_Tag_Recap)) # new tag recaps
           tmp_data$tag_release_indicator <- sim_obj$tag_release_indicator # release indicator
         }
 
+        # reset weights
+        tmp_data$Wt_Rec <- 1
+        tmp_data$Wt_Tagging <- 1
+        tmp_data$Wt_Catch[] <- 1
+        tmp_data$Wt_FishAgeComps[] <- 1
+        tmp_data$Wt_FishIdx <- 1
+        tmp_data$Wt_FishLenComps[] <- 1
+        tmp_data$Wt_SrvAgeComps[] <- 1
+        tmp_data$Wt_SrvIdx <- 1
+        tmp_data$Wt_SrvLenComps[] <- 1
+
+        # input simulated uncertainty
+        tmp_pars$ln_sigmaC[] <- sim_list$ln_sigmaC[,,i]
+        tmp_data$ObsFishIdx_SE[] <- sim_list$ObsFishIdx_SE[,,i]
+        tmp_data$ObsSrvIdx_SE[] <- sim_list$ObsSrvIdx_SE[,,i]
+        tmp_data$ISS_FishAgeComps[] <- sim_list$ISS_FishAgeComps[,,,,i]
+        tmp_data$ISS_FishLenComps[] <- sim_list$ISS_FishLenComps[,,,,i]
+        tmp_data$ISS_SrvAgeComps[] <- sim_list$ISS_SrvAgeComps[,,,,i]
+        tmp_data$ISS_SrvLenComps[] <- sim_list$ISS_SrvLenComps[,,,,i]
+
         # Fit model
         obj <- fit_model(
           data = tmp_data,
-          parameters = parameters,
+          parameters = tmp_pars,
           mapping = mapping,
           random = random,
           newton_loops = newton_loops,
