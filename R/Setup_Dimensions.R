@@ -71,6 +71,7 @@ Setup_Sim_Dim <- function(n_sims,
 #' @param years Numeric vector of years.
 #' @param lens Numeric vector of length bins; can be set to \code{1} if length data are not modeled.
 #' @param verbose Logical flag indicating whether to print progress messages (default \code{FALSE}).
+#' @param n_proj_yrs_devs Number of projection years for deviation parameters (ln_RecDevs, logit_move_devs, ln_fishsel_devs, ln_srvsel_devs)
 #'
 #' @returns A list containing three named elements:
 #' \describe{
@@ -87,6 +88,7 @@ Setup_Mod_Dim <- function(years,
                           n_sexes,
                           n_fish_fleets,
                           n_srv_fleets,
+                          n_proj_yrs_devs = 0,
                           verbose = FALSE
                           ) {
 
@@ -103,9 +105,11 @@ Setup_Mod_Dim <- function(years,
   input_list$data$n_sexes <- n_sexes
   input_list$data$n_fish_fleets <- n_fish_fleets
   input_list$data$n_srv_fleets <- n_srv_fleets
+  input_list$data$n_proj_yrs_devs <- n_proj_yrs_devs
   input_list$verbose <- verbose
 
   collect_message("Number of Years: ", length(years))
+  collect_message("Number of Projection Years for Dev Pars: ", n_proj_yrs_devs)
   collect_message("Number of Regions: ", n_regions)
   collect_message("Number of Age Bins: ", length(ages))
   collect_message("Number of Length Bins: ", length(lens))

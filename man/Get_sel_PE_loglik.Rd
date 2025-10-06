@@ -4,7 +4,14 @@
 \alias{Get_sel_PE_loglik}
 \title{Get selectivity process error log likelihoods (positive)}
 \usage{
-Get_sel_PE_loglik(PE_model, PE_pars, ln_devs, map_sel_devs, sel_vals)
+Get_sel_PE_loglik(
+  PE_model,
+  PE_pars,
+  ln_devs,
+  map_sel_devs,
+  sel_vals,
+  do_sel_pen
+)
 }
 \arguments{
 \item{PE_model}{Process error model values (1, 2, 3, 4, and 5) (iid, random walk, 3d marginal, 3d conditional, and 2dar1)}
@@ -16,6 +23,8 @@ Get_sel_PE_loglik(PE_model, PE_pars, ln_devs, map_sel_devs, sel_vals)
 \item{map_sel_devs}{selectivity deviations to share}
 
 \item{sel_vals}{Selectivity values (either length or age based)}
+
+\item{do_sel_pen}{Whether temporal or bin penalties are used}
 }
 \value{
 numeric value of log likelihood (in positive space)

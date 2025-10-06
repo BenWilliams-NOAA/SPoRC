@@ -56,6 +56,7 @@
 <span>  Use_srv_selex_prior <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  srv_selex_prior <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  t_srv <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="fl">0.5</span>, dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">input_list</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">n_regions</span>, <span class="va">input_list</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">n_srv_fleets</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  cont_tv_srv_sel_penalty <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -80,34 +81,34 @@ The vector must be length <code>n_srv_fleets</code>, and each element must follo
 <li><p><code>"2dar1"</code>: Two-dimensional AR1 process.</p></li>
 </ul><p>For example:</p><ul><li><p><code>"iid_Fleet_1"</code> applies an iid time-varying structure to Fleet 1.</p></li>
 <li><p><code>"none_Fleet_2"</code> means no time variation is used for Fleet 2.</p></li>
-</ul><p><strong>Note:</strong> If time-block-based selectivity (via <code>srv_sel_blocks</code>) is specified for a fleet, then its corresponding entry here must be <code>"none_Fleet_&lt;fleet number&gt;"</code>.</p></dd>
+</ul></dd>
 
 
 <dt id="arg-srv-sel-blocks">srv_sel_blocks<a class="anchor" aria-label="anchor" href="#arg-srv-sel-blocks"></a></dt>
-<dd><p>Character vector specifying the survey selectivity blocks for each region and fleet.
-Each element must follow the structure: `"Block_&lt;block number&gt;_Year_&lt;start&gt;-&lt;end&gt;_Fleet_&lt;fleet number&gt;"` or `"none_Fleet_&lt;fleet number&gt;"`.
-This allows users to define time-varying selectivity blocks for specific fleets within a region. Default is "none_Fleet_x".</p>
-<p>For example:</p><ul><li><p><code>"Block_1_Year_1-35_Fleet_1"</code> defines selectivity block 1 for Fleet 1 covering years 1 through 35.</p></li>
-<li><p><code>"Block_2_Year_36-56_Fleet_1"</code> defines block 2 for Fleet 1 for years 36 to 56.</p></li>
-<li><p><code>"Block_3_Year_57-terminal_Fleet_1"</code> assigns block 3 from year 57 through the terminal year for Fleet 1.</p></li>
-<li><p><code>"none_Fleet_2"</code> indicates that no survey selectivity blocks are used for Fleet 2.</p></li>
-</ul><p>The blocks must be non-overlapping and sequential in time within each fleet, and block numbers must be unique within each fleet.</p></dd>
+<dd><p>Character vector specifying the survey selectivity blocks for each region and fleet.</p>
+<p>Each element must follow one of the following structures:</p><ul><li><p>`"Block_&lt;block number&gt;_Year_&lt;start&gt;-&lt;end&gt;_Fleet_&lt;fleet number&gt;"`</p></li>
+<li><p>`"Block_&lt;block number&gt;_Year_&lt;start&gt;-terminal_Fleet_&lt;fleet number&gt;"`</p></li>
+<li><p>`"none_Fleet_&lt;fleet number&gt;"`</p></li>
+</ul><p>This argument defines how survey selectivity varies over time for each fleet:</p><ul><li><p><code>"Block_..."</code> entries specify discrete time blocks during which selectivity parameters are assumed constant.</p></li>
+<li><p><code>"none_..."</code> entries indicate that selectivity is constant across all years for the specified fleet.</p></li>
+</ul><p>If time-block-based selectivity is specified for a fleet (via <code>srv_sel_blocks</code>), its corresponding continuous selectivity option (in <code>cont_tv_srv_sel</code>) must be set to <code>"none_Fleet_&lt;fleet number&gt;"</code>. The two approaches—blocked and continuous time-varying selectivity—are mutually exclusive.
+The default for each fleet is <code>"none_Fleet_x"</code> (i.e., no selectivity blocks).</p></dd>
 
 
 <dt id="arg-srv-sel-model">srv_sel_model<a class="anchor" aria-label="anchor" href="#arg-srv-sel-model"></a></dt>
-<dd><p>Character vector specifying the survey selectivity model for each fleet.
-The vector must be length <code>n_srv_fleets</code>, and each element must follow the structure:
-<code>"&lt;selectivity model&gt;_Fleet_&lt;fleet number&gt;"</code>.</p>
-<p>Available selectivity model types include:</p><ul><li><p><code>"logist1"</code>: Logistic function with parameters <code>a50</code> and <code>k</code>.</p></li>
-<li><p><code>"logist2"</code>: Logistic function with parameters <code>a50</code> and <code>a95</code>.</p></li>
-<li><p><code>"gamma"</code>: Dome-shaped gamma function with parameters <code>amax</code> and <code>delta</code>.</p></li>
-<li><p><code>"exponential"</code>: Exponential function with a power parameter.</p></li>
-<li><p><code>"dbnrml"</code>: Double normal function with 6 parameters.</p></li>
-</ul><p>For example:</p><ul><li><p><code>"logist1_Fleet_1"</code> uses the logistic (a50, k) model for Fleet 1.</p></li>
-<li><p><code>"gamma_Fleet_2"</code> uses the gamma dome-shaped model for Fleet 2.</p></li>
-</ul><p>The models are applied by region and year as defined in the overall model array structure
-(<code>n_regions</code> x <code>n_years</code> x <code>n_srv_fleets</code>), though this vector defines only the functional form for each fleet.</p>
-<p>For mathematical definitions and implementation details of each selectivity form, refer to the model equations vignette.</p></dd>
+<dd><p>Character vector specifying the survey selectivity functional form for each fleet, and optionally by time block.</p>
+<p>Each element must follow one of the following structures:</p><ul><li><p><code>"&lt;selectivity model&gt;_Fleet_&lt;fleet number&gt;"</code></p></li>
+<li><p><code>"&lt;selectivity model&gt;_Block_&lt;block number&gt;_Fleet_&lt;fleet number&gt;"</code></p></li>
+</ul><p>The first form applies a single selectivity model across all years for the specified fleet.
+The second form allows the user to assign a distinct selectivity model to a specific time block, as defined in <code>srv_sel_blocks</code>.</p>
+<p>Available selectivity model types include:</p><ul><li><p><code>"logist1"</code> — Logistic function with parameters <code>a50</code> and <code>k</code>.</p></li>
+<li><p><code>"logist2"</code> — Logistic function with parameters <code>a50</code> and <code>a95</code>.</p></li>
+<li><p><code>"gamma"</code> — Dome-shaped gamma function with parameters <code>amax</code> and <code>delta</code>.</p></li>
+<li><p><code>"exponential"</code> — Exponential function with a power parameter.</p></li>
+<li><p><code>"dbnrml"</code> — Double-normal function with six parameters.</p></li>
+</ul><p>If multiple selectivity time blocks are specified for a fleet (using <code>srv_sel_blocks</code>), then the corresponding selectivity model for each block must be explicitly defined using the <code>"&lt;model&gt;_Block_&lt;block&gt;_Fleet_&lt;fleet&gt;"</code> format.
+If blocks are not defined for a fleet, use the <code>"&lt;model&gt;_Fleet_&lt;fleet number&gt;"</code> format only.
+For mathematical definitions and implementation details of each selectivity form, refer to the model equations vignette.</p></dd>
 
 
 <dt id="arg-use-srv-q-prior">Use_srv_q_prior<a class="anchor" aria-label="anchor" href="#arg-use-srv-q-prior"></a></dt>
@@ -267,6 +268,10 @@ This avoids issues with list structure but does not affect the design matrix or 
 
 <dt id="arg-t-srv">t_srv<a class="anchor" aria-label="anchor" href="#arg-t-srv"></a></dt>
 <dd><p>Survey timing in fractions (n_regions * n_srv_fleets; default is 0.5)</p></dd>
+
+
+<dt id="arg-cont-tv-srv-sel-penalty">cont_tv_srv_sel_penalty<a class="anchor" aria-label="anchor" href="#arg-cont-tv-srv-sel-penalty"></a></dt>
+<dd><p>Whether or not to apply continuous time-varying selectivity penalties (if cont_tv_srv_sel &gt; 0)</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>

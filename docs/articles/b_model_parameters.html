@@ -114,7 +114,8 @@ error</td>
 <tr class="even">
 <td><code>ln_F_devs</code></td>
 <td><code>n_regions, n_years, n_fish_fleets</code></td>
-<td>Log-scale annual fishing mortality deviations</td>
+<td>Log-scale annual fishing mortality deviations (can be specified as
+random effects)</td>
 <td>0</td>
 </tr>
 <tr class="odd">
@@ -126,8 +127,8 @@ error</td>
 <tr class="even">
 <td><code>ln_F_devs_AggCatch</code></td>
 <td><code>n_Catch_Type_years, n_fish_fleets</code></td>
-<td>Log-scale fishing mortality deviations for region-aggregated
-catch</td>
+<td>Log-scale fishing mortality deviations for region-aggregated catch
+(can be specified as random effects)</td>
 <td>0</td>
 </tr>
 </tbody>
@@ -164,9 +165,10 @@ catch</td>
 </tr>
 <tr class="odd">
 <td><code>ln_fishsel_devs</code></td>
-<td><code>n_regions, n_years, n_bins, n_sexes, n_fish_fleets</code></td>
-<td>Log-scale selectivity deviations (n_bins = n_ages or n_lens
-depending on selectivity type)</td>
+<td><code>n_regions, n_years + n_proj_yrs_devs, n_bins, n_sexes, n_fish_fleets</code></td>
+<td>Log-scale selectivity deviations w/ projection years (n_bins =
+n_ages or n_lens depending on selectivity type) (can be specified as
+random effects)</td>
 <td>0</td>
 </tr>
 </tbody>
@@ -305,9 +307,10 @@ bin correlations.</td>
 </tr>
 <tr class="odd">
 <td><code>ln_srvsel_devs</code></td>
-<td><code>n_regions, n_years, n_bins, n_sexes, n_srv_fleets</code></td>
-<td>Log-scale selectivity deviations (n_bins = n_ages or n_lens
-depending on selectivity type)</td>
+<td><code>n_regions, n_years + n_proj_yrs_devs, n_bins, n_sexes, n_srv_fleets</code></td>
+<td>Log-scale selectivity deviations w/ projection years (n_bins =
+n_ages or n_lens depending on selectivity type) (can be specified as
+random effects)</td>
 <td>0</td>
 </tr>
 </tbody>
@@ -493,13 +496,15 @@ recruitment deviations</td>
 <tr class="odd">
 <td><code>ln_InitDevs</code></td>
 <td><code>n_regions, n_ages - 2</code></td>
-<td>Log-scale initial age structure deviations</td>
+<td>Log-scale initial age structure deviations (can be specified as
+random effects)</td>
 <td>0</td>
 </tr>
 <tr class="even">
 <td><code>ln_RecDevs</code></td>
-<td><code>n_regions, n_recdev_years</code></td>
-<td>Log-scale annual recruitment deviations</td>
+<td><code>n_regions, n_recdev_years + n_proj_yrs_devs</code></td>
+<td>Log-scale annual recruitment deviations w/ projection years (can be
+specified as random effects)</td>
 <td>0</td>
 </tr>
 <tr class="odd">
@@ -537,8 +542,9 @@ recruitment deviations</td>
 </tr>
 <tr class="even">
 <td><code>logit_move_devs</code></td>
-<td><code>n_regions, n_regions - 1, n_years, n_ages, n_sexes</code></td>
-<td>Logit-scale movement deviations</td>
+<td><code>n_regions, n_regions - 1, n_years + n_proj_yrs_devs, n_ages, n_sexes</code></td>
+<td>Logit-scale movement deviations w/ projection years (can be
+specified as random effects)</td>
 <td>0</td>
 </tr>
 <tr class="odd">

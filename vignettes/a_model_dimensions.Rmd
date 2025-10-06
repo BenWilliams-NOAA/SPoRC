@@ -28,6 +28,7 @@ The following tables describes all elements contained within `input_list$data`, 
 | `n_sexes` | Value specifying number of sexes to model |
 | `n_fish_fleets` | Value specifying number of fishery fleets to model |
 | `n_srv_fleets` | Value specifying number of survey fleets to model |
+| `n_proj_yrs_devs`| Number of years to project deviations / random effect parameters forward|
 
 ## Data Inputs for Defining Recruitment Processes
 
@@ -172,6 +173,7 @@ The following tables describes all elements contained within `input_list$data`, 
 | `map_fish_q` | Array of values dimensioned by n_regions, n_q_time_blocks, and n_fish_fleets indicating which values are mapped off |
 | `Use_fish_selex_prior` | Integer (0 or 1). Flag to enable/disable fishery selectivity priors. When set to 1, applies log-normal priors to fishery selectivity parameters as specified in `fish_selex_prior`. When set to 0, no priors are applied. |
 | `fish_selex_prior` | Data frame containing prior specifications for fishery selectivity parameters. Must include columns: `region` (region index), `fleet` (fleet index), `block` (time block index), `sex` (sex index), `par` (parameter index), `mu` (prior mean on natural scale), and `sd` (prior standard deviation on log scale). Each row specifies a log-normal prior N(log(mu), sd) for one selectivity parameter. |
+|`cont_tv_fish_sel_penalty` | Boolean on whether fishery selectivity penalties are applied to continous time-varying selectivity | 
 
 ## Data Inputs for Defining Survey Selectivity and Catchability
 
@@ -189,6 +191,7 @@ The following tables describes all elements contained within `input_list$data`, 
 | `srv_q_cov` | Array dimensioned by `n_regions`, `n_years`, `n_srv_fleets`, `n_covariates` representing the covariates used to compute survey catchability. |
 | `Use_srv_selex_prior` | Integer (0 or 1). Flag to enable/disable survey selectivity priors. When set to 1, applies log-normal priors to survey selectivity parameters as specified in `srv_selex_prior`. When set to 0, no priors are applied. |
 | `srv_selex_prior` | Data frame containing prior specifications for survey selectivity parameters. Must include columns: `region` (region index), `fleet` (fleet index), `block` (time block index), `sex` (sex index), `par` (parameter index), `mu` (prior mean on natural scale), and `sd` (prior standard deviation on log scale). Each row specifies a log-normal prior N(log(mu), sd) for one selectivity parameter. |
+|`cont_tv_srv_sel_penalty` | Boolean on whether survey selectivity penalties are applied to continous time-varying selectivity | 
 
 ## Data Inputs for Defining Model Weighting
 

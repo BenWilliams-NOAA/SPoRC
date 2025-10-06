@@ -936,9 +936,9 @@ simulation_self_test <- function(data,
   # setup fishery simulation processes
   sim_list <- Setup_Sim_Fishing(sim_list = sim_list, # update simulate list
                                 ln_sigmaC = ln_sigmaC, # sigmaC
-                                Fmort_input = replicate(n = sim_list$n_sims, rep$Fmort), # use fishing mortality from report
-                                fish_sel_input = replicate(n = sim_list$n_sims, rep$fish_sel), # use fishery selectivity from report
-                                fish_q_input = replicate(n = sim_list$n_sims, rep$fish_q), # use fishery catchability from report
+                                Fmort_input = replicate(n = sim_list$n_sims, rep$Fmort[,1:length(data$years),,drop = FALSE]), # use fishing mortality from report
+                                fish_sel_input = replicate(n = sim_list$n_sims, rep$fish_sel[,1:length(data$years),,,,drop = FALSE]), # use fishery selectivity from report
+                                fish_q_input = replicate(n = sim_list$n_sims, rep$fish_q[,1:length(data$years),,drop = FALSE]), # use fishery catchability from report
                                 ObsFishIdx_SE = data$ObsFishIdx_SE / sqrt(data$Wt_FishIdx), # fishery index uncertainty
                                 fish_idx_type = data$fish_idx_type, # fishery index type
                                 init_F_val = rep$init_F,
@@ -966,8 +966,8 @@ simulation_self_test <- function(data,
   # Setup Survey Processes --------------------------------------------------
   sim_list <- Setup_Sim_Survey(
     sim_list = sim_list,
-    srv_sel_input = replicate(n = sim_list$n_sims, rep$srv_sel),
-    srv_q_input = replicate(n = sim_list$n_sims, rep$srv_q),
+    srv_sel_input = replicate(n = sim_list$n_sims, rep$srv_sel[,1:length(data$years),,,,drop = FALSE]),
+    srv_q_input = replicate(n = sim_list$n_sims, rep$srv_q[,1:length(data$years),,drop = FALSE]),
     ObsSrvIdx_SE = data$ObsSrvIdx_SE / sqrt(data$Wt_SrvIdx), # survey observation error
     srv_idx_type = data$srv_idx_type,
     t_srv = data$t_srv,
@@ -994,17 +994,17 @@ simulation_self_test <- function(data,
   # Setup Biological Dynamics -----------------------------------------------
   sim_list <- Setup_Sim_Biologicals(
     sim_list = sim_list, # simualtion list
-    natmort_input = replicate(n = sim_list$n_sims, rep$natmort), # natuyral mortality
-    WAA_input = replicate(n = sim_list$n_sims, data$WAA), # weight at age
-    WAA_fish_input = replicate(n = sim_list$n_sims, data$WAA_fish), # fishery weight at age
-    WAA_srv_input = replicate(n = sim_list$n_sims, data$WAA_srv), # survey weight at age
-    MatAA_input = replicate(n = sim_list$n_sims, data$MatAA), # maturity at age
-    AgeingError_input = replicate(n = sim_list$n_sims, data$AgeingError), # ageing error
-    SizeAgeTrans_input = replicate(n = sim_list$n_sims, data$SizeAgeTrans) # size age transition matrix
+    natmort_input = replicate(n = sim_list$n_sims, rep$natmort[,1:length(data$years),,,drop = FALSE]), # natuyral mortality
+    WAA_input = replicate(n = sim_list$n_sims, data$WAA[,1:length(data$years),,,drop = FALSE]), # weight at age
+    WAA_fish_input = replicate(n = sim_list$n_sims, data$WAA_fish[,1:length(data$years),,,,drop = FALSE]), # fishery weight at age
+    WAA_srv_input = replicate(n = sim_list$n_sims, data$WAA_srv[,1:length(data$years),,,,drop = FALSE]), # survey weight at age
+    MatAA_input = replicate(n = sim_list$n_sims, data$MatAA[,1:length(data$years),,,drop = FALSE]), # maturity at age
+    AgeingError_input = replicate(n = sim_list$n_sims, data$AgeingError[1:length(data$years),,,drop = FALSE]), # ageing error
+    SizeAgeTrans_input = replicate(n = sim_list$n_sims, data$SizeAgeTrans[,1:length(data$years),,,,drop = FALSE]) # size age transition matrix
   )
 
   # Movement
-  sim_list$Movement <- replicate(n = sim_list$n_sims, rep$Movement)
+  sim_list$Movement <- replicate(n = sim_list$n_sims, rep$Movement[,,1:length(data$years),,,drop = FALSE])
 
   # Setup Recruitment Processes ---------------------------------------------
   sim_list <- Setup_Sim_Rec(
@@ -1014,9 +1014,9 @@ simulation_self_test <- function(data,
     init_age_strc = data$init_age_strc, # initilaizing age structure
     h_input = replicate(n = sim_list$n_sims, array(rep$h_trans, dim = c(sim_list$n_regions, sim_list$n_yrs))), # steepness
     R0_input = replicate(n = sim_list$n_sims, expr = array(rep$R0 * rep$Rec_trans_prop, dim = c(sim_list$n_regions, sim_list$n_yrs))), # R0
-    sexratio_input = replicate(n = sim_list$n_sims, expr = rep$sexratio), # sex ratio
+    sexratio_input = replicate(n = sim_list$n_sims, expr = rep$sexratio[,1:length(data$years),,drop = FALSE]), # sex ratio
     ln_sigmaR = optim_parameters_list$ln_sigmaR / sqrt(data$Wt_Rec), # ln_sigmaR
-    Rec_input = replicate(n = sim_list$n_sims, expr = rep$Rec), # recruitment time series
+    Rec_input = replicate(n = sim_list$n_sims, expr = rep$Rec[,1:length(data$years),drop = FALSE]), # recruitment time series
     ln_InitDevs_input = replicate(sim_list$n_sims, optim_parameters_list$ln_InitDevs) # init devs
   )
 

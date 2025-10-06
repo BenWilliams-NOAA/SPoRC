@@ -19,6 +19,7 @@ Setup_Mod_Fishsel_and_Q(
   corr_opt_semipar = NULL,
   Use_fish_selex_prior = 0,
   fish_selex_prior = NULL,
+  cont_tv_fish_sel_penalty = TRUE,
   ...
 )
 }
@@ -43,53 +44,54 @@ For example:
 \itemize{
   \item \code{"iid_Fleet_1"} applies an iid time-varying structure to Fleet 1.
   \item \code{"none_Fleet_2"} means no time variation is used for Fleet 2.
-}
-
-\strong{Note:} If time-block-based selectivity (via \code{fish_sel_blocks}) is specified for a fleet, then its corresponding entry here must be \code{"none_Fleet_<fleet number>"}.}
+}}
 
 \item{fish_sel_blocks}{Character vector specifying the fishery selectivity blocks for each region and fleet.
-Each element must follow the structure: `"Block_<block number>_Year_<start>-<end>_Fleet_<fleet number>"` or `"none_Fleet_<fleet number>"`.
-This allows users to define time-varying selectivity blocks for specific fleets within a region. Default is "none_Fleet_x".
 
-For example:
+Each element must follow one of the following structures:
 \itemize{
-  \item \code{"Block_1_Year_1-35_Fleet_1"} defines selectivity block 1 for Fleet 1 covering years 1 through 35.
-  \item \code{"Block_2_Year_36-56_Fleet_1"} defines block 2 for Fleet 1 for years 36 to 56.
-  \item \code{"Block_3_Year_57-terminal_Fleet_1"} assigns block 3 from year 57 through the terminal year for Fleet 1.
-  \item \code{"none_Fleet_2"} indicates that no fishery selectivity blocks are used for Fleet 2.
+  \item `"Block_<block number>_Year_<start>-<end>_Fleet_<fleet number>"`
+  \item `"Block_<block number>_Year_<start>-terminal_Fleet_<fleet number>"`
+  \item `"none_Fleet_<fleet number>"`
 }
 
-The blocks must be non-overlapping and sequential in time within each fleet, and block numbers must be unique within each fleet.}
+This argument defines how fishery selectivity varies over time for each fleet:
+\itemize{
+  \item \code{"Block_..."} entries specify discrete time blocks during which selectivity parameters are assumed constant.
+  \item \code{"none_..."} entries indicate that selectivity is constant across all years for the specified fleet.
+}
 
-\item{fish_sel_model}{Character vector specifying the fishery selectivity model for each fleet.
-The vector must be length \code{n_fish_fleets}, and each element must follow the structure:
-\code{"<selectivity model>_Fleet_<fleet number>"}.
+If time-block-based selectivity is specified for a fleet (via \code{fish_sel_blocks}), its corresponding continuous selectivity option (in \code{cont_tv_fish_sel}) must be set to \code{"none_Fleet_<fleet number>"}. The two approaches—blocked and continuous time-varying selectivity—are mutually exclusive.
+The default for each fleet is \code{"none_Fleet_x"} (i.e., no selectivity blocks).}
+
+\item{fish_sel_model}{Character vector specifying the fishery selectivity functional form for each fleet, and optionally by time block.
+
+Each element must follow one of the following structures:
+\itemize{
+  \item \code{"<selectivity model>_Fleet_<fleet number>"}
+  \item \code{"<selectivity model>_Block_<block number>_Fleet_<fleet number>"}
+}
+
+The first form applies a single selectivity model across all years for the specified fleet.
+The second form allows the user to assign a distinct selectivity model to a specific time block, as defined in \code{fish_sel_blocks}.
 
 Available selectivity model types include:
 \itemize{
-  \item \code{"logist1"}: Logistic function with parameters \code{a50} and \code{k}.
-  \item \code{"logist2"}: Logistic function with parameters \code{a50} and \code{a95}.
-  \item \code{"gamma"}: Dome-shaped gamma function with parameters \code{amax} and \code{delta}.
-  \item \code{"exponential"}: Exponential function with a power parameter.
-  \item \code{"dbnrml"}: Double normal function with 6 parameters.
+  \item \code{"logist1"} — Logistic function with parameters \code{a50} and \code{k}.
+  \item \code{"logist2"} — Logistic function with parameters \code{a50} and \code{a95}.
+  \item \code{"gamma"} — Dome-shaped gamma function with parameters \code{amax} and \code{delta}.
+  \item \code{"exponential"} — Exponential function with a power parameter.
+  \item \code{"dbnrml"} — Double-normal function with six parameters.
 }
-
-For example:
-\itemize{
-  \item \code{"logist1_Fleet_1"} uses the logistic (a50, k) model for Fleet 1.
-  \item \code{"gamma_Fleet_2"} uses the gamma dome-shaped model for Fleet 2.
-}
-
-The models are applied by region and year as defined in the overall model array structure
-(\code{n_regions} x \code{n_years} x \code{n_fish_fleets}), though this vector defines only the functional form for each fleet.
-
+If multiple selectivity time blocks are specified for a fleet (using \code{fish_sel_blocks}), then the corresponding selectivity model for each block must be explicitly defined using the \code{"<model>_Block_<block>_Fleet_<fleet>"} format.
+If blocks are not defined for a fleet, use the \code{"<model>_Fleet_<fleet number>"} format only.
 For mathematical definitions and implementation details of each selectivity form, refer to the model equations vignette.}
 
-\item{Use_fish_q_prior}{Integer (0 or 1). Flag to enable/disable survey catchability priors.
-When set to 1, applies log-normal priors to survey selectivity parameters as specified
+\item{Use_fish_q_prior}{Integer (0 or 1). Flag to enable/disable fishery catchability priors.
+When set to 1, applies log-normal priors to fishery selectivity parameters as specified
 in \code{fish_q_prior}. When set to 0, no priors are applied.}
 
-\item{fish_q_prior}{Data frame containing prior specifications for survey catchability parameters.
+\item{fish_q_prior}{Data frame containing prior specifications for fishery catchability parameters.
 Must include columns: \code{region} (region index), \code{fleet} (fleet index),
 \code{block} (time block index), \code{mu} (prior mean on natural scale), and \code{sd} (prior standard deviation on log scale).
 Each row specifies a log-normal prior N(log(mu), sd) for a given catchability parameter.
@@ -212,6 +214,8 @@ Must include columns: \code{region} (region index), \code{fleet} (fleet index),
 \code{mu} (prior mean on natural scale), and \code{sd} (prior standard deviation on log scale).
 Each row specifies a log-normal prior N(log(mu), sd) for one selectivity parameter.
 Only parameters with rows in this data frame will have priors applied.}
+
+\item{cont_tv_fish_sel_penalty}{Whether or not continuous fishery time varying selectivity penalties are applied (if cont_tv_fish_sel > 0)}
 
 \item{...}{Additional arguments specifying starting values for fishery selectivity and catchability parameters (fishsel_pe_pars, ln_fishsel_devs, ln_fish_fixed_sel_pars, ln_fish_q)}
 }

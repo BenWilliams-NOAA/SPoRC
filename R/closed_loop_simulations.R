@@ -110,11 +110,11 @@ condition_closed_loop_simulations <- function(closed_loop_yrs,
 
   # Fishery selectivity
   fish_sel_input <- if(!"fish_sel_input" %in% names(args)) {
-    extend_years(replicate(n = sim_list$n_sims, rep$fish_sel), n_years = closed_loop_yrs, 2, fill = 'last')
+    extend_years(replicate(n = sim_list$n_sims, rep$fish_sel[,1:length(data$years),,,,drop = FALSE]), n_years = closed_loop_yrs, 2, fill = 'last')
   } else args$fish_sel_input
   # Fishery catchability
   fish_q_input <- if(!"fish_q_input" %in% names(args)) {
-    extend_years(replicate(n = sim_list$n_sims, rep$fish_q), n_years = closed_loop_yrs, 2, fill = 'last')
+    extend_years(replicate(n = sim_list$n_sims, rep$fish_q[,1:length(data$years),,drop = FALSE]), n_years = closed_loop_yrs, 2, fill = 'last')
   } else args$fish_q_input
   # Fishery index uncertainty
   ObsFishIdx_SE <- if(!"ObsFishIdx_SE" %in% names(args)) {
@@ -147,7 +147,7 @@ condition_closed_loop_simulations <- function(closed_loop_yrs,
   sim_list <- Setup_Sim_Fishing(
     sim_list = sim_list, # update simulate list
     ln_sigmaC = ln_sigmaC,
-    Fmort_input = extend_years(replicate(n = sim_list$n_sims, rep$Fmort), n_years = closed_loop_yrs, 2, fill = 'zeros'),
+    Fmort_input = extend_years(replicate(n = sim_list$n_sims, rep$Fmort[,1:length(data$years),,drop = FALSE]), n_years = closed_loop_yrs, 2, fill = 'zeros'),
     fish_sel_input = fish_sel_input,
     fish_q_input = fish_q_input,
     ObsFishIdx_SE = ObsFishIdx_SE,
@@ -180,11 +180,11 @@ condition_closed_loop_simulations <- function(closed_loop_yrs,
   # Setup Survey Processes --------------------------------------------------
   # Survey selectivity
   srv_sel_input <- if(!"srv_sel_input" %in% names(args)) {
-    extend_years(replicate(n = sim_list$n_sims, rep$srv_sel), closed_loop_yrs, 2, 'last')
+    extend_years(replicate(n = sim_list$n_sims, rep$srv_sel[,1:length(data$years),,,,drop = FALSE]), closed_loop_yrs, 2, 'last')
   } else args$srv_sel_input
   # Survey catchability / q
   srv_q_input <- if(!"srv_q_input" %in% names(args)) {
-    extend_years(replicate(n = sim_list$n_sims, rep$srv_q), closed_loop_yrs, 2, 'last')
+    extend_years(replicate(n = sim_list$n_sims, rep$srv_q[,1:length(data$years),,drop = FALSE]), closed_loop_yrs, 2, 'last')
   } else args$srv_q_input
   # Survey index uncertainty
   ObsSrvIdx_SE <- if(!"ObsSrvIdx_SE" %in% names(args)) {
@@ -243,25 +243,25 @@ condition_closed_loop_simulations <- function(closed_loop_yrs,
 
   # Setup Biological Dynamics -----------------------------------------------
   natmort_input <- if(!"natmort_input" %in% names(args)) {
-    extend_years(replicate(n = sim_list$n_sims, rep$natmort), closed_loop_yrs, 2, 'last')
+    extend_years(replicate(n = sim_list$n_sims, rep$natmort[,1:length(data$years),,,drop = FALSE]), closed_loop_yrs, 2, 'last')
   } else args$natmort_input
   WAA_input <- if(!"WAA_input" %in% names(args)) {
-    extend_years(replicate(n = sim_list$n_sims, data$WAA), closed_loop_yrs, 2, 'last')
+    extend_years(replicate(n = sim_list$n_sims, data$WAA[,1:length(data$years),,,drop = FALSE]), closed_loop_yrs, 2, 'last')
   } else args$WAA_input
   WAA_fish_input <- if(!"WAA_fish_input" %in% names(args)) {
-    extend_years(replicate(n = sim_list$n_sims, data$WAA_fish), closed_loop_yrs, 2, 'last')
+    extend_years(replicate(n = sim_list$n_sims, data$WAA_fish[,1:length(data$years),,,,drop = FALSE]), closed_loop_yrs, 2, 'last')
   } else args$WAA_fish_input
   WAA_srv_input <- if(!"WAA_srv_input" %in% names(args)) {
-    extend_years(replicate(n = sim_list$n_sims, data$WAA_srv), closed_loop_yrs, 2, 'last')
+    extend_years(replicate(n = sim_list$n_sims, data$WAA_srv[,1:length(data$years),,,,drop = FALSE]), closed_loop_yrs, 2, 'last')
   } else args$WAA_srv_input
   MatAA_input <- if(!"MatAA_input" %in% names(args)) {
-    extend_years(replicate(n = sim_list$n_sims, data$MatAA), closed_loop_yrs, 2, 'last')
+    extend_years(replicate(n = sim_list$n_sims, data$MatAA[,1:length(data$years),,,drop = FALSE]), closed_loop_yrs, 2, 'last')
   } else args$MatAA_input
   AgeingError_input <- if(!"AgeingError_input" %in% names(args)) {
-    extend_years(replicate(n = sim_list$n_sims, data$AgeingError), closed_loop_yrs, 1, 'last')
+    extend_years(replicate(n = sim_list$n_sims, data$AgeingError[1:length(data$years),,,drop = FALSE]), closed_loop_yrs, 1, 'last')
   } else args$AgeingError_input
   SizeAgeTrans_input <- if(!"SizeAgeTrans_input" %in% names(args)) {
-    extend_years(replicate(n = sim_list$n_sims, data$SizeAgeTrans), closed_loop_yrs, 2, 'last')
+    extend_years(replicate(n = sim_list$n_sims, data$SizeAgeTrans[,1:length(data$years),,,,drop = FALSE]), closed_loop_yrs, 2, 'last')
   } else args$SizeAgeTrans_input
 
   # setup biologicals
@@ -284,11 +284,11 @@ condition_closed_loop_simulations <- function(closed_loop_yrs,
     replicate(n = sim_list$n_sims, expr = array(rep$R0 * rep$Rec_trans_prop, dim = c(sim_list$n_regions, sim_list$n_yrs)))
   } else args$R0_input
   sexratio_input <- if(!"sexratio_input" %in% names(args)) {
-    extend_years(replicate(n = sim_list$n_sims, expr = rep$sexratio), closed_loop_yrs, 2, 'last')
+    extend_years(replicate(n = sim_list$n_sims, expr = rep$sexratio[,1:length(data$years),,drop = FALSE]), closed_loop_yrs, 2, 'last')
   } else args$sexratio_input
   ln_sigmaR <- if(!"ln_sigmaR" %in% names(args)) optim_parameters_list$ln_sigmaR else args$ln_sigmaR
   Rec_input <- if(!"Rec_input" %in% names(args)) {
-    replicate(n = sim_list$n_sims, expr = rep$Rec)
+    replicate(n = sim_list$n_sims, expr = rep$Rec[,1:length(data$years),drop = FALSE])
   } else args$Rec_input
   ln_InitDevs_input <- if(!"ln_InitDevs_input" %in% names(args)) {
     replicate(sim_list$n_sims, optim_parameters_list$ln_InitDevs)
@@ -356,7 +356,7 @@ condition_closed_loop_simulations <- function(closed_loop_yrs,
   )
 
   # Movement ----------------------------------------------------------------
-  Movement <- if(!"Movement" %in% names(args)) extend_years(replicate(n = sim_list$n_sims, rep$Movement), closed_loop_yrs, 3, 'last') else args$Movement
+  Movement <- if(!"Movement" %in% names(args)) extend_years(replicate(n = sim_list$n_sims, rep$Movement[,,1:length(data$years),,,drop = FALSE]), closed_loop_yrs, 3, 'last') else args$Movement
   sim_list$Movement <- Movement
 
   return(sim_list)

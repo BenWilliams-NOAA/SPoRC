@@ -126,7 +126,7 @@ specified</td>
 <tr class="even">
 <td><code>Movement</code></td>
 <td>Movement array</td>
-<td><code>n_regions × n_regions × n_years × n_ages × n_sexes</code></td>
+<td><code>n_regions × n_regions × (n_years + n_proj_yrs_devs) × n_ages × n_sexes</code></td>
 </tr>
 </tbody>
 </table>
@@ -194,12 +194,12 @@ specified</td>
 <tr class="even">
 <td><code>fish_sel</code></td>
 <td>Fishery age-selectivity</td>
-<td><code>n_regions × n_years × n_ages × n_sexes × n_fish_fleets</code></td>
+<td><code>n_regions × (n_years + n_proj_yrs_devs) × n_ages × n_sexes × n_fish_fleets</code></td>
 </tr>
 <tr class="odd">
 <td><code>fish_sel_l</code></td>
 <td>Fishery length-selectivity</td>
-<td><code>n_regions × n_years × n_lens × n_sexes × n_fish_fleets</code></td>
+<td><code>n_regions × (n_years + n_proj_yrs_devs) × n_lens × n_sexes × n_fish_fleets</code></td>
 </tr>
 <tr class="even">
 <td><code>fish_q</code></td>
@@ -232,12 +232,12 @@ specified</td>
 <tr class="even">
 <td><code>srv_sel</code></td>
 <td>Survey age-selectivity</td>
-<td><code>n_regions × n_years × n_ages × n_srv_fleets × n_sexes</code></td>
+<td><code>n_regions × (n_years + n_proj_yrs_devs) × n_ages × n_srv_fleets × n_sexes</code></td>
 </tr>
 <tr class="odd">
 <td><code>srv_sel_l</code></td>
 <td>Survey length-selectivity</td>
-<td><code>n_regions × n_years × n_lens × n_srv_fleets × n_sexes</code></td>
+<td><code>n_regions × (n_years + n_proj_yrs_devs) × n_lens × n_srv_fleets × n_sexes</code></td>
 </tr>
 <tr class="even">
 <td><code>srv_q</code></td>
@@ -404,6 +404,48 @@ specified</td>
 <td><code>jnLL</code></td>
 <td>Joint negative log-likelihood</td>
 <td>scalar</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section level2">
+<h2 id="parameter-deviations">Parameter Deviations<a class="anchor" aria-label="anchor" href="#parameter-deviations"></a>
+</h2>
+<table class="table">
+<colgroup>
+<col width="9%">
+<col width="39%">
+<col width="50%">
+</colgroup>
+<thead><tr class="header">
+<th>Name</th>
+<th>Description</th>
+<th>Dimensions</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>ln_RecDevs</code></td>
+<td>Log recruitment deviations by region and year (including projected
+years).</td>
+<td><code>n_regions × (n_years + n_proj_yrs_devs)</code></td>
+</tr>
+<tr class="even">
+<td><code>logit_move_devs</code></td>
+<td>Logit-scale movement deviations among regions, by year, age, and
+sex.</td>
+<td><code>n_regions × (n_regions - 1) × (n_years + n_proj_yrs_devs) × n_ages × n_sexes</code></td>
+</tr>
+<tr class="odd">
+<td><code>ln_fishsel_devs</code></td>
+<td>Log-scale deviations in fishery selectivity-at-length or age, by
+fleet.</td>
+<td><code>n_regions × (n_years + n_proj_yrs_devs) × bins × n_sexes × n_fish_fleets</code></td>
+</tr>
+<tr class="even">
+<td><code>ln_srvsel_devs</code></td>
+<td>Log-scale deviations in survey selectivity-at-length or age, by
+fleet.</td>
+<td><code>n_regions × (n_years + n_proj_yrs_devs) × bins × n_sexes × n_srv_fleets</code></td>
 </tr>
 </tbody>
 </table>

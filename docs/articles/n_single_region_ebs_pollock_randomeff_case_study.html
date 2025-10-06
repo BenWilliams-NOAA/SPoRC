@@ -411,24 +411,24 @@ models that vary only in the specification of fishery selectivity random
 effects:</p>
 <ol style="list-style-type: decimal">
 <li>Constant selectivity (no random effects),</li>
-<li>Two-dimensional autoregressive selectivity (year × age),</li>
-<li>Three-dimensional autoregressive selectivity (year × age ×
-cohort),</li>
-<li>Independent semi-parametric deviations.</li>
+<li>iid selectivity (random effects on parameters),</li>
+<li>Random walk selectivity (random effects on parameters),</li>
+<li>Two-dimensional autoregressive selectivity (year × age; random
+effects are semi-parametric),</li>
+<li>Three-dimensional autoregressive selectivity (year × age × cohort;
+random effects are semi-parametric),</li>
+<li>Independent deviations (random effects are semi-parametric).</li>
 </ol>
 <p>The dataframe below specifies the argument settings for each
 scenario.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># models to iterate through</span></span>
 <span><span class="va">pol_model_var</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
-<span>  cont_tv_fish_sel    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none_Fleet_1"</span>,</span>
-<span>                          <span class="st">"2dar1_Fleet_1"</span>,</span>
-<span>                          <span class="st">"3dcond_Fleet_1"</span>,</span>
-<span>                          <span class="st">"3dcond_Fleet_1"</span><span class="op">)</span>,</span>
-<span>  fishsel_pe_pars_spec <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"est_all"</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>  fish_sel_devs_spec   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"est_all"</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>  corr_opt_semipar     <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="cn">NA</span>, <span class="fl">3</span><span class="op">)</span>, <span class="st">"corr_zero_y_b_c"</span><span class="op">)</span> </span>
-<span><span class="op">)</span></span></code></pre></div>
+<span>  cont_tv_fish_sel <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none_Fleet_1"</span>, <span class="st">"iid_Fleet_1"</span>, <span class="st">"rw_Fleet_1"</span>, <span class="st">"2dar1_Fleet_1"</span>, <span class="st">"3dcond_Fleet_1"</span>, <span class="st">"3dcond_Fleet_1"</span><span class="op">)</span>,</span>
+<span>  fishsel_pe_pars_spec <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"est_all"</span>, <span class="fl">5</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  fish_sel_devs_spec <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"est_all"</span>, <span class="fl">5</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  corr_opt_semipar <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="cn">NA</span>, <span class="fl">5</span><span class="op">)</span>, <span class="st">"corr_zero_y_b_c"</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span></code></pre></div>
 <p>We can now loop through each row to generate the model inputs, fit
 the model using Laplace approximation, and store the results. The model
 fitting process can take a while!</p>
@@ -481,7 +481,7 @@ estimates and inference. In this example, we focus on differences in
 recruitment, spawning stock biomass, and fishery selectivity
 estimates.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">model_names</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"constant"</span>, <span class="st">"2dar1"</span>, <span class="st">"3dgmrf"</span>, <span class="st">"iid"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">model_names</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"constant"</span>, <span class="st">"iid_p"</span>, <span class="st">"rw_p"</span>, <span class="st">"2dar1_sp"</span>, <span class="st">"3dgmrf_sp"</span>, <span class="st">"iid_sp"</span><span class="op">)</span></span>
 <span><span class="va">fishsel_all_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="op">)</span> <span class="co"># empty dataframe to bind to</span></span>
 <span><span class="va">ts_all_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="op">)</span> <span class="co"># empty dataframe to bind to</span></span>
 <span><span class="kw">for</span><span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">models</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
@@ -516,14 +516,15 @@ estimates.</p>
 <span><span class="op">}</span> <span class="co"># end i loop</span></span>
 <span></span>
 <span><span class="co"># Refactor to order models</span></span>
-<span><span class="va">fishsel_all_df</span> <span class="op">&lt;-</span> <span class="va">fishsel_all_df</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>Model <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">Model</span>, levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"constant"</span>, <span class="st">"iid"</span>, <span class="st">"2dar1"</span>, <span class="st">"3dgmrf"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">ts_df</span> <span class="op">&lt;-</span> <span class="va">ts_df</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>Model <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">Model</span>, levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"constant"</span>, <span class="st">"iid"</span>, <span class="st">"2dar1"</span>, <span class="st">"3dgmrf"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">fishsel_all_df</span> <span class="op">&lt;-</span> <span class="va">fishsel_all_df</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>Model <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">Model</span>, levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"constant"</span>, <span class="st">"iid_p"</span>, <span class="st">"rw_p"</span>, <span class="st">"iid_sp"</span>, <span class="st">"2dar1_sp"</span>, <span class="st">"3dgmrf_sp"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">ts_df</span> <span class="op">&lt;-</span> <span class="va">ts_df</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>Model <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">Model</span>, levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"constant"</span>, <span class="st">"iid_p"</span>, <span class="st">"rw_p"</span>, <span class="st">"iid_sp"</span>, <span class="st">"2dar1_sp"</span>, <span class="st">"3dgmrf_sp"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>Inspecting recruitment, the time series are generally consistent
 across models in both magnitude and trend. Spawning stock biomass
 estimates are also similar among models, though terminal year estimates
-differ slightly: the three-dimensional (<code>3d</code>) selectivity
-option yields the lowest biomass estimates, while the
-<code>constant</code> selectivity option produces the highest.</p>
+differ slightly: the three-dimensional (<code>3d</code>) and parametric
+<code>iid</code> selectivity option generally yields the lowest biomass
+estimates, while the <code>constant</code> selectivity option produces
+the highest.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">ts_all_df</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">Year</span>, y <span class="op">=</span> <span class="va">value</span>, ymin <span class="op">=</span> <span class="va">value</span> <span class="op">-</span> <span class="op">(</span><span class="fl">1.96</span> <span class="op">*</span> <span class="va">se</span><span class="op">)</span>, ymax <span class="op">=</span> <span class="va">value</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1.96</span> <span class="op">*</span> <span class="va">se</span><span class="op">)</span>, color <span class="op">=</span> <span class="va">Model</span>, fill <span class="op">=</span> <span class="va">Model</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span>lwd <span class="op">=</span> <span class="fl">1.3</span><span class="op">)</span> <span class="op">+</span></span>
@@ -543,7 +544,10 @@ constraints, whereas <code>iid</code> deviations tend to revert to the
 mean when data are sparse. By contrast, the <code>3d</code> option
 exhibits pronounced cohort variability (diagonal patterns) and maintains
 selectivity patterns at older, less-informed ages through
-correlation-based smoothing.</p>
+correlation-based smoothing. Due to the assumption of parametric
+selectivity, both the <code>iid_p</code> and <code>rw_p</code>
+selectivity options appear relatively different (i.e., constrained to
+remain logistic).</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">fishsel_all_df</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">Year</span>, y <span class="op">=</span> <span class="va">Age</span>, fill <span class="op">=</span> <span class="va">value</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_tile.html" class="external-link">geom_tile</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>

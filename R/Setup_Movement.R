@@ -398,7 +398,7 @@ Setup_Mod_Movement <- function(input_list,
 
   # Movement deviations
   if("logit_move_devs" %in% names(starting_values)) input_list$par$logit_move_devs <- starting_values$logit_move_devs
-  else input_list$par$logit_move_devs <- array(0, c(input_list$data$n_regions, input_list$data$n_regions - 1, length(input_list$data$years), length(input_list$data$ages), input_list$data$n_sexes))
+  else input_list$par$logit_move_devs <- array(0, c(input_list$data$n_regions, input_list$data$n_regions - 1, length(input_list$data$years) + input_list$data$n_proj_yrs_devs, length(input_list$data$ages), input_list$data$n_sexes))
 
   # Movement process error parameters
   if("move_pe_pars" %in% names(starting_values)) input_list$par$move_pe_pars <- starting_values$move_pe_pars

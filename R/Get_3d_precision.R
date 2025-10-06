@@ -13,7 +13,7 @@
 #' @returns Sparse precision matrix dimensioned by n_ages * n_years, n_ages * n_years
 #' @keywords internal
 #'
-Get_3d_precision <- function(n_ages,n_yrs, pcorr_age, pcorr_year, pcorr_cohort, ln_var_value, Var_Type){
+Get_3d_precision <- function(n_ages, n_yrs, pcorr_age, pcorr_year, pcorr_cohort, ln_var_value, Var_Type){
 
     "c" <- RTMB::ADoverload("c")
     "[<-" <- RTMB::ADoverload("[<-")

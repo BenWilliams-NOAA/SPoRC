@@ -109,6 +109,11 @@ always be males.</p>
 <td><code>n_srv_fleets</code></td>
 <td>Value specifying number of survey fleets to model</td>
 </tr>
+<tr class="even">
+<td><code>n_proj_yrs_devs</code></td>
+<td>Number of years to project deviations / random effect parameters
+forward</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -921,6 +926,11 @@ parameters. Must include columns: <code>region</code> (region index),
 (prior standard deviation on log scale). Each row specifies a log-normal
 prior N(log(mu), sd) for one selectivity parameter.</td>
 </tr>
+<tr class="odd">
+<td><code>cont_tv_fish_sel_penalty</code></td>
+<td>Boolean on whether fishery selectivity penalties are applied to
+continous time-varying selectivity</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -1032,6 +1042,11 @@ parameters. Must include columns: <code>region</code> (region index),
 <code>mu</code> (prior mean on natural scale), and <code>sd</code>
 (prior standard deviation on log scale). Each row specifies a log-normal
 prior N(log(mu), sd) for one selectivity parameter.</td>
+</tr>
+<tr class="odd">
+<td><code>cont_tv_srv_sel_penalty</code></td>
+<td>Boolean on whether survey selectivity penalties are applied to
+continous time-varying selectivity</td>
 </tr>
 </tbody>
 </table>

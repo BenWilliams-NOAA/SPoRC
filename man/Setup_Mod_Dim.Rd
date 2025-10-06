@@ -12,6 +12,7 @@ Setup_Mod_Dim(
   n_sexes,
   n_fish_fleets,
   n_srv_fleets,
+  n_proj_yrs_devs = 0,
   verbose = FALSE
 )
 }
@@ -29,6 +30,8 @@ Setup_Mod_Dim(
 \item{n_fish_fleets}{Integer specifying the number of fishery fleets.}
 
 \item{n_srv_fleets}{Integer specifying the number of survey fleets.}
+
+\item{n_proj_yrs_devs}{Number of projection years for deviation parameters (ln_RecDevs, logit_move_devs, ln_fishsel_devs, ln_srvsel_devs)}
 
 \item{verbose}{Logical flag indicating whether to print progress messages (default \code{FALSE}).}
 }

@@ -799,28 +799,33 @@ do_srv_fixed_sel_pars_mapping <- function(input_list, srv_fixed_sel_pars_spec) {
 
     for(r in 1:input_list$data$n_regions) {
 
-      # Figure out max number of selectivity parameters for a given region and fleet
-      if(unique(input_list$data$srv_sel_model[r,,f]) %in% 2) max_sel_pars <- 1 # exponential
-      if(unique(input_list$data$srv_sel_model[r,,f]) %in% c(0,1,3)) max_sel_pars <- 2 # logistic or gamma
-      if(unique(input_list$data$srv_sel_model[r,,f]) == 4) max_sel_pars <- 6 # double normal
-
-      # Extract number of survey selectivity blocks
-      srvsel_blocks_tmp <- unique(as.vector(input_list$data$srv_sel_blocks[r,,f]))
-
       # Only add a counter if caatches are avaliable in some years for a given region and fleet combination
       if(sum(input_list$data$UseSrvIdx[r,,f]) > 0) {
 
         # Warning for if no compositions, but est_all or est_shared_s
         if(sum(input_list$data$UseSrvAgeComps[r,,f]) == 0 && sum(input_list$data$UseSrvLenComps[r,,f]) == 0) {
           if(!srv_fixed_sel_pars_spec[f] %in% c("est_shared_r", "est_shared_r_s", "fix")) {
-            warning("Fleet ", f, " in region ", r, " has index data but no composition data. ",
+            warning("Fleet ", f, " in region ", r, " has catch data but no composition data. ",
                     "Consider using 'est_shared_r', 'est_shared_r_s', or 'fix' specification to share selectivity parameters. ",
                     "Current specification: ", srv_fixed_sel_pars_spec[f])
           }
         }
 
+        # Extract number of srvery selectivity blocks
+        srvsel_blocks_tmp <- unique(as.vector(input_list$data$srv_sel_blocks[r,,f]))
+
         for(s in 1:input_list$data$n_sexes) {
           for(b in 1:length(srvsel_blocks_tmp)) {
+
+            block_years <- which(input_list$data$srv_sel_blocks[r,,f] == srvsel_blocks_tmp[b]) # figure out block years
+            sel_model_this_block <- unique(input_list$data$srv_sel_model[r, block_years, f]) # get selectivity form for a given block
+            if(length(sel_model_this_block) > 1) stop("Block ", srvsel_blocks_tmp[b], " for fleet ", f, " region ", r, " has multiple selectivity models assigned to it")
+
+            # determine maximum selectivity parameters
+            if(sel_model_this_block == 2) max_sel_pars <- 1 # exponential
+            if(sel_model_this_block %in% c(0,1,3)) max_sel_pars <- 2 # logistic or gamma
+            if(sel_model_this_block == 4) max_sel_pars <- 6 # double normal
+
             for(i in 1:max_sel_pars) {
 
               # Estimate all selectivity fixed effects parameters within the constraints of the defined blocks
@@ -985,11 +990,6 @@ do_srvsel_pe_pars_mapping <- function(input_list, srvsel_pe_pars_spec, corr_opt_
 
     for(r in 1:input_list$data$n_regions) {
 
-      # Figure out max number of selectivity parameters for a given region and fleet
-      if(unique(input_list$data$srv_sel_model[r,,f]) %in% 2) max_sel_pars <- 1 # exponential
-      if(unique(input_list$data$srv_sel_model[r,,f]) %in% c(0,1,3)) max_sel_pars <- 2 # logistic or gamma
-      if(unique(input_list$data$srv_sel_model[r,,f]) == 4) max_sel_pars <- 6 # double normal
-
       # if no time-variation, then fix all parameters for this fleet
       if(input_list$data$cont_tv_srv_sel[r,f] == 0 || sum(input_list$data$UseSrvIdx[r,,f]) == 0) {
         map_srvsel_pe_pars[r,,,f] <- NA
@@ -1003,6 +1003,11 @@ do_srvsel_pe_pars_mapping <- function(input_list, srvsel_pe_pars_spec, corr_opt_
                     "Current specification: ", srvsel_pe_pars_spec[f])
           }
         }
+
+        # Figure out max number of selectivity parameters for a given region and fleet
+        if(unique(input_list$data$srv_sel_model[r,,f]) %in% 2) max_sel_pars <- 1 # exponential
+        if(unique(input_list$data$srv_sel_model[r,,f]) %in% c(0,1,3)) max_sel_pars <- 2 # logistic or gamma
+        if(unique(input_list$data$srv_sel_model[r,,f]) == 4) max_sel_pars <- 6 # double normal
 
         for(s in 1:input_list$data$n_sexes) {
 
@@ -1181,11 +1186,6 @@ do_srvsel_devs_mapping <- function(input_list, srv_sel_devs_spec) {
         }
       }
 
-      # Figure out max number of selectivity parameters for a given region and fleet
-      if(unique(input_list$data$srv_sel_model[r,,f]) %in% 2) max_sel_pars <- 1 # exponential
-      if(unique(input_list$data$srv_sel_model[r,,f]) %in% c(0,1,3)) max_sel_pars <- 2 # logistic or gamma
-      if(unique(input_list$data$srv_sel_model[r,,f]) == 4) max_sel_pars <- 6 # double normal
-
       for(s in 1:input_list$data$n_sexes) {
         for(y in 1:length(input_list$data$years)) {
 
@@ -1194,8 +1194,13 @@ do_srvsel_devs_mapping <- function(input_list, srv_sel_devs_spec) {
             map_srvsel_devs[r,y,,s,f] <- NA
           } else {
 
+            # Figure out max number of selectivity parameters for a given region and fleet
+            if(unique(input_list$data$srv_sel_model[r,,f]) %in% 2) max_sel_pars <- 1 # exponential
+            if(unique(input_list$data$srv_sel_model[r,,f]) %in% c(0,1,3)) max_sel_pars <- 2 # logistic or gamma
+            if(unique(input_list$data$srv_sel_model[r,,f]) == 4) max_sel_pars <- 6 # double normal
+
             # If iid or random walk time-variation for this fleet
-            if(input_list$data$cont_tv_srv_sel[r,f] %in% c(1,2) && y >= min(which(input_list$data$UseSrvIdx[,,f] == 1))) {
+            if(input_list$data$cont_tv_srv_sel[r,f] %in% c(1,2)) {
 
               for(i in 1:max_sel_pars) {
                 # Estimating all selectivity deviations across regions, sexes, fleets, and parameter
@@ -1226,7 +1231,7 @@ do_srvsel_devs_mapping <- function(input_list, srv_sel_devs_spec) {
             } # end iid or random walk variation
 
             # If 3d gmrf for this fleet
-            if(input_list$data$cont_tv_srv_sel[r,f] %in% c(3,4,5) && y >= min(which(input_list$data$UseSrvIdx[,,f] == 1))) {
+            if(input_list$data$cont_tv_srv_sel[r,f] %in% c(3,4,5)) {
 
               for(i in 1:length(input_list$data$ages)) {
                 # Estimating all selectivity deviations across regions, years and bins
@@ -1312,43 +1317,47 @@ do_srvsel_devs_mapping <- function(input_list, srv_sel_devs_spec) {
 #'   \item \code{"none_Fleet_2"} means no time variation is used for Fleet 2.
 #' }
 #'
-#' \strong{Note:} If time-block-based selectivity (via \code{srv_sel_blocks}) is specified for a fleet, then its corresponding entry here must be \code{"none_Fleet_<fleet number>"}.
 #' @param srv_sel_blocks Character vector specifying the survey selectivity blocks for each region and fleet.
-#' Each element must follow the structure: `"Block_<block number>_Year_<start>-<end>_Fleet_<fleet number>"` or `"none_Fleet_<fleet number>"`.
-#' This allows users to define time-varying selectivity blocks for specific fleets within a region. Default is "none_Fleet_x".
 #'
-#' For example:
+#' Each element must follow one of the following structures:
 #' \itemize{
-#'   \item \code{"Block_1_Year_1-35_Fleet_1"} defines selectivity block 1 for Fleet 1 covering years 1 through 35.
-#'   \item \code{"Block_2_Year_36-56_Fleet_1"} defines block 2 for Fleet 1 for years 36 to 56.
-#'   \item \code{"Block_3_Year_57-terminal_Fleet_1"} assigns block 3 from year 57 through the terminal year for Fleet 1.
-#'   \item \code{"none_Fleet_2"} indicates that no survey selectivity blocks are used for Fleet 2.
+#'   \item `"Block_<block number>_Year_<start>-<end>_Fleet_<fleet number>"`
+#'   \item `"Block_<block number>_Year_<start>-terminal_Fleet_<fleet number>"`
+#'   \item `"none_Fleet_<fleet number>"`
 #' }
 #'
-#' The blocks must be non-overlapping and sequential in time within each fleet, and block numbers must be unique within each fleet.
-#' @param srv_sel_model Character vector specifying the survey selectivity model for each fleet.
-#' The vector must be length \code{n_srv_fleets}, and each element must follow the structure:
-#' \code{"<selectivity model>_Fleet_<fleet number>"}.
+#' This argument defines how survey selectivity varies over time for each fleet:
+#' \itemize{
+#'   \item \code{"Block_..."} entries specify discrete time blocks during which selectivity parameters are assumed constant.
+#'   \item \code{"none_..."} entries indicate that selectivity is constant across all years for the specified fleet.
+#' }
+#'
+#' If time-block-based selectivity is specified for a fleet (via \code{srv_sel_blocks}), its corresponding continuous selectivity option (in \code{cont_tv_srv_sel}) must be set to \code{"none_Fleet_<fleet number>"}. The two approaches—blocked and continuous time-varying selectivity—are mutually exclusive.
+#' The default for each fleet is \code{"none_Fleet_x"} (i.e., no selectivity blocks).
+#'
+#' @param srv_sel_model Character vector specifying the survey selectivity functional form for each fleet, and optionally by time block.
+#'
+#' Each element must follow one of the following structures:
+#' \itemize{
+#'   \item \code{"<selectivity model>_Fleet_<fleet number>"}
+#'   \item \code{"<selectivity model>_Block_<block number>_Fleet_<fleet number>"}
+#' }
+#'
+#' The first form applies a single selectivity model across all years for the specified fleet.
+#' The second form allows the user to assign a distinct selectivity model to a specific time block, as defined in \code{srv_sel_blocks}.
 #'
 #' Available selectivity model types include:
 #' \itemize{
-#'   \item \code{"logist1"}: Logistic function with parameters \code{a50} and \code{k}.
-#'   \item \code{"logist2"}: Logistic function with parameters \code{a50} and \code{a95}.
-#'   \item \code{"gamma"}: Dome-shaped gamma function with parameters \code{amax} and \code{delta}.
-#'   \item \code{"exponential"}: Exponential function with a power parameter.
-#'   \item \code{"dbnrml"}: Double normal function with 6 parameters.
+#'   \item \code{"logist1"} — Logistic function with parameters \code{a50} and \code{k}.
+#'   \item \code{"logist2"} — Logistic function with parameters \code{a50} and \code{a95}.
+#'   \item \code{"gamma"} — Dome-shaped gamma function with parameters \code{amax} and \code{delta}.
+#'   \item \code{"exponential"} — Exponential function with a power parameter.
+#'   \item \code{"dbnrml"} — Double-normal function with six parameters.
 #' }
-#'
-#' For example:
-#' \itemize{
-#'   \item \code{"logist1_Fleet_1"} uses the logistic (a50, k) model for Fleet 1.
-#'   \item \code{"gamma_Fleet_2"} uses the gamma dome-shaped model for Fleet 2.
-#' }
-#'
-#' The models are applied by region and year as defined in the overall model array structure
-#' (\code{n_regions} x \code{n_years} x \code{n_srv_fleets}), though this vector defines only the functional form for each fleet.
-#'
+#' If multiple selectivity time blocks are specified for a fleet (using \code{srv_sel_blocks}), then the corresponding selectivity model for each block must be explicitly defined using the \code{"<model>_Block_<block>_Fleet_<fleet>"} format.
+#' If blocks are not defined for a fleet, use the \code{"<model>_Fleet_<fleet number>"} format only.
 #' For mathematical definitions and implementation details of each selectivity form, refer to the model equations vignette.
+#'
 #' @param srv_q_blocks Character vector specifying survey catchability (q) blocks for each fleet.
 #' Each element must follow the structure: \code{"Block_<block number>_Year_<start>-<end>_Fleet_<fleet number>"}
 #' or \code{"none_Fleet_<fleet number>"}.
@@ -1506,6 +1515,7 @@ do_srvsel_devs_mapping <- function(input_list, srv_sel_devs_spec) {
 #'   \item \code{"Region_3_Fleet_2"} = \code{~ NULL} disables environmental covariates for that fleet-region.
 #' }
 #' @param t_srv Survey timing in fractions (n_regions * n_srv_fleets; default is 0.5)
+#' @param cont_tv_srv_sel_penalty Whether or not to apply continuous time-varying selectivity penalties (if cont_tv_srv_sel > 0)
 #'
 #' @export Setup_Mod_Srvsel_and_Q
 #' @importFrom stringr str_detect
@@ -1527,6 +1537,7 @@ Setup_Mod_Srvsel_and_Q <- function(input_list,
                                    Use_srv_selex_prior = 0,
                                    srv_selex_prior = NULL,
                                    t_srv = array(0.5, dim = c(input_list$data$n_regions, input_list$data$n_srv_fleets)),
+                                   cont_tv_srv_sel_penalty = TRUE,
                                    ...
                                    ) {
 
@@ -1590,6 +1601,8 @@ Setup_Mod_Srvsel_and_Q <- function(input_list,
     collect_message("Continuous survey time-varying selectivity specified as: ", cont_tv_type, " for survey fleet ", fleet)
   }
 
+  if(any(cont_tv_srv_sel_mat > 0) && is.null(srvsel_pe_pars_spec) && is.null(srv_sel_devs_spec)) stop("Continuous time-varying selectivity specified, but srvsel_pe_pars_spec and/or srv_sel_devs_spec is NULL (i.e., not specified)!")
+
   # Blocked Time-Varying Selectivity Options --------------------------------
   srv_sel_blocks_arr <- array(NA, dim = c(input_list$data$n_regions, length(input_list$data$years), input_list$data$n_srv_fleets))
   for(i in 1:length(srv_sel_blocks)) {
@@ -1629,24 +1642,38 @@ Setup_Mod_Srvsel_and_Q <- function(input_list,
 
   # Selectivity Functional Forms --------------------------------------------
   sel_map <- data.frame(sel = c('logist1', "gamma", "exponential", "logist2", "dbnrml"), num = c(0,1,2,3,4)) # set up values we can map to
-  srv_sel_model_arr = array(NA, dim = c(input_list$data$n_regions, length(input_list$data$years), input_list$data$n_srv_fleets))
+  srv_sel_model_arr <- array(NA, dim = c(input_list$data$n_regions, length(input_list$data$years), input_list$data$n_srv_fleets))
   for(i in 1:length(srv_sel_model)) {
+    # Extract out srvery selectivity components from vector
+    tmp_sel_form <- srv_sel_model[i]
+    tmp_sel_form_vec <- unlist(strsplit(tmp_sel_form, "_")) # split string
+    sel_form <- tmp_sel_form_vec[1] # get selectivity type
 
-    # Extract out components from list
-    tmp <- srv_sel_model[i]
-    tmp_vec <- unlist(strsplit(tmp, "_"))
-    sel_type <- tmp_vec[1] # get selectivity type
-    fleet <- as.numeric(tmp_vec[3]) # get fleet number
+    # get fleet index
+    fleet <- if(length(tmp_sel_form_vec) == 3) as.numeric(tmp_sel_form_vec[3]) else as.numeric(tmp_sel_form_vec[5]) # fleet index changes if block is included in character vector
+    # get block index
+    block <- if(length(tmp_sel_form_vec) == 5) as.numeric(tmp_sel_form_vec[3]) else NULL
 
-    # Validate options
-    if(!sel_type %in% c(sel_map$sel)) stop("srv_sel_model is not correctly specified. This needs to be one of these: logist1, gamma, exponential, logist2, dbnrml (the seltypes) and specified as seltype_Fleet_x")
-    if(!fleet %in% c(1:input_list$data$n_srv_fleets)) stop("Invalid fleet specified for srv_sel_model This needs to be specified as seltype_Fleet_x")
+    # validate options
+    if(!sel_form %in% c(sel_map$sel)) stop("srv_sel_model is not correctly specified. This needs to be one of these: logist1, gamma, exponential, logist2, dbnrml (the seltypes) and specified as seltype_Fleet_x")
+    if(!fleet %in% c(1:input_list$data$n_srv_fleets)) stop("Invalid fleet specified for srv_sel_model This needs to be specified as seltype_Fleet_x or seltype_Block_x_Fleet_x (if blocks are specified to change for a fleet)")
 
-    # Input
-    srv_sel_model_arr[,,fleet] <- sel_map$num[which(sel_map$sel == sel_type)]
-    collect_message("Survey selectivity functional form specified as:", sel_type, " for survey fleet ", f)
-  } # end i loop
+    # Input options
+    if(is.null(block)) srv_sel_model_arr[,,fleet] <- sel_map$num[which(sel_map$sel == sel_form)] # same selectivity form across blocks
+    else srv_sel_model_arr[,which(srv_sel_blocks_arr[,,fleet] == block),fleet] <- sel_map$num[which(sel_map$sel == sel_form)]
+    collect_message("Survey selectivity functional form specified as:", sel_form, " for srvery fleet ", fleet)
 
+  }
+
+  # Validate that blocks and continuous time-variation aren't both specified for same fleet
+  for(f in 1:input_list$data$n_srv_fleets) {
+    has_blocks <- length(unique(srv_sel_blocks_arr[1,,f])) > 1
+    has_cont_tv <- cont_tv_srv_sel_mat[1,f] != 0  # 0 = "none"
+    if(has_blocks && has_cont_tv) {
+      stop("Fleet ", f, " has both selectivity blocks and continuous time-varying selectivity specified. ",
+           "These are mutually exclusive - choose one approach to time-variation.")
+    }
+  }
 
   # Blocked Catchability Options --------------------------------------------
   srv_q_blocks_arr <- array(NA, dim = c(input_list$data$n_regions, length(input_list$data$years), input_list$data$n_srv_fleets))
@@ -1749,6 +1776,7 @@ Setup_Mod_Srvsel_and_Q <- function(input_list,
 
   # Populate Data List ------------------------------------------------------
   input_list$data$cont_tv_srv_sel <- cont_tv_srv_sel_mat
+  input_list$data$cont_tv_srv_sel_penalty <- cont_tv_srv_sel_penalty
   input_list$data$srv_sel_blocks <- srv_sel_blocks_arr
   input_list$data$srv_sel_model <- srv_sel_model_arr
   input_list$data$srv_q_blocks <- srv_q_blocks_arr
@@ -1790,7 +1818,7 @@ Setup_Mod_Srvsel_and_Q <- function(input_list,
   if(input_list$data$Selex_Type == 0) bins <- length(input_list$data$ages) # age based deviations
   if(input_list$data$Selex_Type == 1) bins <- length(input_list$data$lens) # length based deviations
   if("ln_srvsel_devs" %in% names(starting_values)) input_list$par$ln_srvsel_devs <- starting_values$ln_srvsel_devs
-  else input_list$par$ln_srvsel_devs <- array(0, dim = c(input_list$data$n_regions, length(input_list$data$years), bins, input_list$data$n_sexes, input_list$data$n_srv_fleets))
+  else input_list$par$ln_srvsel_devs <- array(0, dim = c(input_list$data$n_regions, length(input_list$data$years) + input_list$data$n_proj_yrs_devs, bins, input_list$data$n_sexes, input_list$data$n_srv_fleets))
 
   # Survey catchability covariate effects
   if("srv_q_coeff" %in% names(starting_values)) input_list$par$srv_q_coeff <- starting_values$srv_q_coeff

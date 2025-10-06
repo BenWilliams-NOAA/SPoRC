@@ -26,9 +26,9 @@ The following table describes all elements contained within `input_list$pars`, w
 | `ln_sigmaF` | `n_regions, n_fish_fleets` | Standard deviation for fishing mortality process error | 0 |
 | `ln_sigmaF_agg` | `n_fish_fleets` | Standard deviation for region-aggregated fishing mortality process error | 0 |
 | `ln_F_mean` | `n_regions, n_fish_fleets` | Log-scale mean fishing mortality rate | 0.1 |
-| `ln_F_devs` | `n_regions, n_years, n_fish_fleets` | Log-scale annual fishing mortality deviations | 0 |
+| `ln_F_devs` | `n_regions, n_years, n_fish_fleets` | Log-scale annual fishing mortality deviations (can be specified as random effects) | 0 |
 | `ln_F_mean_AggCatch` | `n_fish_fleets` | Log-scale mean fishing mortality for region-aggregated catch | 0.1 |
-| `ln_F_devs_AggCatch` | `n_Catch_Type_years, n_fish_fleets` | Log-scale fishing mortality deviations for region-aggregated catch | 0 |
+| `ln_F_devs_AggCatch` | `n_Catch_Type_years, n_fish_fleets` | Log-scale fishing mortality deviations for region-aggregated catch (can be specified as random effects) | 0 |
 
 ## Fishery Selectivity
 
@@ -36,7 +36,7 @@ The following table describes all elements contained within `input_list$pars`, w
 |-----------|-----------|-------------|---------|
 | `ln_fish_fixed_sel_pars` | `n_regions, max_fish_pars, max_fishsel_blks, n_sexes, n_fish_fleets` | Log-scale selectivity curve parameters | 0 |
 | `fishsel_pe_pars` | `n_regions, 4, n_sexes, n_fish_fleets` | Process error parameters for time-varying selectivity | 0 |
-| `ln_fishsel_devs` | `n_regions, n_years, n_bins, n_sexes, n_fish_fleets` | Log-scale selectivity deviations (n_bins = n_ages or n_lens depending on selectivity type) | 0 |
+| `ln_fishsel_devs` | `n_regions, n_years + n_proj_yrs_devs, n_bins, n_sexes, n_fish_fleets` | Log-scale selectivity deviations w/ projection years (n_bins = n_ages or n_lens depending on selectivity type) (can be specified as random effects) | 0 |
 
 ## Fishery Catchability
 
@@ -63,7 +63,7 @@ The following table describes all elements contained within `input_list$pars`, w
 |-----------|-----------|-------------|---------|
 | `ln_srv_fixed_sel_pars` | `n_regions, max_srv_pars, max_srv_blks, n_sexes, n_srv_fleets` | Log-scale selectivity curve parameters | 0 |
 | `srvsel_pe_pars` | `n_regions, 4, n_sexes, n_srv_fleets` | Process error parameters for time-varying selectivity | 0 |
-| `ln_srvsel_devs` | `n_regions, n_years, n_bins, n_sexes, n_srv_fleets` | Log-scale selectivity deviations (n_bins = n_ages or n_lens depending on selectivity type) | 0 |
+| `ln_srvsel_devs` | `n_regions, n_years + n_proj_yrs_devs, n_bins, n_sexes, n_srv_fleets` | Log-scale selectivity deviations w/ projection years (n_bins = n_ages or n_lens depending on selectivity type) (can be specified as random effects) | 0 |
 
 ## Survey Catchability
 
@@ -99,8 +99,8 @@ The following table describes all elements contained within `input_list$pars`, w
 | `Rec_prop` | `n_regions - 1` | Regional recruitment proportions (simplex parameterization) | 0 |
 | `steepness_h` | `n_regions` | Steepness of stock-recruitment relationship (bounded logit scale) | 0 |
 | `ln_sigmaR` | `2` | Log-scale standard deviations for initial age deviations and recruitment deviations | 0 |
-| `ln_InitDevs` | `n_regions, n_ages - 2` | Log-scale initial age structure deviations | 0 |
-| `ln_RecDevs` | `n_regions, n_recdev_years` | Log-scale annual recruitment deviations | 0 |
+| `ln_InitDevs` | `n_regions, n_ages - 2` | Log-scale initial age structure deviations (can be specified as random effects) | 0 |
+| `ln_RecDevs` | `n_regions, n_recdev_years + n_proj_yrs_devs` | Log-scale annual recruitment deviations w/ projection years (can be specified as random effects) | 0 |
 | `sexratio_pars` | `n_regions, n_blocks` | Logit-scale sex ratio parameters (defaults to 50:50 when n_sexes = 1) | 0 |
 
 ## Movement
@@ -108,7 +108,7 @@ The following table describes all elements contained within `input_list$pars`, w
 | Parameter | Dimension | Description | Default |
 |-----------|-----------|-------------|---------|
 | `move_pars` | `n_regions, n_regions - 1, n_years, n_ages, n_sexes` | Logit-scale movement probabilities | 0 |
-| `logit_move_devs` | `n_regions, n_regions - 1, n_years, n_ages, n_sexes` | Logit-scale movement deviations | 0 |
+| `logit_move_devs` | `n_regions, n_regions - 1, n_years + n_proj_yrs_devs, n_ages, n_sexes` | Logit-scale movement deviations w/ projection years (can be specified as random effects) | 0 |
 | `move_pe_pars` | `n_regions, n_ages, n_sexes` | Process error parameters for movement | 0 |
 
 ## Tagging

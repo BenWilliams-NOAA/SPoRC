@@ -570,6 +570,14 @@ Setup_Mod_Rec <- function(input_list,
   collect_message("Initial Age Structure is: ", ifelse(init_age_strc == 0, "Iterated", 'Geometric Series Solution'))
   if(sigmaR_switch > 1) collect_message("Sigma R switches from an early period value to a late period value at year: ", sigmaR_switch)
   collect_message("Recruitment deviations for ", ifelse(dont_est_recdev_last == 0, "every year are estimated", paste("terminal year not estimated -", dont_est_recdev_last)))
+  if(dont_est_recdev_last != 0 && input_list$data$n_proj_yrs_devs != 0) {
+    collect_message(
+      "Recruitment deviations were specified to not be estimated for the last ",
+      dont_est_recdev_last,
+      " years, but n_proj_yrs_devs != 0. Because projected deviations are still computed (penalized toward the mean), those `unestimated` years are stil effectively estimated. Setting dont_est_recdev_last to 0."
+    )
+    dont_est_recdev_last <- 0 # overwrite at 0
+  }
 
   # Populate Data List ------------------------------------------------------
 
@@ -612,7 +620,7 @@ Setup_Mod_Rec <- function(input_list,
 
   # Recruitment deviations
   if("ln_RecDevs" %in% names(starting_values)) input_list$par$ln_RecDevs <- starting_values$ln_RecDevs
-  else input_list$par$ln_RecDevs <- array(0, dim = c(input_list$data$n_regions, length(input_list$data$years) - dont_est_recdev_last))
+  else input_list$par$ln_RecDevs <- array(0, dim = c(input_list$data$n_regions, length(input_list$data$years) - dont_est_recdev_last + input_list$data$n_proj_yrs_devs))
 
   # Recruitment variability
   if("ln_sigmaR" %in% names(starting_values)) input_list$par$ln_sigmaR <- starting_values$ln_sigmaR

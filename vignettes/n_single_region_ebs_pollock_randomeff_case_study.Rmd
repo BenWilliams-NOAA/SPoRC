@@ -339,22 +339,21 @@ pol_model <- function(cont_tv_fish_sel,
 Once the function `pol_model()` is defined, we can explore alternative random effects structures by iterating across argument combinations. For illustration, we define a small set of candidate models that vary only in the specification of fishery selectivity random effects:
 
 1. Constant selectivity (no random effects),
-2. Two-dimensional autoregressive selectivity (year × age),
-3. Three-dimensional autoregressive selectivity (year × age × cohort),
-4. Independent semi-parametric deviations.
+2. iid selectivity (random effects on parameters),
+3. Random walk selectivity (random effects on parameters),
+4. Two-dimensional autoregressive selectivity (year × age; random effects are semi-parametric),
+5. Three-dimensional autoregressive selectivity (year × age × cohort; random effects are semi-parametric),
+6. Independent deviations (random effects are semi-parametric).
 
 The dataframe below specifies the argument settings for each scenario.
 ```{r, eval = FALSE}
 # models to iterate through
 pol_model_var <- data.frame(
-  cont_tv_fish_sel    = c("none_Fleet_1",
-                          "2dar1_Fleet_1",
-                          "3dcond_Fleet_1",
-                          "3dcond_Fleet_1"),
-  fishsel_pe_pars_spec = c("none", rep("est_all", 3)),
-  fish_sel_devs_spec   = c("none", rep("est_all", 3)),
-  corr_opt_semipar     = c(rep(NA, 3), "corr_zero_y_b_c") 
-)
+  cont_tv_fish_sel = c("none_Fleet_1", "iid_Fleet_1", "rw_Fleet_1", "2dar1_Fleet_1", "3dcond_Fleet_1", "3dcond_Fleet_1"),
+  fishsel_pe_pars_spec = c("none", rep("est_all", 5)),
+  fish_sel_devs_spec = c("none", rep("est_all", 5)),
+  corr_opt_semipar = c(rep(NA, 5), "corr_zero_y_b_c")
+  )
 ```
 
 We can now loop through each row to generate the model inputs, fit the model using Laplace approximation, and store the results. The model fitting process can take a while!
@@ -403,7 +402,7 @@ for(i in 1:nrow(pol_model_var)) {
 
 After fitting the models, we can summarize and compile the results to compare how alternative random effects structures influence model estimates and inference. In this example, we focus on differences in recruitment, spawning stock biomass, and fishery selectivity estimates.
 ```{r, eval = FALSE}
-model_names <- c("constant", "2dar1", "3dgmrf", "iid")
+model_names <- c("constant", "iid_p", "rw_p", "2dar1_sp", "3dgmrf_sp", "iid_sp")
 fishsel_all_df <- data.frame() # empty dataframe to bind to
 ts_all_df <- data.frame() # empty dataframe to bind to
 for(i in 1:length(models)) {
@@ -438,11 +437,11 @@ for(i in 1:length(models)) {
 } # end i loop
 
 # Refactor to order models
-fishsel_all_df <- fishsel_all_df %>% mutate(Model = factor(Model, levels = c("constant", "iid", "2dar1", "3dgmrf")))
-ts_df <- ts_df %>% mutate(Model = factor(Model, levels = c("constant", "iid", "2dar1", "3dgmrf")))
+fishsel_all_df <- fishsel_all_df %>% mutate(Model = factor(Model, levels = c("constant", "iid_p", "rw_p", "iid_sp", "2dar1_sp", "3dgmrf_sp")))
+ts_df <- ts_df %>% mutate(Model = factor(Model, levels = c("constant", "iid_p", "rw_p", "iid_sp", "2dar1_sp", "3dgmrf_sp")))
 ```
 
-Inspecting recruitment, the time series are generally consistent across models in both magnitude and trend. Spawning stock biomass estimates are also similar among models, though terminal year estimates differ slightly: the three-dimensional (`3d`) selectivity option yields the lowest biomass estimates, while the `constant` selectivity option produces the highest.
+Inspecting recruitment, the time series are generally consistent across models in both magnitude and trend. Spawning stock biomass estimates are also similar among models, though terminal year estimates differ slightly: the three-dimensional (`3d`) and parametric `iid` selectivity option generally yields the lowest biomass estimates, while the `constant` selectivity option produces the highest.
 ```{r, eval = FALSE}
 ggplot(ts_all_df, aes(x = Year, y = value, ymin = value - (1.96 * se), ymax = value + (1.96 * se), color = Model, fill = Model)) +
   geom_line(lwd = 1.3) +
@@ -457,7 +456,7 @@ ggplot(ts_all_df, aes(x = Year, y = value, ymin = value - (1.96 * se), ymax = va
 ```
 ![](figures/n_ebs_pol_re.png)
 
-Examining fishery selectivity, the `iid` and `2dar1` options are broadly similar, although `2dar1` shows more structure at older ages due to correlation constraints, whereas `iid` deviations tend to revert to the mean when data are sparse. By contrast, the `3d` option exhibits pronounced cohort variability (diagonal patterns) and maintains selectivity patterns at older, less-informed ages through correlation-based smoothing.
+Examining fishery selectivity, the `iid` and `2dar1` options are broadly similar, although `2dar1` shows more structure at older ages due to correlation constraints, whereas `iid` deviations tend to revert to the mean when data are sparse. By contrast, the `3d` option exhibits pronounced cohort variability (diagonal patterns) and maintains selectivity patterns at older, less-informed ages through correlation-based smoothing. Due to the assumption of parametric selectivity, both the `iid_p` and `rw_p` selectivity options appear relatively different (i.e., constrained to remain logistic). 
 ```{r, eval = FALSE}
 ggplot(fishsel_all_df, aes(x = Year, y = Age, fill = value)) +
   geom_tile() +

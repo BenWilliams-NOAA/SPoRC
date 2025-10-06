@@ -38,7 +38,14 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">Get_sel_PE_loglik</span><span class="op">(</span><span class="va">PE_model</span>, <span class="va">PE_pars</span>, <span class="va">ln_devs</span>, <span class="va">map_sel_devs</span>, <span class="va">sel_vals</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">Get_sel_PE_loglik</span><span class="op">(</span></span>
+<span>  <span class="va">PE_model</span>,</span>
+<span>  <span class="va">PE_pars</span>,</span>
+<span>  <span class="va">ln_devs</span>,</span>
+<span>  <span class="va">map_sel_devs</span>,</span>
+<span>  <span class="va">sel_vals</span>,</span>
+<span>  <span class="va">do_sel_pen</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -63,6 +70,10 @@
 
 <dt id="arg-sel-vals">sel_vals<a class="anchor" aria-label="anchor" href="#arg-sel-vals"></a></dt>
 <dd><p>Selectivity values (either length or age based)</p></dd>
+
+
+<dt id="arg-do-sel-pen">do_sel_pen<a class="anchor" aria-label="anchor" href="#arg-do-sel-pen"></a></dt>
+<dd><p>Whether temporal or bin penalties are used</p></dd>
 
 </dl></div>
     <div class="section level2">

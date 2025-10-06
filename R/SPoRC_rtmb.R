@@ -70,7 +70,7 @@ SPoRC_rtmb = function(pars, data) {
   Dynamic_Aggregated_SSB0 = array(0, dim = c(n_yrs)) # Dynamic Unfished Aggregated Spawning stock biomass
 
   # Movement Stuff
-  Movement = array(data = 0, dim = c(n_regions, n_regions, n_yrs, n_ages, n_sexes)) # movement "matrix"
+  Movement = array(data = 0, dim = c(n_regions, n_regions, n_yrs + n_proj_yrs_devs, n_ages, n_sexes)) # movement "matrix"
   n_move_age_tag_pool = length(move_age_tag_pool) # number of ages to pool for tagging data
   n_move_sex_tag_pool = length(move_sex_tag_pool) # number of sexes to pool for tagging data
 
@@ -87,16 +87,16 @@ SPoRC_rtmb = function(pars, data) {
   CAL = array(data = 0, dim = c(n_regions, n_yrs, n_lens, n_sexes, n_fish_fleets)) # Catch at length
   PredCatch = array(0, dim = c(n_regions, n_yrs, n_fish_fleets)) # Predicted catch in weight
   PredFishIdx = array(0, dim = c(n_regions, n_yrs, n_fish_fleets)) # Predicted fishery index
-  fish_sel = array(data = 0, dim = c(n_regions, n_yrs, n_ages, n_sexes, n_fish_fleets)) # Fishery selectivity
-  fish_sel_l = array(data = 0, dim = c(n_regions, n_yrs, n_lens, n_sexes, n_fish_fleets)) # Fishery selectivity (lengths)
+  fish_sel = array(data = 0, dim = c(n_regions, n_yrs + n_proj_yrs_devs, n_ages, n_sexes, n_fish_fleets)) # Fishery selectivity
+  fish_sel_l = array(data = 0, dim = c(n_regions, n_yrs + n_proj_yrs_devs, n_lens, n_sexes, n_fish_fleets)) # Fishery selectivity (lengths)
   fish_q = array(0, dim = c(n_regions, n_yrs, n_fish_fleets)) # Fishery catchability
 
   # Survey Processes
   SrvIAA = array(data = 0, dim = c(n_regions, n_yrs, n_ages, n_sexes, n_srv_fleets)) # Survey index at age
   SrvIAL = array(data = 0, dim = c(n_regions, n_yrs, n_lens, n_sexes, n_srv_fleets)) # Survey index at length
   PredSrvIdx = array(0, dim = c(n_regions, n_yrs, n_srv_fleets)) # Predicted survey index
-  srv_sel = array(data = 0, dim = c(n_regions, n_yrs, n_ages, n_sexes, n_srv_fleets)) # Survey selectivity ages
-  srv_sel_l = array(data = 0, dim = c(n_regions, n_yrs, n_lens, n_sexes, n_srv_fleets)) # Survey selectivity lengths
+  srv_sel = array(data = 0, dim = c(n_regions, n_yrs + n_proj_yrs_devs, n_ages, n_sexes, n_srv_fleets)) # Survey selectivity ages
+  srv_sel_l = array(data = 0, dim = c(n_regions, n_yrs + n_proj_yrs_devs, n_lens, n_sexes, n_srv_fleets)) # Survey selectivity lengths
   srv_q = array(0, dim = c(n_regions, n_yrs, n_srv_fleets)) # Survey catchability
 
   # Likelihoods
@@ -127,7 +127,7 @@ SPoRC_rtmb = function(pars, data) {
   ## Movement Parameters (Set up) --------------------------------------------
   ref_region = 1 # Set up reference region (always set at 0)
   for(r in 1:n_regions) {
-    for(y in 1:n_yrs) {
+    for(y in 1:(n_yrs + n_proj_yrs_devs)) {
       for(a in 1:n_ages) {
         for(s in 1:n_sexes) {
 
@@ -136,13 +136,16 @@ SPoRC_rtmb = function(pars, data) {
 
           for(rr in 1:n_regions) {
             if(rr != ref_region) {
-              move_tmp[rr] = move_pars[r,counter,y,a,s] + logit_move_devs[r,counter,y,a,s]
+              # extract movement parameters
+              if(y <= n_yrs) tmp_move_pars = move_pars[r,counter,y,a,s]
+              else tmp_move_pars = move_pars[r,counter,n_yrs,a,s]
+              move_tmp[rr] = tmp_move_pars + logit_move_devs[r,counter,y,a,s]
               counter = counter + 1
             } # end if not reference region
           } # end rr loop
 
           if(use_fixed_movement == 0) Movement[r,,y,a,s] = exp(move_tmp) / sum(exp(move_tmp)) # multinomial logit transform estimated movement
-          if(use_fixed_movement == 1) Movement[r,,y,a,s] = Fixed_Movement[r,,y,a,s] # fixed movement matrix
+          if(use_fixed_movement == 1 && y <= n_yrs) Movement[r,,y,a,s] = Fixed_Movement[r,,y,a,s] # fixed movement matrix
 
         } # end s loop
       } # end a loop
@@ -171,16 +174,27 @@ SPoRC_rtmb = function(pars, data) {
   if(Selex_Type == 1) selex_bins = lens # if length-based selectivity
 
   for(r in 1:n_regions) {
-    for(y in 1:n_yrs) {
+    for(y in 1:(n_yrs + n_proj_yrs_devs)) {
       for(f in 1:n_fish_fleets) {
-        fish_sel_blk_idx = fish_sel_blocks[r,y,f] # Get fishery selectivity block index
+
+        # Extract variables
+        if(y <= n_yrs) { # non-projection years
+          fish_sel_blk_idx = fish_sel_blocks[r,y,f] # selectivity block indices
+          tmp_fish_sel_model = fish_sel_model[r,y,f] # fishery selectivity model
+          if(Selex_Type == 1) tmp_sizeage = SizeAgeTrans[r,y,,,s] # size age transition matrix to use
+        } else {
+          fish_sel_blk_idx = fish_sel_blocks[r,n_yrs,f] # selectivity block indices
+          tmp_fish_sel_model = fish_sel_model[r,n_yrs,f] # fishery selectivity model
+          if(Selex_Type == 1) tmp_sizeage = SizeAgeTrans[r,n_yrs,,,s] # size age transition matrix to use
+        }
+
         for(s in 1:n_sexes) {
 
           # Extract out fixed-effect selectivity parameters for a given block
           tmp_fish_sel_vec = ln_fish_fixed_sel_pars[r,,fish_sel_blk_idx,s,f]
 
           # Compute selectivity functional form
-          tmp_sel = Get_Selex(Selex_Model = fish_sel_model[r,y,f], # selectivity model
+          tmp_sel = Get_Selex(Selex_Model = tmp_fish_sel_model, # selectivity model
                               TimeVary_Model = cont_tv_fish_sel[r,f], # time varying model
                               ln_Pars = tmp_fish_sel_vec, # fixed effect selectivity parameters
                               ln_seldevs = ln_fishsel_devs[,,,,f, drop = FALSE], # Selectivity deviations
@@ -194,7 +208,7 @@ SPoRC_rtmb = function(pars, data) {
           if(Selex_Type == 0) fish_sel[r,y,,s,f] = tmp_sel # age-based selectivity
           if(Selex_Type == 1) {
             fish_sel_l[r,y,,s,f] = tmp_sel # input into length-based fishery selectivity
-            fish_sel[r,y,,s,f] = tmp_sel %*% SizeAgeTrans[r,y,,,s] # length-based selectivity (dot product of size age transition)
+            fish_sel[r,y,,s,f] = tmp_sel %*% tmp_sizeage # length-based selectivity (dot product of size age transition)
           }
 
         } # end s loop
@@ -205,30 +219,41 @@ SPoRC_rtmb = function(pars, data) {
 
   ## Survey Selectivity ------------------------------------------------------
   for(r in 1:n_regions) {
-    for(y in 1:n_yrs) {
+    for(y in 1:(n_yrs + n_proj_yrs_devs)) {
       for(sf in 1:n_srv_fleets) {
-        srv_sel_blk_idx = srv_sel_blocks[r,y,sf] # Get survey selectivity block index
+
+        # Extract variables
+        if(y <= n_yrs) { # non-projection years
+          srv_sel_blk_idx = srv_sel_blocks[r,y,sf] # selectivity block indices
+          tmp_srv_sel_model = srv_sel_model[r,y,sf] # survey selectivity model
+          if(Selex_Type == 1) tmp_sizeage = SizeAgeTrans[r,y,,,s] # size age transition matrix to use
+        } else {
+          srv_sel_blk_idx = srv_sel_blocks[r,n_yrs,sf] # selectivity block indices
+          tmp_srv_sel_model = srv_sel_model[r,n_yrs,sf] # survey selectivity model
+          if(Selex_Type == 1) tmp_sizeage = SizeAgeTrans[r,n_yrs,,,s] # size age transition matrix to use
+        }
+
         for(s in 1:n_sexes) {
 
-          # extract temporary selectivity parameters
+          # Extract out fixed-effect selectivity parameters for a given block
           tmp_srv_sel_vec = ln_srv_fixed_sel_pars[r,,srv_sel_blk_idx,s,sf]
 
           # Compute selectivity functional form
-          tmp_sel = Get_Selex(Selex_Model = srv_sel_model[r,y,sf], # selectivity model
+          tmp_sel = Get_Selex(Selex_Model = tmp_srv_sel_model, # selectivity model
                               TimeVary_Model = cont_tv_srv_sel[r,sf], # time varying model
-                              ln_seldevs = ln_srvsel_devs[,,,,sf, drop = FALSE], # deviations
-                              ln_Pars = tmp_srv_sel_vec,
+                              ln_Pars = tmp_srv_sel_vec, # fixed effect selectivity parameters
+                              ln_seldevs = ln_srvsel_devs[,,,,sf, drop = FALSE], # Selectivity deviations
                               Region = r, # region index
                               Year = y, # year index
                               Bin = selex_bins, # bin vector
                               Sex = s # sex index
-                              )
+          )
 
           # Calculate selectivity
           if(Selex_Type == 0) srv_sel[r,y,,s,sf] = tmp_sel # age-based selectivity
           if(Selex_Type == 1) {
             srv_sel_l[r,y,,s,sf] = tmp_sel # input into length-based survey selectivity
-            srv_sel[r,y,,s,sf] = tmp_sel %*% SizeAgeTrans[r,y,,,s] # length-based selectivity (dot product of size age transition)
+            srv_sel[r,y,,s,sf] = tmp_sel %*% tmp_sizeage # length-based selectivity (dot product of size age transition)
           }
 
         } # end s loop
@@ -907,7 +932,8 @@ SPoRC_rtmb = function(pars, data) {
                                                 PE_pars = fishsel_pe_pars[r,,,f, drop = FALSE], # process error parameters for a given fleet (correlaiton and sigmas)
                                                 ln_devs = ln_fishsel_devs[r,,,,f, drop = FALSE], # extract out process error deviations for a given fleet
                                                 map_sel_devs = map_ln_fishsel_devs[r,,,,f, drop = FALSE],
-                                                sel_vals = tmp_sel_vals
+                                                sel_vals = tmp_sel_vals,
+                                                do_sel_pen = cont_tv_fish_sel_penalty
                                                 )
       } # end if
 
@@ -929,7 +955,9 @@ SPoRC_rtmb = function(pars, data) {
                                                 PE_pars = srvsel_pe_pars[r,,,sf, drop = FALSE], # process error parameters for a given fleet (correlaiton and sigmas)
                                                 ln_devs = ln_srvsel_devs[r,,,,sf, drop = FALSE], # extract out process error deviations for a given fleet
                                                 map_sel_devs = map_ln_srvsel_devs[r,,,,sf, drop = FALSE],
-                                                sel_vals = tmp_sel_vals)
+                                                sel_vals = tmp_sel_vals,
+                                                do_sel_pen = cont_tv_srv_sel_penalty
+                                                )
       } # end if
 
       # Mean Standardizing to help with interpretability
@@ -1105,6 +1133,8 @@ SPoRC_rtmb = function(pars, data) {
          srv_q_nLL +  # survey q prior
          Rec_prop_nLL # recruitment proportion prior
 
+
+
   # Report Section ----------------------------------------------------------
   # Biological Processes
   RTMB::REPORT(R0)
@@ -1150,6 +1180,12 @@ SPoRC_rtmb = function(pars, data) {
     RTMB::REPORT(Tags_Avail)
     RTMB::REPORT(Tag_Reporting)
   }
+
+  # Parameter Deviations
+  RTMB::REPORT(ln_RecDevs)
+  RTMB::REPORT(logit_move_devs)
+  RTMB::REPORT(ln_fishsel_devs)
+  RTMB::REPORT(ln_srvsel_devs)
 
   # Likelihoods
   RTMB::REPORT(Catch_nLL)

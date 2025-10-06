@@ -993,7 +993,7 @@ multiplicative deviations are assumed. In the most basic case, iid
 deviations can be assumed to vary about a parameter on a given
 selectivity functional form:
 
-$$L\left( \epsilon_{r,y,i,s,j}^{\text{Sel}} \right) = \frac{1}{\sqrt{2\pi\sigma_{r,i,s,j,Sel}^{2}}\,}\exp\left( - \frac{\left( \epsilon_{r,y,i,j}^{\text{Sel}} \right)^{2}}{2\sigma_{r,i,s,j,Sel}^{2}} \right)$$
+$$L\left( \epsilon_{r,y,i,s,j}^{\text{Sel}} \right) = \frac{1}{\sqrt{2\pi\sigma_{r,i,s,j,Sel}^{2}}\,}\exp\left( - \frac{\left( \epsilon_{r,y,i,s,j}^{\text{Sel}} \right)^{2}}{2\sigma_{r,i,s,j,Sel}^{2}} \right)$$
 
 where $\epsilon_{r,y,i,s,j}^{\text{Sel}}$ are selectivity deviations
 about a given parameter for region $r$, year $y$, parameter $i$, sex
@@ -1005,21 +1005,19 @@ Extending the iid case, random walk selectivity deviations can also be
 specified about a given parameter, assuming a normal distribution:
 
 $$L\left( \epsilon_{r,y,i,s,j}^{\text{Sel}} \right) = \left\{ \begin{matrix}
-\frac{1}{\sqrt{2\pi \cdot 5^{2}}\,}\exp\left( - \frac{\left( \epsilon_{r,y = min(y^{j}),i,j}^{\text{Sel}} \right)^{2}}{2{\cdot 5}^{2}} \right),\ if\ y = min(y^{j}) \\
-\frac{1}{\sqrt{2\pi\sigma_{r,i,s,j,Sel}^{2}}\,}\exp\left( - \frac{\left( \epsilon_{r,y,i,j}^{\text{Sel}} - \epsilon_{r,y - 1,i,j}^{\text{Sel}} \right)^{2}}{2\sigma_{r,i,s,j,Sel}^{2}} \right),if\ y > min(y^{j}) \\
+\frac{1}{\sqrt{2\pi \cdot 5^{2}}\,}\exp\left( - \frac{\left( \epsilon_{r,y = 1,i,s,j}^{\text{Sel}} \right)^{2}}{2{\cdot 5}^{2}} \right),\ if\ y = 1) \\
+\frac{1}{\sqrt{2\pi\sigma_{r,i,s,j,Sel}^{2}}\,}\exp\left( - \frac{\left( \epsilon_{r,y,i,s,j}^{\text{Sel}} - \epsilon_{r,y - 1,i,s,j}^{\text{Sel}} \right)^{2}}{2\sigma_{r,i,s,j,Sel}^{2}} \right),if\ y > 1) \\
 \end{matrix} \right.\ $$
 
-where process error deviations for the first year in which a given fleet
-$j$ operates (i.e., $min(y^{j})$) are initialized with a large variance
-(5). Following the first year, process error deviations follow a random
+where process error deviations for the first year are initialized with a large variance. Following the first year, process error deviations follow a random
 walk process with a mean conditional on the previous year's value
-($\epsilon_{r,y - 1,i,j}^{\text{Sel}}$) and a variance of
+($\epsilon_{r,y - 1,i,s,j}^{\text{Sel}}$) and a variance of
 $\sigma_{r,i,s,j,Sel}^{2}$.
 
 In addition to being constrained by a normal distribution, both iid and
-random walk cases have an additional smoothness penalty applied:
+random walk cases have an optional additional smoothness penalty applied:
 
-$$P_{SelYrSmoothness} = \sum_{r = 1}^{n_{r}}{\sum_{j = 1}^{n_{j}}{\sum_{s = 1}^{n_{s}}{\sum_{y = min(y^{j})}^{n_{y}}{\sum_{b = 1}^{n_{b}}\left( \log\left( {Sel}_{r,y,b,s,j} \right) - log({Sel}_{r,y - 1,b,s,j}) \right)^{2}}}}}$$
+$$P_{SelYrSmooth} = \sum_{r = 1}^{n_{r}}{\sum_{j = 1}^{n_{j}}{\sum_{s = 1}^{n_{s}}{\sum_{y = 2}^{n_{y}}{\sum_{i = 1}^{n_{i}}\left( \epsilon_{r,y,i,s,j}^{\text{Sel}}- \epsilon_{r,y - 1,i,s,j}^{\text{Sel}} \right)^{2}}}}}$$
 
 which serves to ensure selectivity values do not vary drastically from
 year-to-year.
@@ -1094,12 +1092,12 @@ and $\text{R}_{b}$ is a $n_{b} \times n_{b}$ matrix representing a
 first-order autoregressive process across bins.
 
 Moreover, when semi-parametric deviations are specified, additional
-penalties are applied across bins and years to enforce curvature
+optional penalties can be applied across bins and years to enforce curvature
 control:
 
-$$P_{SelBinCurve} = \sum_{r = 1}^{n_{r}}{\sum_{j = 1}^{n_{j}}{\sum_{s = 1}^{n_{s}}{\sum_{y = min(y^{j})}^{n_{y}}{\sum_{b = 2}^{n_{b} - 1}\left( \log\left( {Sel}_{r,y,b + 1,s,j} \right) - 2\log\left( {Sel}_{r,y,b,s,j} \right)\log\left( {Sel}_{r,y,b - 1,s,j} \right) \right)^{2}}}}}$$
+$$P_{SelBinCurve} = \sum_{r = 1}^{n_{r}}{\sum_{j = 1}^{n_{j}}{\sum_{s = 1}^{n_{s}}{\sum_{y = 1}^{n_{y}}{\sum_{b = 2}^{n_{b} - 1}\left( \log\left( {Sel}_{r,y,b + 1,s,j} \right) - 2\log\left( {Sel}_{r,y,b,s,j} \right)\log\left( {Sel}_{r,y,b - 1,s,j} \right) \right)^{2}}}}}$$
 
-$$P_{SelYrCurve} = \sum_{r = 1}^{n_{r}}{\sum_{j = 1}^{n_{j}}{\sum_{s = 1}^{n_{s}}{\sum_{y = \min\left( y^{j} \right) + 1}^{n_{y} - 1}{\sum_{b = 1}^{n_{b}}\left( \log\left( {Sel}_{r,y + 1,b,s,j} \right) - 2\log\left( {Sel}_{r,y,b,s,j} \right)\log\left( {Sel}_{r,y - 1,b,s,j} \right) \right)^{2}}}}}$$
+$$P_{SelYrCurve} = \sum_{r = 1}^{n_{r}}{\sum_{j = 1}^{n_{j}}{\sum_{s = 1}^{n_{s}}{\sum_{y = 2}^{n_{y} - 1}{\sum_{b = 1}^{n_{b}}\left( \log\left( {Sel}_{r,y + 1,b,s,j} \right) - 2\log\left( {Sel}_{r,y,b,s,j} \right)\log\left( {Sel}_{r,y - 1,b,s,j} \right) \right)^{2}}}}}$$
 
 #### Movement
 
