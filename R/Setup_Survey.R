@@ -1187,7 +1187,7 @@ do_srvsel_devs_mapping <- function(input_list, srv_sel_devs_spec) {
       }
 
       for(s in 1:input_list$data$n_sexes) {
-        for(y in 1:length(input_list$data$years)) {
+        for(y in 1:(length(input_list$data$years) + input_list$data$n_proj_yrs_devs)) {
 
           # if no time-variation, then fix all parameters for this fleet
           if(input_list$data$cont_tv_srv_sel[r,f] == 0 || sum(input_list$data$UseSrvIdx[r,,f]) == 0) {

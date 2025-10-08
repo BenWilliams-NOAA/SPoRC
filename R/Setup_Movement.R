@@ -105,7 +105,7 @@ do_cont_vary_move_mapping <- function(input_list, cont_vary_movement, Movement_c
 
         # Unique deviations for all years
         if(cont_vary_movement %in% c('iid_y')) {
-          for(y in 1:length(input_list$data$years)) {
+          for(y in 1:(length(input_list$data$years) + input_list$data$n_proj_yrs_devs)) {
             map_logit_move_devs[r,rr,y,,] <- counter
             counter <- counter + 1
           } # end y loop
@@ -121,7 +121,7 @@ do_cont_vary_move_mapping <- function(input_list, cont_vary_movement, Movement_c
 
         # Unique deviations for all years and ages
         if(cont_vary_movement %in% c('iid_y_a')) {
-          for(y in 1:length(input_list$data$years)) {
+          for(y in 1:(length(input_list$data$years) + input_list$data$n_proj_yrs_devs)) {
             for(a in age_start:length(input_list$data$ages)) {
               map_logit_move_devs[r,rr,y,a,] <- counter
               counter <- counter + 1
@@ -130,7 +130,7 @@ do_cont_vary_move_mapping <- function(input_list, cont_vary_movement, Movement_c
         } # end if iid_y_a
 
         if(cont_vary_movement %in% c('iid_y_s')) {
-          for(y in 1:length(input_list$data$years)) {
+          for(y in 1:(length(input_list$data$years) + input_list$data$n_proj_yrs_devs)) {
             for(s in 1:input_list$data$n_sexes) {
               map_logit_move_devs[r,rr,y,,s] <- counter
               counter <- counter + 1
@@ -150,7 +150,7 @@ do_cont_vary_move_mapping <- function(input_list, cont_vary_movement, Movement_c
 
         # Unique deviations for all years, ages, and sexes
         if(cont_vary_movement %in% c('iid_y_a_s')) {
-          for(y in 1:length(input_list$data$years)) {
+          for(y in 1:(length(input_list$data$years) + input_list$data$n_proj_yrs_devs)) {
             for(a in age_start:length(input_list$data$ages)) {
               for(s in 1:input_list$data$n_sexes) {
                 map_logit_move_devs[r,rr,y,a,s] <- counter
