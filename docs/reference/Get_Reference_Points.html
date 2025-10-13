@@ -54,7 +54,8 @@ calculations with options for SPR or Beverton–Holt MSY reference points.</p>
 <span>  rec_age <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  <span class="va">type</span>,</span>
 <span>  <span class="va">what</span>,</span>
-<span>  n_avg_yrs <span class="op">=</span> <span class="fl">1</span></span>
+<span>  n_avg_yrs <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  local_bh_msy_newton_steps <span class="op">=</span> <span class="fl">6</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -111,7 +112,10 @@ calculations with options for SPR or Beverton–Holt MSY reference points.</p>
 <dd><p>Multi-region BH-MSY without movement</p></dd>
 
   <dt>global_BH_MSY</dt>
-<dd><p>Multi-region BH-MSY with movement</p></dd>
+<dd><p>Multi-region global BH-MSY with movement</p></dd>
+
+  <dt>local_BH_MSY</dt>
+<dd><p>Multi-region local BH-MSY with movement</p></dd>
 
 
 </dl></dd>
@@ -119,6 +123,11 @@ calculations with options for SPR or Beverton–Holt MSY reference points.</p>
 
 <dt id="arg-n-avg-yrs">n_avg_yrs<a class="anchor" aria-label="anchor" href="#arg-n-avg-yrs"></a></dt>
 <dd><p>Integer. Number of years to average demographic rates when calculating reference points.</p></dd>
+
+
+<dt id="arg-local-bh-msy-newton-steps">local_bh_msy_newton_steps<a class="anchor" aria-label="anchor" href="#arg-local-bh-msy-newton-steps"></a></dt>
+<dd><p>Number of newton steps to take to solve for equilibrium recruitment in the origin region
+when local_BH_MSY is assumed.</p></dd>
 
 </dl></div>
     <div class="section level2">

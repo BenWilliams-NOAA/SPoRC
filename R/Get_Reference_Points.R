@@ -5,30 +5,6 @@
 #'
 #' @keywords internal
 #' @import RTMB
-#'
-#' @examples
-#' \dontrun{
-#' rep <- obj$report(obj$env$last.par.best) # need to have an RTMB object first
-#' # Extract out relevant elements
-#' n_ages <- length(data$ages) # number of ages
-#' n_years <- length(data$years) # number of years
-#' data_list$F_fract_flt <- rep$Fmort[1,n_years,] / sum(rep$Fmort[1,n_years,]) # get fleet F fraction to derive population level selectivity
-#' data_list$fish_sel <- array(rep$fish_sel[1,n_years,,1,], dim = c(n_ages, data$n_fish_fleets)) # get female selectivity for all fleets
-#' data_list$natmort <- rep$natmort[1,1,,1] # get female natural mortality
-#' data_list$t_spwn <- t_spwn # specified mortality time up until spawning
-#' data_list$WAA <- data$WAA[1,1,,1] # weight-at-age for females
-#' data_list$MatAA <- data$MatAA[1,1,,1] # maturity at age for females
-#'
-#' data_list$SPR_x <- SPR_x # SPR fraction
-#'
-#' par_list <- list() # set up parameter list
-#' par_list$log_F_x <- log(0.1) # F_x starting value
-#'
-#' # Make adfun object
-#' obj <- RTMB::MakeADFun(cmb(single_region_SPR, data_list), parameters = par_list, map = NULL, silent = TRUE)
-#' obj$optim <- stats::nlminb(obj$par, obj$fn, obj$gr, control = list(iter.max = 1e6, eval.max = 1e6, rel.tol = 1e-15))
-#' obj$rep <- obj$report(obj$env$last.par.best) # get report
-#' }
 single_region_SPR <- function(pars,
                               data
                               ) {
@@ -89,31 +65,6 @@ single_region_SPR <- function(pars,
 #' @param data Data List from RTMB
 #' @keywords internal
 #' @import RTMB
-#'
-#' @examples
-#' \dontrun{
-#' SPR_x <- 0.4 # spr fraction
-#' rep <- obj$report(obj$env$last.par.best) # need to have an RTMB object first
-#' # Extract out relevant elements
-#' n_ages <- length(data$ages) # number of ages
-#' n_years <- length(data$years) # number of years
-#' data_list$F_fract_flt <- rep$Fmort[1,n_years,] / sum(rep$Fmort[1,n_years,]) # get fleet F fraction to derive population level selectivity
-#' data_list$fish_sel <- array(rep$fish_sel[1,n_years,,1,], dim = c(n_ages, data$n_fish_fleets)) # get female selectivity for all fleets
-#' data_list$natmort <- rep$natmort[1,1,,1] # get female natural mortality
-#' data_list$t_spwn <- t_spwn # specified mortality time up until spawning
-#' data_list$WAA <- data$WAA[1,1,,1] # weight-at-age for females
-#' data_list$MatAA <- data$MatAA[1,1,,1] # maturity at age for females
-#' data_list$Rec_Prop <- rep$Rec_trans_prop # unfished recruitment by region
-#' data_list$Movement <- array(rep$Movement[,,n_years,,1], dim = c(n_regions, n_regions, n_ages)) # Movement
-#' data_list$do_recruits_move <- data$do_recruits_move # whether recruits move
-#' data_list$SPR_x <- SPR_x # SPR fraction
-#' par_list <- list() # set up parameter list
-#' par_list$log_F_x <- log(0.1) # F_x starting value
-#' # Make adfun object
-#' obj <- RTMB::MakeADFun(cmb(global_SPR, data_list), parameters = par_list, map = NULL, silent = TRUE)
-#' obj$optim <- stats::nlminb(obj$par, obj$fn, obj$gr, control = list(iter.max = 1e6, eval.max = 1e6, rel.tol = 1e-15))
-#' obj$rep <- obj$report(obj$env$last.par.best) # get report
-#' }
 global_SPR <- function(pars,
                        data
                        ) {
@@ -192,32 +143,6 @@ global_SPR <- function(pars,
 #' @param data Data List
 #' @keywords internal
 #' @import RTMB
-#'
-#' @examples
-#' \dontrun{
-#' rep <- obj$report(obj$env$last.par.best) # need to have an RTMB object first
-#' data_list <- list() # set up data list
-#' # Extract out relevant elements
-#' n_ages <- length(data$ages) # number of ages
-#' n_years <- length(data$years) # number of years
-#' data_list$F_fract_flt <- rep$Fmort[1,n_years,] / sum(rep$Fmort[1,n_years,]) # get fleet F fraction to derive population level selectivity
-#' data_list$fish_sel <- array(rep$fish_sel[1,n_years,,1,], dim = c(n_ages, data$n_fish_fleets)) # get female selectivity for all fleets
-#' data_list$natmort <- rep$natmort[1,1,,1] # get female natural mortality
-#' data_list$t_spwn <- 0 # specified mortality time up until spawning
-#' data_list$WAA <- data$WAA[1,1,,1] # weight-at-age for females
-#' data_list$MatAA <- data$MatAA[1,1,,1] # maturity at age for females
-#' data_list$h <- rep$h_trans # steepness
-#' data_list$R0 <- rep$R0 # unfished recruitment
-#'
-#' par_list <- list() # set up parameter list
-#' par_list$log_Fmsy <- log(0.1) # Fmsy starting value
-#'
-#' # Make adfun object
-#' obj <- RTMB::MakeADFun(cmb(single_region_BH_Fmsy, data_list), parameters = par_list, map = NULL, silent = TRUE)
-#' obj$optim <- stats::nlminb(obj$par, obj$fn, obj$gr, control = list(iter.max = 1e6, eval.max = 1e6, rel.tol = 1e-15))
-#' obj$rep <- obj$report(obj$env$last.par.best) # get report
-#' obj$sdrep <- sdreport(obj)
-#' }
 single_region_BH_Fmsy <- function(pars,
                                   data) {
 
@@ -298,31 +223,6 @@ single_region_BH_Fmsy <- function(pars,
 #' @param data Data List
 #' @keywords internal
 #' @import RTMB
-#'
-#' @examples
-#' \dontrun{
-#' rep <- obj$report(obj$env$last.par.best) # need to have an RTMB object first
-#' data_list <- list() # set up data list
-#' # Extract out relevant elements
-#' n_ages <- length(data$ages) # number of ages
-#' n_years <- length(data$years) # number of years
-#' data_list$F_fract_flt <- rep$Fmort[1,n_years,] / sum(rep$Fmort[1,n_years,]) # get fleet F fraction
-#' data_list$fish_sel <- array(rep$fish_sel[1,n_years,,1,], dim = c(n_ages, data$n_fish_fleets))
-#' data_list$natmort <- rep$natmort[1,1,,1]
-#' data_list$t_spwn <- 0
-#' data_list$WAA <- data$WAA[1,1,,1]
-#' data_list$MatAA <- data$MatAA[1,1,,1]
-#' data_list$h <- rep$h_trans
-#' data_list$R0 <- rep$R0
-#'
-#' par_list <- list()
-#' par_list$log_Fmsy <- log(0.1)
-#'
-#' obj <- RTMB::MakeADFun(cmb(single_region_BH_Fmsy, data_list), parameters = par_list, map = NULL, silent = TRUE)
-#' obj$optim <- stats::nlminb(obj$par, obj$fn, obj$gr, control = list(iter.max = 1e6, eval.max = 1e6, rel.tol = 1e-15))
-#' obj$rep <- obj$report(obj$env$last.par.best)
-#' obj$sdrep <- sdreport(obj)
-#' }
 global_BH_Fmsy <- function(pars,
                            data) {
 
@@ -423,6 +323,180 @@ global_BH_Fmsy <- function(pars,
   return(obj_fun)
 }
 
+#' Title Get Local FMSY from a Beverton-Holt (Spatial)
+#'
+#' @param pars Parameter List
+#' @param data Data List
+#' @keywords internal
+#' @import RTMB
+local_BH_Fmsy <- function(pars,
+                          data) {
+
+  "c" <- RTMB::ADoverload("c")
+  "[<-" <- RTMB::ADoverload("[<-")
+
+  RTMB::getAll(pars, data) # get parameters and data
+
+  n_regions = dim(fish_sel)[1] # number of regions
+  n_model_ages = dim(fish_sel)[2] # number of model ages
+  n_ages = n_model_ages * 10 # get number of ages to iterate through for plus group
+
+  # set up containers
+  SB_age = Nspr = array(0, dim = c(2, n_regions, n_regions, n_ages)) # 2 slots in rows, for unfished, and fished at Fmsy
+  CAA = array(0, c(n_regions, n_regions, n_ages)) # catch at age
+  Yield_r = array(0, dim = n_regions) # yield by region
+  SB_unfished_mat = matrix(0, n_regions, n_regions)  # unfished spawning biomass per recruit
+  SB_fished_mat = matrix(0, n_regions, n_regions) # fished spawning biomass per recruit
+  Bmsy_r = array(0, dim = n_regions) # BMSY
+  B0_r = array(0, dim = n_regions) # unfished B0
+  SPR_r = array(0, dim = n_regions) # spawning potential ratio
+
+  # Extend WAA by repeating the last age
+  WAA_ext <- cbind(WAA, matrix(WAA[, n_model_ages, drop = FALSE], nrow = n_regions, ncol = n_ages - n_model_ages))
+
+  # exponentitate reference points to "solve"
+  Fmsy = exp(log_Fmsy)
+
+  # Set up the initial recruits (1 recruit per area)
+  for(o in 1:n_regions) {
+    for(d in 1:n_regions) {
+      if(o == d) Nspr[1,o,d,1] = Nspr[2,o,d,1]  = 1
+      else Nspr[1,o,d,1] = Nspr[2,o,d,1] = 0
+    } # end d loop
+  } # end o loop
+
+  # Loop through, apply movement first, then decrement recruit
+  for(j in 2:n_ages) {
+
+    # Get age index to use for demographics
+    if(j <= n_model_ages) age_idx = j - 1
+    else age_idx = n_model_ages
+
+    # move individuals from origin region and move them around
+    for(o in 1:n_regions) {
+
+      # Get temporary values from origin region
+      tmp_unfished = Nspr[1,o,,j-1]
+      tmp_fished = Nspr[2,o,,j-1]
+
+      # Apply movement
+      if(do_recruits_move == 1 || (do_recruits_move == 0 && j > 2)) {
+        tmp_unfished = tmp_unfished %*% Movement[,,age_idx]
+        tmp_fished = tmp_fished %*% Movement[,,age_idx]
+      }
+
+      tmp_F = apply(F_fract_flt * Fmsy * fish_sel[, age_idx, , drop = FALSE], 1, sum) # get F
+      tmp_Z = tmp_F + natmort[, age_idx] # get Z
+
+      # decrement fish and project forward
+      Nspr[1,o,,j] = tmp_unfished * exp(-1 * natmort[, age_idx])
+      Nspr[2,o,,j] = tmp_fished * exp(-1 * tmp_Z)
+
+    } # end o loop
+  } # end j loop
+
+
+  # Derive spawning biomass per recruit and yield per recruit quantities by origin and destination region
+  for(j in 1:n_ages) {
+
+    # Get age index to use for demographics
+    if(j < n_model_ages) age_idx = j
+    else age_idx = n_model_ages
+
+    tmp_F = apply(F_fract_flt * Fmsy * fish_sel[,age_idx,,drop = FALSE], 1, sum) # temporary fishing mortality at age
+    tmp_Z = tmp_F + natmort[,age_idx] # temporary total mortality at age
+
+    for(o in 1:n_regions) {
+      for(d in 1:n_regions) {
+
+        SB_age[1,o,d,j] = Nspr[1,o,d,j] * WAA[d,age_idx] * MatAA[d,age_idx] * exp(-t_spwn * natmort[d,age_idx]) # unfished
+        SB_age[2,o,d,j] = Nspr[2,o,d,j] * WAA[d,age_idx] * MatAA[d,age_idx] * exp(-t_spwn * tmp_Z[d]) # fished
+
+        # Get catch at age to derive yield per recruit
+        CAA[o,d,j] = Nspr[2,o,d,j] * (tmp_F[d] / tmp_Z[d]) * (1 - exp(-tmp_Z[d])) # Baranov's
+
+      } # end d loop
+    } # end o loop
+
+  } # end j loop
+
+  # Determine equilibrium recruitment for destination region
+  # parse out and compute unfished and fished spawning biomass per recruit
+  for(o in 1:n_regions) {
+    for(d in 1:n_regions) {
+      SB_unfished_mat[o, d] = sum(SB_age[1, o, d, ])  # unfished
+      SB_fished_mat[o, d] = sum(SB_age[2, o, d, ])  # fished at Fmsy
+    } # end o loop
+  } # end d loop
+
+  A = 4 * h * Rec_Prop * R0 # define first part of the numerator of BH recruitment
+  B = rep(0, n_regions) # define first part of the denominator of BH recruitment
+  for(d in 1:n_regions) B[d] = (1 - h[d]) * sum(SB_unfished_mat[,d] * Rec_Prop * R0)
+  C = 5 * h - 1 # define second part of the denominator for BH recruitment
+
+  # define initial guess to solve for equilibrium recruitment from origin region
+  Req_o = R0 * Rec_Prop
+
+  for(nit in 1:newton_steps) {
+    # compute equilibrium spawning biomass (SSBR * Req) in destination region
+    x_vec = as.numeric(t(SB_fished_mat) %*% Req_o)  # function of equilibrium recruitment in origin region (what we are solving for)
+    numer_vec = A * x_vec # compute numerator of BH
+    denom_vec = B + C * x_vec # compute denominator of BH
+    g_vec = numer_vec / denom_vec # equilibrium recruitment in destination region
+
+    # define root and fine Jacobian
+    iter_vec = Req_o - g_vec # find values of origin recruitment that are consisitent w/ destination recruitment such that pop'n is in equilibrium
+
+    # construct Jacobian for root
+    # we need J = df (iter_vec)/dReq = dReq/dReq (or I) - dg/dReq
+    # we basically want to know dg / dReq (how does destination equil rec change as orign equil rec change)
+    # dg / dReq = (dg / dxk) * (dxk / dReq)
+    # to get (dg / dxk), use quotient rule of (BH recruitment)
+    # note that dxk / dReq S_2mat * Req = S_2mat
+    dg_dxk = (A * B) / (denom_vec^2)
+    dg_dReq = matrix(0, n_regions, n_regions)
+    for(d in 1:n_regions) dg_dReq[d, ] = dg_dxk[d] * SB_fished_mat[, d]# now compute to see how destination equilibrium rec changes, as origin equil rec changes
+
+    # compute jacobian
+    J <- diag(1, n_regions) - dg_dReq
+    delta = solve(J, iter_vec) # get step to move towards solution
+    Req_o = Req_o - delta # newton raphson update
+  }
+
+  # get destination reigon yield
+  for(d in 1:n_regions) {
+    tmp = 0 # define temp variable
+    for(o in 1:n_regions) tmp = tmp + sum(CAA[o, d, ] * WAA_ext[d, 1:n_ages]) * Req_o[o] # get yield to destination
+    Yield_r[d] = tmp
+  } # end d loop
+
+  # get other derived quantities
+  for(d in 1:n_regions) {
+    Bmsy_r[d] = sum(SB_fished_mat[,d] * Req_o)
+    B0_r[d] = sum(SB_unfished_mat[,d] * Req_o)
+    SPR_r[d] = Bmsy_r[d] / B0_r[d]
+  }
+
+  # maximize total yield
+  Yield_total = sum(Yield_r)
+  obj_fun = -Yield_total
+
+  RTMB::REPORT(Fmsy)
+  RTMB::REPORT(Req_o)
+  RTMB::REPORT(Bmsy_r)
+  RTMB::REPORT(SPR_r)
+  RTMB::REPORT(Yield_r)
+  RTMB::REPORT(Yield_total)
+  RTMB::REPORT(dg_dReq)
+  RTMB::REPORT(B0_r)
+  RTMB::REPORT(SPR_r)
+  RTMB::REPORT(iter_vec)
+  RTMB::REPORT(SB_fished_mat)
+  RTMB::REPORT(SB_unfished_mat)
+
+  return(obj_fun)
+}
+
 #' Wrapper function to get reference points
 #'
 #' Wrapper function to compute fishing and biological reference points given data and report
@@ -444,9 +518,12 @@ global_BH_Fmsy <- function(pars,
 #'     \item{global_SPR}{Multi-region SPR with movement}
 #'     \item{BH_MSY}{Single-region Beverton–Holt MSY}
 #'     \item{independent_BH_MSY}{Multi-region BH-MSY without movement}
-#'     \item{global_BH_MSY}{Multi-region BH-MSY with movement}
+#'     \item{global_BH_MSY}{Multi-region global BH-MSY with movement}
+#'     \item{local_BH_MSY}{Multi-region local BH-MSY with movement}
 #'   }
 #' @param n_avg_yrs Integer. Number of years to average demographic rates when calculating reference points.
+#' @param local_bh_msy_newton_steps Number of newton steps to take to solve for equilibrium recruitment in the origin region
+#' when local_BH_MSY is assumed.
 #'
 #' @return A list with elements:
 #'   \describe{
@@ -468,7 +545,8 @@ Get_Reference_Points <- function(data,
                                  rec_age = 1,
                                  type,
                                  what,
-                                 n_avg_yrs = 1
+                                 n_avg_yrs = 1,
+                                 local_bh_msy_newton_steps = 6
                                  ) {
 
   f_ref_pt <- vector() # set up storage
@@ -548,8 +626,8 @@ Get_Reference_Points <- function(data,
 
   if(type == 'multi_region') {
 
-    if(!what %in% c("independent_SPR", "independent_BH_MSY", "global_SPR", "global_BH_MSY"))
-      stop("what is not correctly specified! Should be independent_SPR, independent_BH_MSY, global_SPR, global_BH_MSY for type = multi_region")
+    if(!what %in% c("independent_SPR", "independent_BH_MSY", "global_SPR", "global_BH_MSY", "local_BH_MSY"))
+      stop("what is not correctly specified! Should be independent_SPR, independent_BH_MSY, global_SPR, global_BH_MSY, local_BH_MSY for type = multi_region")
 
     data_list <- list() # set up data list
 
@@ -742,6 +820,62 @@ Get_Reference_Points <- function(data,
       f_ref_pt <- rep(obj$rep$Fmsy, n_regions)
       b_ref_pt <- obj$rep$Bmsy * sex_ratio_f * rep$Rec_trans_prop
       virgin_b_ref_pt <- obj$rep$B0 * sex_ratio_f * rep$Rec_trans_prop
+    }
+
+    if(what == 'local_BH_MSY') {
+
+      # Extract out relevant elements for a given region
+      n_ages <- length(data$ages) # number of ages to iterate through
+      n_years <- length(data$years) # number of years
+      n_regions <- data$n_regions # number of regions
+      data_list$t_spwn <- t_spwn # specified mortality time up until spawning
+
+      # Fleet fraction F
+      data_list$F_fract_flt <- rep$Fmort[,n_years,,drop = FALSE] / apply(rep$Fmort[,n_years,,drop = FALSE], 1, sum) # get fleet F fraction to derive population level selectivity
+
+      # fishery selectivity
+      fish_sel_avg <- apply(rep$fish_sel[,avg_yrs,,1,,drop = FALSE], c(1, 3, 4, 5), mean)
+      data_list$fish_sel <- array(fish_sel_avg, dim = c(n_regions, n_ages, data$n_fish_fleets)) # get female selectivity for all fleets
+
+      # natural mortality
+      natmort_avg <- apply(rep$natmort[,avg_yrs,,1,drop = FALSE], c(1, 3, 4), mean)
+      data_list$natmort <- array(natmort_avg, dim = c(n_regions, n_ages)) # get female natural mortality
+
+      # weight at age
+      WAA_avg <- apply(data$WAA[,avg_yrs,,1,drop = FALSE], c(1, 3, 4), mean)
+      data_list$WAA <- array(WAA_avg, dim = c(n_regions, n_ages)) # weight at age for females
+
+      # maturity at age
+      MatAA_avg <- apply(data$MatAA[,avg_yrs,,1,drop = FALSE], c(1, 3, 4), mean)
+      data_list$MatAA <- array(MatAA_avg, dim = c(n_regions, n_ages)) # maturity at age for females
+
+      # Movement
+      Movement_avg <- apply(rep$Movement[,,avg_yrs,,1,drop = FALSE], c(1,2,4,5), mean)
+      data_list$Movement <- array(Movement_avg, dim = c(n_regions, n_regions, n_ages)) # Movement
+
+      # Recruitment options
+      data_list$do_recruits_move <- data$do_recruits_move # whether recruits move
+      data_list$Rec_Prop <- rep$Rec_trans_prop # recruitment proportions
+
+      data_list$h <- rep$h_trans # steepness
+      data_list$R0 <- rep$R0  # unfished recruitment
+      data_list$newton_steps <- local_bh_msy_newton_steps # number of newton steps to take
+
+      par_list <- list() # set up parameter list
+      par_list$log_Fmsy <- rep(log(0.1), n_regions) # Fmsy starting value
+
+      # Make adfun object
+      obj <- RTMB::MakeADFun(cmb(local_BH_Fmsy, data_list), parameters = par_list, map = NULL, silent = TRUE)
+      obj$optim <- stats::nlminb(obj$par, obj$fn, obj$gr, control = list(iter.max = 1e6, eval.max = 1e6, rel.tol = 1e-15))
+      obj$rep <- obj$report(obj$env$last.par.best) # get report
+
+      # Output reference points
+      f_ref_pt <- obj$rep$Fmsy
+      b_ref_pt <- obj$rep$Bmsy_r * sex_ratio_f
+      virgin_b_ref_pt <- obj$rep$B0_r * sex_ratio_f
+
+      # see if Newton Raphson calcs for equil rec converged
+      if(sum(obj$rep$iter_vec) > 1e-10) warning("Calculations for equilibrium recruits from origin regions might not have converged! Try increasing local_bh_msy_newton_steps or be wary of these values!")
     }
 
   } # end multi region

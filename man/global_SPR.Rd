@@ -14,29 +14,4 @@ global_SPR(pars, data)
 \description{
 Title Get Global SPR Reference Points (Spatial)
 }
-\examples{
-\dontrun{
-SPR_x <- 0.4 # spr fraction
-rep <- obj$report(obj$env$last.par.best) # need to have an RTMB object first
-# Extract out relevant elements
-n_ages <- length(data$ages) # number of ages
-n_years <- length(data$years) # number of years
-data_list$F_fract_flt <- rep$Fmort[1,n_years,] / sum(rep$Fmort[1,n_years,]) # get fleet F fraction to derive population level selectivity
-data_list$fish_sel <- array(rep$fish_sel[1,n_years,,1,], dim = c(n_ages, data$n_fish_fleets)) # get female selectivity for all fleets
-data_list$natmort <- rep$natmort[1,1,,1] # get female natural mortality
-data_list$t_spwn <- t_spwn # specified mortality time up until spawning
-data_list$WAA <- data$WAA[1,1,,1] # weight-at-age for females
-data_list$MatAA <- data$MatAA[1,1,,1] # maturity at age for females
-data_list$Rec_Prop <- rep$Rec_trans_prop # unfished recruitment by region
-data_list$Movement <- array(rep$Movement[,,n_years,,1], dim = c(n_regions, n_regions, n_ages)) # Movement
-data_list$do_recruits_move <- data$do_recruits_move # whether recruits move
-data_list$SPR_x <- SPR_x # SPR fraction
-par_list <- list() # set up parameter list
-par_list$log_F_x <- log(0.1) # F_x starting value
-# Make adfun object
-obj <- RTMB::MakeADFun(cmb(global_SPR, data_list), parameters = par_list, map = NULL, silent = TRUE)
-obj$optim <- stats::nlminb(obj$par, obj$fn, obj$gr, control = list(iter.max = 1e6, eval.max = 1e6, rel.tol = 1e-15))
-obj$rep <- obj$report(obj$env$last.par.best) # get report
-}
-}
 \keyword{internal}

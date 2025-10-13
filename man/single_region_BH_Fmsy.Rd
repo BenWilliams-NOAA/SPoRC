@@ -14,30 +14,4 @@ single_region_BH_Fmsy(pars, data)
 \description{
 Title Get FMSY from a Beverton-Holt function (Single Region)
 }
-\examples{
-\dontrun{
-rep <- obj$report(obj$env$last.par.best) # need to have an RTMB object first
-data_list <- list() # set up data list
-# Extract out relevant elements
-n_ages <- length(data$ages) # number of ages
-n_years <- length(data$years) # number of years
-data_list$F_fract_flt <- rep$Fmort[1,n_years,] / sum(rep$Fmort[1,n_years,]) # get fleet F fraction to derive population level selectivity
-data_list$fish_sel <- array(rep$fish_sel[1,n_years,,1,], dim = c(n_ages, data$n_fish_fleets)) # get female selectivity for all fleets
-data_list$natmort <- rep$natmort[1,1,,1] # get female natural mortality
-data_list$t_spwn <- 0 # specified mortality time up until spawning
-data_list$WAA <- data$WAA[1,1,,1] # weight-at-age for females
-data_list$MatAA <- data$MatAA[1,1,,1] # maturity at age for females
-data_list$h <- rep$h_trans # steepness
-data_list$R0 <- rep$R0 # unfished recruitment
-
-par_list <- list() # set up parameter list
-par_list$log_Fmsy <- log(0.1) # Fmsy starting value
-
-# Make adfun object
-obj <- RTMB::MakeADFun(cmb(single_region_BH_Fmsy, data_list), parameters = par_list, map = NULL, silent = TRUE)
-obj$optim <- stats::nlminb(obj$par, obj$fn, obj$gr, control = list(iter.max = 1e6, eval.max = 1e6, rel.tol = 1e-15))
-obj$rep <- obj$report(obj$env$last.par.best) # get report
-obj$sdrep <- sdreport(obj)
-}
-}
 \keyword{internal}

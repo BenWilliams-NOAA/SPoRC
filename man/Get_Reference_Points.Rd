@@ -14,7 +14,8 @@ Get_Reference_Points(
   rec_age = 1,
   type,
   what,
-  n_avg_yrs = 1
+  n_avg_yrs = 1,
+  local_bh_msy_newton_steps = 6
 )
 }
 \arguments{
@@ -41,10 +42,14 @@ Get_Reference_Points(
   \item{global_SPR}{Multi-region SPR with movement}
   \item{BH_MSY}{Single-region Beverton–Holt MSY}
   \item{independent_BH_MSY}{Multi-region BH-MSY without movement}
-  \item{global_BH_MSY}{Multi-region BH-MSY with movement}
+  \item{global_BH_MSY}{Multi-region global BH-MSY with movement}
+  \item{local_BH_MSY}{Multi-region local BH-MSY with movement}
 }}
 
 \item{n_avg_yrs}{Integer. Number of years to average demographic rates when calculating reference points.}
+
+\item{local_bh_msy_newton_steps}{Number of newton steps to take to solve for equilibrium recruitment in the origin region
+when local_BH_MSY is assumed.}
 }
 \value{
 A list with elements:
