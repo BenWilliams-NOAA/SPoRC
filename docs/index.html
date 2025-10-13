@@ -45,12 +45,13 @@
   </div>
 </nav><div class="container template-home">
 <div class="row">
-  <main id="main" class="col-md-9"><div class="section level1">
-<div class="page-header"><h1 id="sporc-stochastic-population-model-over-regional-components-">SPoRC: Stochastic Population Model Over Regional Components <img src="reference/figures/SPoRC_hex.png" align="right" alt="" width="200"><a class="anchor" aria-label="anchor" href="#sporc-stochastic-population-model-over-regional-components-"></a>
-</h1></div>
-<div class="section level2">
-<h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
+  <main id="main" class="col-md-9"><div class="section level2">
+<h2 id="sporc-stochastic-population-model-over-regional-components-">SPoRC: Stochastic Population Model Over Regional Components <a href="https://github.com/chengmatt/SPoRC" class="external-link"><img src="reference/figures/SPoRC_hex.png" align="right" style="height:139px;"></a>
+<a class="anchor" aria-label="anchor" href="#sporc-stochastic-population-model-over-regional-components-"></a>
 </h2>
+<div class="section level3">
+<h3 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
+</h3>
 <p><code>SPoRC</code> is a flexible modeling framework for spatially structured population dynamics. It accounts for stochasticity in vital rates and movement among geographically defined components. The framework supports:</p>
 <ul>
 <li>Integration of multiple data sources<br>
@@ -61,22 +62,22 @@
 </ul>
 <p>Thus, <code>SPoRC</code> is suitable for both single-region and spatial stock assessment applications.</p>
 </div>
-<div class="section level2">
-<h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
-</h2>
-<p><code>SPoRC</code> is implemented in <code>RTMB</code> and optionally relies on additional packages for plotting and diagnostics.</p>
 <div class="section level3">
-<h3 id="prerequisites">Prerequisites<a class="anchor" aria-label="anchor" href="#prerequisites"></a>
+<h3 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h3>
+<p><code>SPoRC</code> is implemented in <code>RTMB</code> and optionally relies on additional packages for plotting and diagnostics.</p>
+<div class="section level4">
+<h4 id="prerequisites">Prerequisites<a class="anchor" aria-label="anchor" href="#prerequisites"></a>
+</h4>
 <p>Ensure the following packages are installed:</p>
 <pre><code><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"devtools"</span><span class="op">)</span>       <span class="co"># Development tools</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"TMB"</span><span class="op">)</span>            <span class="co"># Template Model Builder</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"RTMB"</span><span class="op">)</span>           <span class="co"># R interface to TMB</span></span>
 <span><span class="fu">TMB</span><span class="fu">:::</span><span class="fu">install.contrib</span><span class="op">(</span><span class="st">"https://github.com/vtrijoulet/OSA_multivariate_dists/archive/main.zip"</span><span class="op">)</span> <span class="co"># Optional: multivariate OSA distributions</span></span></code></pre>
 </div>
-<div class="section level3">
-<h3 id="installing-sporc">Installing SPoRC<a class="anchor" aria-label="anchor" href="#installing-sporc"></a>
-</h3>
+<div class="section level4">
+<h4 id="installing-sporc">Installing SPoRC<a class="anchor" aria-label="anchor" href="#installing-sporc"></a>
+</h4>
 <pre><code><span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"chengmatt/SPoRC"</span>, dependencies <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre>
 <p><strong>Note</strong>: <code>SPoRC</code> is under active development. Users should exercise caution as features are subject to change without notice.</p>
 </div>
