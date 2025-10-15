@@ -241,75 +241,106 @@ run_annual_cycle <- function(y,
     # Initialize Age Structure ------------------------------------------------
     if(y == 1) {
 
-     if(init_age_strc == 0) {
+      # Iterative Solution
+      if(init_age_strc == 0) {
+        # Set up initial equilibrium age structure
+        for(r in 1:n_regions) {
+          for(s in 1:n_sexes) {
+            tmp_cumsum_Z <- cumsum(natmort[r,1,1:(n_ages-1),s,sim] + init_F * fish_sel[r,1,1:(n_ages-1),s,1,sim]) # cumulative sum of total mortality
+            Init_NAA[r,,s,sim] <- c(R0[r,1,sim] * sexratio[r,1,s,sim], R0[r,1,sim] * sexratio[r,1,s,sim] * exp(-tmp_cumsum_Z)) # exponential mortality model
+          } # end s loop
+        } # end r loop
 
-       # Set up initial equilibrium age structure
-       for(r in 1:n_regions) {
-         for(s in 1:n_sexes) {
-           tmp_cumsum_Z <- cumsum(natmort[r,1,1:(n_ages-1),s,sim] + init_F * fish_sel[r,1,1:(n_ages-1),s,1,sim]) # cumulative sum of total mortality
-           Init_NAA[r,,s,sim] <- c(R0[r,1,sim] * sexratio[r,1,s,sim], R0[r,1,sim] * sexratio[r,1,s,sim] * exp(-tmp_cumsum_Z)) # exponential mortality model
-         } # end s loop
-       } # end r loop
+        # Apply annual cycle and iterate to equilibrium
+        for(i in 1:init_iter) {
+          for(s in 1:n_sexes) {
+            Init_NAA_next_year[,1,s,sim] <- R0[,1,sim] * sexratio[,1,s,sim] # recruitment
+            # movement
+            if(do_recruits_move == 0) for(a in 2:n_ages) Init_NAA[,a,s,sim] <- t(Init_NAA[,a,s,sim]) %*% Movement[,,1,a,s,sim] # recruits dont move
+            if(do_recruits_move == 1) for(a in 1:n_ages) Init_NAA[,a,s,sim] <- t(Init_NAA[,a,s,sim]) %*% Movement[,,1,a,s,sim] # recruits move
+            # ageing and mortality
+            Init_NAA_next_year[,2:n_ages,s,sim] <- Init_NAA[,1:(n_ages-1),s,sim] * exp(-(natmort[,1,1:(n_ages-1),s,sim] + (init_F * fish_sel[,1,1:(n_ages-1),s,1,sim])))
+            # accumulate plus group
+            Init_NAA_next_year[,n_ages,s,sim] <- (Init_NAA_next_year[,n_ages,s,sim]) + (Init_NAA[,n_ages,s,sim] *
+                                                                                          exp(-(natmort[,1,n_ages,s,sim] + (init_F * fish_sel[,1,n_ages,s,1,sim]))))
+            Init_NAA <- Init_NAA_next_year # iterate to next cycle
+          } # end s loop
+        } # end i loop
+        # Save result
+        NAA[,1,,,sim] <- Init_NAA[,,,sim]
+      }
 
-       # Apply annual cycle and iterate to equilibrium
-       for(i in 1:init_iter) {
-         for(s in 1:n_sexes) {
-           Init_NAA_next_year[,1,s,sim] <- R0[,1,sim] * sexratio[,1,s,sim] # recruitment
-           # movement
-           if(do_recruits_move == 0) for(a in 2:n_ages) Init_NAA[,a,s,sim] <- t(Init_NAA[,a,s,sim]) %*% Movement[,,1,a,s,sim] # recruits dont move
-           if(do_recruits_move == 1) for(a in 1:n_ages) Init_NAA[,a,s,sim] <- t(Init_NAA[,a,s,sim]) %*% Movement[,,1,a,s,sim] # recruits move
-           # ageing and mortality
-           Init_NAA_next_year[,2:n_ages,s,sim] <- Init_NAA[,1:(n_ages-1),s,sim] * exp(-(natmort[,1,1:(n_ages-1),s,sim] + (init_F * fish_sel[,1,1:(n_ages-1),s,1,sim])))
-           # accumulate plus group
-           Init_NAA_next_year[,n_ages,s,sim] <- (Init_NAA_next_year[,n_ages,s,sim] * exp(-(natmort[,1,n_ages,s,sim] + (init_F * fish_sel[,1,n_ages,s,1,sim])))) +
-                                                (Init_NAA[,n_ages,s,sim] * exp(-(natmort[,1,n_ages,s,sim] + (init_F * fish_sel[,1,n_ages,s,1,sim]))))
-           Init_NAA <- Init_NAA_next_year # iterate to next cycle
-         } # end s loop
-       } # end i loop
+      # Scalar Geometric Series (No Movement)
+      if(init_age_strc == 1) {
+        for(r in 1:n_regions) {
+          for(s in 1:n_sexes) {
+            NAA[r,1,1,s,sim] = R0[r,1,sim] * sexratio[r,1,s,sim] # initialize population
+            for(a in 2:(n_ages-1))  NAA[r,1,a,s,sim] = NAA[r,1,a-1,s,sim] * exp(-(natmort[r,1,a-1,s,sim] + (init_F * fish_sel[r,1,a-1,s,1,sim]))) # iterate
+            # Plus group - scalar geometric series
+            Z_penult = natmort[r,1,n_ages-1,s,sim] + (init_F * fish_sel[r,1,n_ages-1,s,1,sim])
+            Z_plus = natmort[r,1,n_ages,s,sim] + (init_F * fish_sel[r,1,n_ages,s,1,sim])
+            NAA[r,1,n_ages,s,sim] = NAA[r,1,n_ages-1,s,sim] * exp(-Z_penult) / (1 - exp(-Z_plus))
+          } # end s loop
+        } # end r loop
+      } # end if
 
-       # Set up initial age deviations
-       tmp_ln_init_devs <- NULL
-       for(r in 1:n_regions) {
-         if(exists("ln_InitDevs_input")) { # if exists in environment, then use input
-           tmp_ln_init_devs <- ln_InitDevs_input[r,,sim]
-         } else { # simulate new initial age devs otherwise
-           if(init_dd == 0 && is.null(tmp_ln_init_devs)) tmp_ln_init_devs <- stats::rnorm(n_ages-1, 0, exp(ln_sigmaR[1])) # global initial age deviations
-           if(init_dd == 1) tmp_ln_init_devs <- stats::rnorm(n_ages-1, 0, exp(ln_sigmaR[1])) # local initial age deviations
-         }
-         ln_InitDevs[r,,sim] <- tmp_ln_init_devs # save ln_init_devs
-         for(s in 1:n_sexes) NAA[r,1,2:n_ages,s,sim] <- Init_NAA[r,2:n_ages,s,sim] * exp(ln_InitDevs[r,,sim]) # apply deviations
-       }
+      # Matrix Geometric Series Solution (genearlizes to scalar w/o movement)
+      if(init_age_strc == 2) {
 
-     } else if(init_age_strc == 1) {
+        # initialize age structure (starting point)
+        for(r in 1:n_regions) {
+          for(s in 1:n_sexes) {
+            tmp_cumsum_Z = cumsum(natmort[r,1,1:(n_ages-1),s,sim] + init_F * fish_sel[r,1,1:(n_ages-1),s,1,sim])
+            Init_NAA[r,,s,sim] = c(R0[r,1,sim] * sexratio[r,1,s,sim], R0[r,1,sim] * sexratio[r,1,s,sim] * exp(-tmp_cumsum_Z))
+          } # end s loop
+        } # end r loop
 
-       # Set up initial age deviations
-       tmp_ln_init_devs <- NULL
-       init_age_idx <- 1:(n_ages - 2) # Get initial age indexing
-       for(r in 1:n_regions) {
+        # projection initial abundance forward
+        for(s in 1:n_sexes) {
+          Init_NAA_next_year[,1,s,sim] = R0[,1,sim] * sexratio[,1,s,sim] # recruitment
+          # movement
+          if(do_recruits_move == 0) for(a in 2:n_ages) Init_NAA[,a,s,sim] = t(Init_NAA[,a,s,sim]) %*% Movement[,,1,a,s,sim] # recruits don't move
+          if(do_recruits_move == 1) for(a in 1:n_ages) Init_NAA[,a,s,sim] = t(Init_NAA[,a,s,sim]) %*% Movement[,,1,a,s,sim] # recruits move
+          for(r in 1:n_regions) {
+            # ageing and mortality
+            Init_NAA_next_year[r,2:n_ages,s,sim] = Init_NAA[r,1:(n_ages-1),s,sim] * exp(-(natmort[r,1,1:(n_ages-1),s,sim] + (init_F * fish_sel[r,1,1:(n_ages-1),s,1,sim])))
+            # accumulate plus group
+            Init_NAA_next_year[r,n_ages,s,sim] = (Init_NAA_next_year[r,n_ages,s,sim]) + (Init_NAA[r,n_ages,s,sim] * exp(-(natmort[r,1,n_ages,s,sim] + (init_F * fish_sel[r,1,n_ages,s,1,sim]))))
+          } # end r loop
+        } # end s loop
 
-         if(exists("ln_InitDevs_input")) { # if exists in environment, then use input
-           tmp_ln_init_devs <- ln_InitDevs_input[r,,sim]
-         } else { # simulate new initial age devs otherwise
-           if(init_dd == 0 && is.null(tmp_ln_init_devs)) tmp_ln_init_devs <- stats::rnorm(n_ages-1, 0, exp(ln_sigmaR[1])) # global initial age deviations
-           if(init_dd == 1) tmp_ln_init_devs <- stats::rnorm(n_ages-1, 0, exp(ln_sigmaR[1])) # local initial age deviations
-         }
+        Init_NAA = Init_NAA_next_year # update and save for use in next steps
 
-         ln_InitDevs[r,,sim] <- tmp_ln_init_devs # save ln_init_devs
+        # Set up analytical solution for plus group
+        for(s in 1:n_sexes) {
+          Move_penult = Movement[,,1,n_ages-1,s,sim] # get movement matrices
+          Move_plus = Movement[,,1,n_ages,s,sim] # get movement matrices
+          s_penult = exp(-(natmort[,1,n_ages-1,s,sim] + (init_F * fish_sel[,1,n_ages-1,s,1,sim]))) # survival of penultimate age
+          s_plus = exp(-(natmort[,1,n_ages,s,sim] + (init_F * fish_sel[,1,n_ages,s,1,sim]))) # survival of plus group age
+          init_penult <- Init_NAA[,n_ages-1,s,sim] # get initial penultimate age
+          source = (t(Move_penult) %*% init_penult) * s_penult # compute forward projection of penultimate age to plus group
+          T_mat = diag(s_plus, n_regions) %*% t(Move_plus) # transition matrix
+          I_mat = diag(n_regions) # get identity matrix
+          plus = solve(I_mat - T_mat, source) # solve to get plus group (I-T)^-1 %*% source
+          Init_NAA[,n_ages,s,sim] = plus # input plus group here
+        }
+        # Save result
+        NAA[,1,,,sim] <- Init_NAA[,,,sim]
+      }
 
-         for(s in 1:n_sexes) {
-           NAA[r,1,init_age_idx + 1,s,sim] <- R0[r,1,sim] * exp(ln_InitDevs[r,init_age_idx,sim] - # not plus group
-                                              (init_age_idx * (natmort[r,1, init_age_idx + 1, s,sim] +
-                                              (init_F * fish_sel[r,1, init_age_idx + 1, s, 1,sim])))) * sexratio[r,1,s,sim]
+      # Set up initial age deviations
+      tmp_ln_init_devs <- NULL
+      for(r in 1:n_regions) {
+        if(exists("ln_InitDevs_input")) { # if exists in environment, then use input
+          tmp_ln_init_devs <- ln_InitDevs_input[r,,sim]
+        } else { # simulate new initial age devs otherwise
+          if(init_dd == 0 && is.null(tmp_ln_init_devs)) tmp_ln_init_devs <- stats::rnorm(n_ages-1, 0, exp(ln_sigmaR[1])) # global initial age deviations
+          if(init_dd == 1) tmp_ln_init_devs <- stats::rnorm(n_ages-1, 0, exp(ln_sigmaR[1])) # local initial age deviations
+        }
+        ln_InitDevs[r,,sim] <- tmp_ln_init_devs # save ln_init_devs
+        for(s in 1:n_sexes) NAA[r,1,2:n_ages,s,sim] <- NAA[r,1,2:n_ages,s,sim] * exp(ln_InitDevs[r,,sim]) # apply deviations
+      }
 
-           NAA[r,1,n_ages,s,sim] <- R0[r,1,sim] * exp(ln_InitDevs[r,n_ages - 1,sim] - # plus group calculations (geometric series)
-                                    ((n_ages - 1) * (natmort[r,1, n_ages, s,sim] + (init_F * fish_sel[r,1, n_ages, s, 1,sim])))) /
-                                    (1 - exp(-(natmort[r,1, n_ages, s,sim] + (init_F *
-                                    fish_sel[r,1, n_ages, s, 1,sim])))) * sexratio[r,1,s,sim]
-
-         } # end s loop
-       } # end r loop
-
-     }
       NAA0[,1,,,sim] <- NAA[,1,,,sim] # Initialize Unfished NAA
     } # end initializing age structure
 
@@ -339,10 +370,15 @@ run_annual_cycle <- function(y,
                                              h = h[,y,sim],
                                              n_regions = n_regions,
                                              n_ages = n_ages,
-                                             WAA = array(WAA[,y,,1,sim], dim = c(n_regions, n_ages)),
-                                             MatAA = array(MatAA[,y,,1,sim], dim = c(n_regions, n_ages)),
-                                             natmort = array(natmort[,y,,1,sim], dim = c(n_regions, n_ages)),
-                                             SSB_vals = array(SSB[,,sim], dim = c(n_regions, n_yrs))
+                                             # Note: Using first year and female quantities to compute unfished SSB0
+                                             WAA = array(WAA[,1,,1,sim], dim = c(n_regions, n_ages)),
+                                             MatAA = array(MatAA[,1,,1,sim], dim = c(n_regions, n_ages)),
+                                             natmort = array(natmort[,1,,1,sim], dim = c(n_regions, n_ages)),
+                                             Movement = array(Movement[,,1,,1,sim], dim = c(n_regions, n_regions, n_ages)),
+                                             sex_ratio_f = sexratio[,1,1,sim],
+                                             SSB_vals = array(SSB[,,sim], dim = c(n_regions, n_yrs)),
+                                             t_spawn = t_spawn,
+                                             do_recruits_move = do_recruits_move
           )
           # input deviates
           for(s in 1:n_sexes) NAA[r,1,1,s,sim] <- tmp_det_rec[r] * exp(ln_RecDevs[r,y,sim] - exp(ln_sigmaR[2])^2/2) * sexratio[r,y,s,sim]
@@ -719,11 +755,17 @@ run_annual_cycle <- function(y,
                                                   h = h[,y,sim],
                                                   n_regions = n_regions,
                                                   n_ages = n_ages,
-                                                  WAA = array(WAA[,y,,1,sim], dim = c(n_regions, n_ages)),
-                                                  MatAA = array(MatAA[,y,,1,sim], dim = c(n_regions, n_ages)),
-                                                  natmort = array(natmort[,y,,1,sim], dim = c(n_regions, n_ages)),
-                                                  SSB_vals = array(SSB[,,sim], dim = c(n_regions, n_yrs))
+                                                  # Note: Using first year and female quantities to compute unfished SSB0
+                                                  WAA = array(WAA[,1,,1,sim], dim = c(n_regions, n_ages)),
+                                                  MatAA = array(MatAA[,1,,1,sim], dim = c(n_regions, n_ages)),
+                                                  natmort = array(natmort[,1,,1,sim], dim = c(n_regions, n_ages)),
+                                                  Movement = array(Movement[,,1,,1,sim], dim = c(n_regions, n_regions, n_ages)),
+                                                  sex_ratio_f = sexratio[,1,1,sim],
+                                                  SSB_vals = array(SSB[,,sim], dim = c(n_regions, n_yrs)),
+                                                  t_spawn = t_spawn,
+                                                  do_recruits_move = do_recruits_move
           )
+
           # Store next year's recruitment
           for(s in 1:n_sexes) NAA[r,y+1,1,s,sim] <- tmp_det_rec_next[r] * exp(ln_RecDevs[r,y+1,sim] - exp(ln_sigmaR[2])^2/2) * sexratio[r,y+1,s,sim]
 
@@ -1132,6 +1174,8 @@ simulation_self_test <- function(data,
 
   if(do_par == TRUE) {
 
+    # initialize cores
+    if(is.null(n_cores)) n_cores <- parallel::detectCores() - 1
     options(future.globals.maxSize = 5e3 * 1024^2)  # increase parrlalel size
     future::plan(future::multisession, workers = n_cores) # set up cores
     progressr::with_progress({

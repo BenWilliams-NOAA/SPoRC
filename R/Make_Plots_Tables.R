@@ -667,7 +667,7 @@ get_retrospective_plot <- function(retro_output, Rec_Age) {
     ggplot2::geom_line(retro_output %>% filter(peel == 0), mapping = ggplot2::aes(x = Year, y = value), lty = 2, lwd = 1) +
     ggplot2::scale_color_viridis_c() +
     ggplot2::coord_cartesian(ylim = c(0, NA)) +
-    ggplot2::facet_grid(Region~Type, scales = 'free') +
+    ggplot2::facet_grid(Type~Region, scales = 'free_y') +
     theme_sablefish() +
     ggplot2::labs(x = 'Year', y = 'Value', color = 'Peel')
 

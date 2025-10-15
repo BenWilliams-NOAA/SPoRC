@@ -22,11 +22,12 @@ install.packages("devtools")       # Development tools
 install.packages("TMB")            # Template Model Builder
 install.packages("RTMB")           # R interface to TMB
 TMB:::install.contrib("https://github.com/vtrijoulet/OSA_multivariate_dists/archive/main.zip") # Optional: multivariate OSA distributions
+remotes::install_github("fishfollower/compResidual") # Optional OSA residuals
 ```
 
 #### Installing SPoRC
 ```
-devtools::install_github("chengmatt/SPoRC", dependencies = TRUE)
+devtools::install_github("chengmatt/SPoRC", dependencies = c("Depends", "Imports"))
 ```
 
 **Note**: `SPoRC` is under active development. Users should exercise caution as features are subject to change without notice.

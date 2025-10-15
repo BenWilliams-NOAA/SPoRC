@@ -125,7 +125,8 @@ sim_list <- Setup_Sim_Rec(
   sim_list = sim_list,
   R0_input = replicate(n = sim_list$n_sims, expr = array(5, dim = c(sim_list$n_regions, sim_list$n_yrs))), # R0
   ln_sigmaR = log(c(1, 1)),
-  recruitment_opt = 'mean_rec'
+  recruitment_opt = 'mean_rec', 
+  init_age_strc = 1 # using geometric series scalar to initialize popn
 )
 ```
 
@@ -169,7 +170,7 @@ setup_em <- function(sim_obj, sim) {
     ln_sigmaR = rep(log(1) , 2), # 2 values for early and late sigma
     rec_model = "mean_rec",
     sigmaR_spec = "fix", # fix early sigmaR and late sigmaR
-    init_age_strc = 0, # geometric series to derive initial age structure
+    init_age_strc = 1, # geometric series to derive initial age structure
     equil_init_age_strc = 2, # estimating all intial age deviations
     ln_global_R0 = log(5)
   )

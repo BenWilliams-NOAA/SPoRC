@@ -49,7 +49,7 @@
 <span>  rec_dd <span class="op">=</span> <span class="st">"global"</span>,</span>
 <span>  init_dd <span class="op">=</span> <span class="st">"global"</span>,</span>
 <span>  <span class="va">sim_list</span>,</span>
-<span>  init_age_strc <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  init_age_strc <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>  t_spawn <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  rec_lag <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  Rec_input <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -112,8 +112,9 @@
 
 
 <dt id="arg-init-age-strc">init_age_strc<a class="anchor" aria-label="anchor" href="#arg-init-age-strc"></a></dt>
-<dd><p>Initial age structure method (default = 0):</p><ul><li><p><code>0</code>: Iterative</p></li>
-<li><p><code>1</code>: Geometric series solution</p></li>
+<dd><p>Integer flag specifying initialization of initial age structure:</p><ul><li><p><code>0</code>: Initialize by iteration.</p></li>
+<li><p><code>1</code>: Initialize using a scalar geometric series (does not account for movement).</p></li>
+<li><p><code>2</code>: Initialize using a matrix geometric series (accounts for movement; default).</p></li>
 </ul></dd>
 
 

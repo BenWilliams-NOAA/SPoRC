@@ -182,7 +182,8 @@ value of 5.</p>
 <span>  sim_list <span class="op">=</span> <span class="va">sim_list</span>,</span>
 <span>  R0_input <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">replicate</a></span><span class="op">(</span>n <span class="op">=</span> <span class="va">sim_list</span><span class="op">$</span><span class="va">n_sims</span>, expr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="fl">5</span>, dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sim_list</span><span class="op">$</span><span class="va">n_regions</span>, <span class="va">sim_list</span><span class="op">$</span><span class="va">n_yrs</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>, <span class="co"># R0</span></span>
 <span>  ln_sigmaR <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>  recruitment_opt <span class="op">=</span> <span class="st">'mean_rec'</span></span>
+<span>  recruitment_opt <span class="op">=</span> <span class="st">'mean_rec'</span>, </span>
+<span>  init_age_strc <span class="op">=</span> <span class="fl">1</span> <span class="co"># using geometric series scalar to initialize popn</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
@@ -229,7 +230,7 @@ are identical to the OM, except for fishery selectivity.</p>
 <span>    ln_sigmaR <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span> , <span class="fl">2</span><span class="op">)</span>, <span class="co"># 2 values for early and late sigma</span></span>
 <span>    rec_model <span class="op">=</span> <span class="st">"mean_rec"</span>,</span>
 <span>    sigmaR_spec <span class="op">=</span> <span class="st">"fix"</span>, <span class="co"># fix early sigmaR and late sigmaR</span></span>
-<span>    init_age_strc <span class="op">=</span> <span class="fl">0</span>, <span class="co"># geometric series to derive initial age structure</span></span>
+<span>    init_age_strc <span class="op">=</span> <span class="fl">1</span>, <span class="co"># geometric series to derive initial age structure</span></span>
 <span>    equil_init_age_strc <span class="op">=</span> <span class="fl">2</span>, <span class="co"># estimating all intial age deviations</span></span>
 <span>    ln_global_R0 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">5</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span>

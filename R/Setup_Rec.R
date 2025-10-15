@@ -34,10 +34,11 @@
 #'   (default = log(c(1, 1)))
 #' @param Rec_input Recruitment array [n_regions × n_yrs × n_sims] (default = NULL)
 #' @param ln_InitDevs_input Initial deviations [n_regions × (n_ages-1) × n_sims] (default = NULL)
-#' @param init_age_strc Initial age structure method (default = 0):
+#' @param init_age_strc Integer flag specifying initialization of initial age structure:
 #'   \itemize{
-#'     \item \code{0}: Iterative
-#'     \item \code{1}: Geometric series solution
+#'     \item \code{0}: Initialize by iteration.
+#'     \item \code{1}: Initialize using a scalar geometric series (does not account for movement).
+#'     \item \code{2}: Initialize using a matrix geometric series (accounts for movement; default).
 #'   }
 #' @param t_spawn Spawn timing fraction of the year (scalar, default = 0)
 #'
@@ -53,7 +54,7 @@ Setup_Sim_Rec <- function(
     rec_dd = 'global',
     init_dd = 'global',
     sim_list,
-    init_age_strc = 0,
+    init_age_strc = 2,
     t_spawn = 0,
     rec_lag = 1,
     Rec_input = NULL,
@@ -379,7 +380,8 @@ do_Rec_prop_mapping <- function(input_list) {
 #' @param init_age_strc Integer flag specifying initialization of initial age structure:
 #'   \itemize{
 #'     \item \code{0}: Initialize by iteration.
-#'     \item \code{1}: Initialize using a geometric series.
+#'     \item \code{1}: Initialize using a scalar geometric series (does not account for movement).
+#'     \item \code{2}: Initialize using a matrix geometric series (accounts for movement; default).
 #'   }
 #' @param init_F_prop Numeric value specifying the initial fishing mortality proportion relative to mean fishing mortality for initializing age structure.
 #' @param sigmaR_spec Character string specifying estimation of recruitment variability (\code{sigmaR}):
@@ -456,7 +458,7 @@ Setup_Mod_Rec <- function(input_list,
                           max_bias_ramp_fct = 1,
                           sigmaR_switch = 1,
                           dont_est_recdev_last = 0,
-                          init_age_strc = 0,
+                          init_age_strc = 2,
                           equil_init_age_strc = 1,
                           init_F_prop = 0,
                           sigmaR_spec = NULL,
@@ -561,13 +563,14 @@ Setup_Mod_Rec <- function(input_list,
 
   # Validation
   check_in(do_rec_bias_ramp, 0:1, "do_rec_bias_ramp")
-  check_in(init_age_strc, 0:1, "init_age_strc")
+  check_in(init_age_strc, 0:2, "init_age_strc")
   if(!is.numeric(sigmaR_switch)) stop("sigmaR_switch must be numeric")
-  if(max_bias_ramp_fct > 1 || max_bias_ramp_fct < 0) stop("max_bias_ramp_fct must be between 0 and 1!")
+  if(max_bias_ramp_fct > 1 || max_bias_ramp_fct < 0) stop("max_bias_ramp_fct must be either 0, 1, or 2!")
 
   # print messages
   collect_message("Recruitment Bias Ramp is: ", ifelse(do_rec_bias_ramp == 0, "Off", 'On'))
-  collect_message("Initial Age Structure is: ", ifelse(init_age_strc == 0, "Iterated", 'Geometric Series Solution'))
+  init_age_methods <- c("Iterated", "Scalar Geometric Series", "Matrix Geometric Series")
+  collect_message("Initial Age Structure is: ", init_age_methods[init_age_strc + 1])
   if(sigmaR_switch > 1) collect_message("Sigma R switches from an early period value to a late period value at year: ", sigmaR_switch)
   collect_message("Recruitment deviations for ", ifelse(dont_est_recdev_last == 0, "every year are estimated", paste("terminal year not estimated -", dont_est_recdev_last)))
   if(dont_est_recdev_last != 0 && input_list$data$n_proj_yrs_devs != 0) {

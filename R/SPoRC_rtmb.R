@@ -335,7 +335,10 @@ SPoRC_rtmb = function(pars, data) {
   } # end if doing bias ramp
 
   ## Initial Age Structure ---------------------------------------------------
-  if(init_age_strc == 0) { # start initial age structure with iterative approach
+
+  # Iterative Solution
+  if(init_age_strc == 0) {
+    # initialize age structure (starting point)
     for(r in 1:n_regions) {
       for(s in 1:n_sexes) {
         tmp_cumsum_Z = cumsum(natmort[r,1,1:(n_ages-1),s] + init_F * fish_sel[r,1,1:(n_ages-1),s,1])
@@ -346,55 +349,89 @@ SPoRC_rtmb = function(pars, data) {
     # Apply annual cycle and iterate to equilibrium
     for(i in 1:init_iter) {
       for(s in 1:n_sexes) {
-
         Init_NAA_next_year[,1,s] = R0 * sexratio[,1,s] * Rec_trans_prop # recruitment
-
         # movement
         if(do_recruits_move == 0) for(a in 2:n_ages) Init_NAA[,a,s] = t(Init_NAA[,a,s]) %*% Movement[,,1,a,s] # recruits don't move
         if(do_recruits_move == 1) for(a in 1:n_ages) Init_NAA[,a,s] = t(Init_NAA[,a,s]) %*% Movement[,,1,a,s] # recruits move
-
-        # ageing and mortality
-        Init_NAA_next_year[,2:n_ages,s] = Init_NAA[,1:(n_ages-1),s] * exp(-(natmort[,1,1:(n_ages-1),s] +
-                                          (init_F * fish_sel[,1,1:(n_ages-1),s,1])))
-
-        # accumulate plus group
-        Init_NAA_next_year[,n_ages,s] = (Init_NAA_next_year[,n_ages,s] * exp(-(natmort[,1,n_ages,s] + (init_F * fish_sel[,1,n_ages,s,1])))) +
-                                        (Init_NAA[,n_ages,s] * exp(-(natmort[,1,n_ages,s] + (init_F * fish_sel[,1,n_ages,s,1]))))
-
+        for(r in 1:n_regions) {
+          # ageing and mortality
+          Init_NAA_next_year[r,2:n_ages,s] = Init_NAA[r,1:(n_ages-1),s] * exp(-(natmort[r,1,1:(n_ages-1),s] + (init_F * fish_sel[r,1,1:(n_ages-1),s,1])))
+          # accumulate plus group
+          Init_NAA_next_year[r,n_ages,s] = (Init_NAA_next_year[r,n_ages,s]) + (Init_NAA[r,n_ages,s] * exp(-(natmort[r,1,n_ages,s] + (init_F * fish_sel[r,1,n_ages,s,1]))))
+        } # end r loop
         Init_NAA = Init_NAA_next_year # iterate to next cycle
-
       } # end s loop
     } # end i loop
+    # save result
+    NAA[,1,,] = Init_NAA
+  } # end if iterative solution
 
-    # Apply initial age deviations
-    for(r in 1:n_regions) {
-      for(s in 1:n_sexes) {
-        NAA[r,1,2:n_ages,s] = Init_NAA[r,2:n_ages,s] * exp(ln_InitDevs[r,]) # add in non-equilibrium age structure
-      } # end s loop
-    } # end r loop
-
-  } # end if
-
-  # Current Assessment Approach -- FLAG, I think it's wrong!
+  # Scalar Geometric Series Solution (no movement in plus group)
   if(init_age_strc == 1) {
-    init_age_idx = 1:(n_ages - 2) # Get initial age indexing
     for(r in 1:n_regions) {
       for(s in 1:n_sexes) {
-
-        # not plus group
-        NAA[r,1,init_age_idx + 1,s] = R0 * exp(ln_InitDevs[r,init_age_idx] -
-                                     (init_age_idx * (natmort[r,1, init_age_idx + 1, s] + (init_F * fish_sel[r,1, init_age_idx + 1, s, 1])))) *
-                                      sexratio[r,1,s] *  Rec_trans_prop[r]
-
-        # Plus group calculations
-        NAA[r,1,n_ages,s] = R0 * exp( ln_InitDevs[r,n_ages - 1] - ((n_ages - 1) * (natmort[r,1, n_ages, s] + (init_F * fish_sel[r,1, n_ages, s, 1]))) ) /
-                            (1 - exp(-(natmort[r,1, n_ages, s] + (init_F * fish_sel[r,1, n_ages, s, 1])))) * sexratio[r,1,s] * Rec_trans_prop[r]
-
+        NAA[r,1,1,s] = R0 * sexratio[r,1,s] * Rec_trans_prop[r] # initialize population
+        for(a in 2:(n_ages-1))  NAA[r,1,a,s] = NAA[r,1,a-1,s] * exp(-(natmort[r,1,a-1,s] + (init_F * fish_sel[r,1,a-1,s,1]))) # iterate
+        # Plus group - scalar geometric series
+        Z_penult = natmort[r,1,n_ages-1,s] + (init_F * fish_sel[r,1,n_ages-1,s,1])
+        Z_plus = natmort[r,1,n_ages,s] + (init_F * fish_sel[r,1,n_ages,s,1])
+        NAA[r,1,n_ages,s] = NAA[r,1,n_ages-1,s] * exp(-Z_penult) / (1 - exp(-Z_plus))
       } # end s loop
     } # end r loop
   } # end if
 
-  # Initialize Unfished NAA
+  # Matrix Geometric Series Solution (genearlizes to scalar w/o movement)
+  if(init_age_strc == 2) {
+
+    # initialize age structure (starting point)
+    for(r in 1:n_regions) {
+      for(s in 1:n_sexes) {
+        tmp_cumsum_Z = cumsum(natmort[r,1,1:(n_ages-1),s] + init_F * fish_sel[r,1,1:(n_ages-1),s,1])
+        Init_NAA[r,,s] = c(R0 * sexratio[r,1,s] * Rec_trans_prop[r], R0 * sexratio[r,1,s] * Rec_trans_prop[r] * exp(-tmp_cumsum_Z))
+      } # end s loop
+    } # end r loop
+
+    # projection initial abundance forward
+    for(s in 1:n_sexes) {
+      Init_NAA_next_year[,1,s] = R0 * sexratio[,1,s] * Rec_trans_prop # recruitment
+      # movement
+      if(do_recruits_move == 0) for(a in 2:n_ages) Init_NAA[,a,s] = t(Init_NAA[,a,s]) %*% Movement[,,1,a,s] # recruits don't move
+      if(do_recruits_move == 1) for(a in 1:n_ages) Init_NAA[,a,s] = t(Init_NAA[,a,s]) %*% Movement[,,1,a,s] # recruits move
+      for(r in 1:n_regions) {
+        # ageing and mortality
+        Init_NAA_next_year[r,2:n_ages,s] = Init_NAA[r,1:(n_ages-1),s] * exp(-(natmort[r,1,1:(n_ages-1),s] + (init_F * fish_sel[r,1,1:(n_ages-1),s,1])))
+        # accumulate plus group
+        Init_NAA_next_year[r,n_ages,s] = (Init_NAA_next_year[r,n_ages,s]) + (Init_NAA[r,n_ages,s] * exp(-(natmort[r,1,n_ages,s] + (init_F * fish_sel[r,1,n_ages,s,1]))))
+      } # end r loop
+    } # end s loop
+
+    Init_NAA = Init_NAA_next_year # update and save for use in next steps
+
+    # Set up analytical solution for plus group
+    for(s in 1:n_sexes) {
+      Move_penult = Movement[,,1,n_ages-1,s] # get movement matrices
+      Move_plus = Movement[,,1,n_ages,s] # get movement matrices
+      s_penult = exp(-(natmort[,1,n_ages-1,s] + (init_F * fish_sel[,1,n_ages-1,s,1]))) # survival of penultimate age
+      s_plus = exp(-(natmort[,1,n_ages,s] + (init_F * fish_sel[,1,n_ages,s,1]))) # survival of plus group age
+      init_penult <- Init_NAA[,n_ages-1,s] # get initial penultimate age
+      source = (t(Move_penult) %*% init_penult) * s_penult # compute forward projection of penultimate age to plus group
+      T_mat = diag(s_plus, n_regions) %*% t(Move_plus) # transition matrix
+      I_mat = diag(n_regions) # get identity matrix
+      plus = solve(I_mat - T_mat, source) # solve to get plus group (I-T)^-1 %*% source
+      Init_NAA[,n_ages,s] = plus # input plus group here
+    }
+    # save result
+    NAA[,1,,] = Init_NAA
+  }
+
+  # Apply initial age deviations
+  for(r in 1:n_regions) {
+    for(s in 1:n_sexes) {
+      NAA[r,1,2:n_ages,s] = NAA[r,1,2:n_ages,s] * exp(ln_InitDevs[r,])
+    } # end s loop
+  } # end r loop
+
+  # Initialize Unfished NAA w/ starting NAA
   NAA0[,1,,] = NAA[,1,,]
 
   ## Population Projection ---------------------------------------------------
@@ -409,11 +446,14 @@ SPoRC_rtmb = function(pars, data) {
                                       h = h_trans,
                                       n_ages = n_ages,
                                       n_regions = n_regions,
-                                      # Using first year for all demographics to
-                                      # calculate virgin spawning biomass
-                                      WAA = WAA[,1,,1],
-                                      MatAA = MatAA[,1,,1],
-                                      natmort = natmort[,1,,1],
+                                      # Note: Using first year and female quantities to compute unfished SSB0
+                                      WAA = array(WAA[,1,,1], dim = c(n_regions, n_ages)),
+                                      MatAA = array(MatAA[,1,,1], dim = c(n_regions, n_ages)),
+                                      natmort = array(natmort[,1,,1], dim = c(n_regions, n_ages)),
+                                      Movement = array(Movement[,,1,,1], dim = c(n_regions, n_regions, n_ages)),
+                                      sex_ratio_f = sexratio[,1,1],
+                                      do_recruits_move = do_recruits_move,
+                                      t_spawn = t_spawn,
                                       SSB_vals = SSB,
                                       y = y,
                                       rec_lag = rec_lag

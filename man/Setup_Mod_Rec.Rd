@@ -18,7 +18,7 @@ Setup_Mod_Rec(
   max_bias_ramp_fct = 1,
   sigmaR_switch = 1,
   dont_est_recdev_last = 0,
-  init_age_strc = 0,
+  init_age_strc = 2,
   equil_init_age_strc = 1,
   init_F_prop = 0,
   sigmaR_spec = NULL,
@@ -86,7 +86,8 @@ For example, with 65 years total, \code{c(21, 31, 60, 64)} means:
 \item{init_age_strc}{Integer flag specifying initialization of initial age structure:
 \itemize{
   \item \code{0}: Initialize by iteration.
-  \item \code{1}: Initialize using a geometric series.
+  \item \code{1}: Initialize using a scalar geometric series (does not account for movement).
+  \item \code{2}: Initialize using a matrix geometric series (accounts for movement; default).
 }}
 
 \item{equil_init_age_strc}{Integer flag specifying how initial age structure deviations should be initialized. Default is stochastic for all ages except the recruitment age and the plus group.

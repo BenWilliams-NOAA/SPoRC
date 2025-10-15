@@ -144,7 +144,12 @@ Do_Population_Projection <- function(n_proj_yrs = 2,
                                               WAA = bh_rec_opt$WAA,
                                               MatAA = bh_rec_opt$MatAA,
                                               natmort = bh_rec_opt$natmort,
-                                              SSB_vals = cbind(bh_rec_opt$SSB, proj_SSB))
+                                              SSB_vals = cbind(bh_rec_opt$SSB, proj_SSB),
+                                              Movement = bh_rec_opt$Movement,
+                                              do_recruits_move = bh_rec_opt$do_recruits_move,
+                                              t_spawn = bh_rec_opt$t_spawn,
+                                              sex_ratio_f = bh_rec_opt$sex_ratio_f
+                                              )
                         }
                         )
 
@@ -158,21 +163,13 @@ Do_Population_Projection <- function(n_proj_yrs = 2,
     }
 
 # Movement Processes ------------------------------------------------------
-    # Only apply movement if more than 1 reigon, or if y > 1 (because terminal NAA already has movement applied)
+    # Only apply movement if more than 1 region, or if y > 1 (because terminal NAA already has movement applied)
     if(n_regions > 1 && y > 1) {
       # Recruits don't move
       if(do_recruits_move == 0) {
         # Apply movement after ageing processes - start movement at age 2
         for(a in 2:n_ages) for(s in 1:n_sexes) proj_NAA[,y,a,s] = t(proj_NAA[,y,a,s]) %*% Movement[,,y,a,s] # fished
         for(a in 2:n_ages) for(s in 1:n_sexes) proj_NAA0[,y,a,s] = t(proj_NAA0[,y,a,s]) %*% Movement[,,y,a,s] # unfished
-
-        # Apply recruitment to projected NAA
-        for(r in 1:n_regions) {
-          if(n_sexes == 2) tmp <- tmp_rec[r] * sexratio[r,y,]
-          if(n_sexes == 1) tmp <- tmp_rec[r]
-          proj_NAA[r,y,1,] <- proj_NAA0[r,y,1,]  <- tmp
-        } # end r loop
-
       } # end if recruits don't move
       # Recruits move here
       if(do_recruits_move == 1) {
@@ -233,3 +230,4 @@ Do_Population_Projection <- function(n_proj_yrs = 2,
   )
 
 } # end function
+

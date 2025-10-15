@@ -62,7 +62,7 @@ these reference points. These include:
 -   maturity at age for females ($Mat_{y = y^{*},a,s = 1}$),
 -   spawn timing ($t^{spwn}$),
 -   estimated recruitment values (${Rec}_{y,s}$),
--   the recruitment sex ratio ($\psi_{y = y^{*},s}$),
+-   the female recruitment sex ratio ($\psi_{y = y^{*},s = 1}$),
 -   recruitment age ($RecAge$), and
 -   the first year in the recruitment vector ($RecYear$) to be used for
     mean recruitment calculations.
@@ -74,11 +74,11 @@ natural mortality, weight at age, maturity at age, and fleet-specific
 selectivity.
 
 $SPR\ $reference points are then derived by initially setting numbers
-per-recruit at an arbitrary value:
+per-recruit at the female recruitment sex-ratio:
 
-$$N_{a = 1}^{fished} = 1$$
+$$N_{a = 1}^{fished} = \psi_{y = y^{*},s = 1}$$
 
-$$N_{a = 1}^{unfished} = 1$$
+$$N_{a = 1}^{unfished} = \psi_{y = y^{*},s = 1}$$
 
 where $N_{a = 1}^{fished}$ and $N_{a = 1}^{unfished}$ are the fished and
 unfished numbers at age per-recruit, respectively. Subsequent numbers at
@@ -89,9 +89,9 @@ are only decremented with natural mortality. For $N_{a}^{fished}$, this
 is computed as:
 
 $$N_{a}^{\text{fished}} = \left\{ \begin{matrix}
-N_{a - 1}^{\text{fished}} \cdot \exp\left\lbrack - \left( NatMort_{y = y^{*},a - 1,s = 1} + \sum_{f}^{}\text{Frat}_{f} \cdot F_{x} \cdot \text{Sel}_{y = y^{*},a - 1,s = 1,f}^{\text{Fsh}} \right) \right\rbrack & \text{ if }2 < a < a_{+} \\
+N_{a - 1}^{\text{fished}} \cdot \exp\left\lbrack - \left( NatMort_{y = y^{*},a - 1,s = 1} + \sum_{f}^{}\text{Frat}_{f} \cdot F_{x} \cdot \text{Sel}_{y = y^{*},a - 1,s = 1,f}^{\text{Fsh}} \right) \right\rbrack & \text{if  }2 < a < a_{+} \\
  & \\
-N_{a - 1}^{\text{fished}} \cdot \frac{\exp\left( - \left( NatMort_{y = y^{*},a_{+} - 1,s = 1} + \sum_{f}^{}\text{Frat}_{f} \cdot F_{x} \cdot \text{Sel}_{y = y^{*},a_{+} - 1,s = 1,f}^{\text{Fsh}} \right) \right)}{1 - exp\left( - \left( NatMort_{y = y^{*},a_{+},s = 1} + \sum_{f}^{}\text{Frat}_{f} \cdot F_{x} \cdot \text{Sel}_{y = y^{*},a_{+},s = 1,f}^{\text{Fsh}} \right) \right)} & \text{if }a = a_{+} \\
+N_{a - 1}^{\text{fished}} \cdot \frac{\exp\left( - \left( NatMort_{y = y^{*},a_{+} - 1,s = 1} + \sum_{f}^{}\text{Frat}_{f} \cdot F_{x} \cdot \text{Sel}_{y = y^{*},a_{+} - 1,s = 1,f}^{\text{Fsh}} \right) \right)}{1 - exp\left( - \left( NatMort_{y = y^{*},a_{+},s = 1} + \sum_{f}^{}\text{Frat}_{f} \cdot F_{x} \cdot \text{Sel}_{y = y^{*},a_{+},s = 1,f}^{\text{Fsh}} \right) \right)} & \text{if  }a = a_{+} \\
 \end{matrix} \right.\ $$
 
 where $F_{x}$ represents the estimated fishing mortality rate that
@@ -99,9 +99,9 @@ reduces the $SSBPR$ to $x\%$, relative to the unfished level. For
 $N_{a = 1}^{unfished}$, this is defined as:
 
 $$N_{a}^{\text{unfished}} = \left\{ \begin{matrix}
-N_{a - 1}^{\text{unfished}} \cdot exp\left( - NatMort_{y = y^{*},a - 1,s = 1} \right) & \text{if }2 < a < a_{+} \\
+N_{a - 1}^{\text{unfished}} \cdot exp\left( - NatMort_{y = y^{*},a - 1,s = 1} \right) & \text{if  }2 < a < a_{+} \\
  & \\
-N_{a - 1}^{\text{unfished}} \cdot \frac{\exp\left( - NatMort_{y = y^{*},a_{+} - 1,s = 1} \right)}{1 - exp\left( - NatMort_{y = y^{*},a_{+},s = 1} \right)} & \text{if }a = a_{+} \\
+N_{a - 1}^{\text{unfished}} \cdot \frac{\exp\left( - NatMort_{y = y^{*},a_{+} - 1,s = 1} \right)}{1 - exp\left( - NatMort_{y = y^{*},a_{+},s = 1} \right)} & \text{if  }a = a_{+} \\
 \end{matrix} \right.\ $$
 
 $N_{a}^{\text{fished}}$ can then be converted to fished $SSBPR$
@@ -122,16 +122,15 @@ $$SPR = \frac{SS{BPR}^{\text{fished}}}{SS{BPR}^{\text{unfished}}}$$
 $F_{x}$ can then be solved for using a non-linear function minimizer by
 minimizing the following criteria:
 
-$$F_{x} = arg\min_{F}\left\{ 100 \cdot \left( \text{SPR}(F) - \text{x\%} \right)^{2} \right\}$$
+$$F_{x} = arg\min_{F}\left\{ 100 \cdot \left( \text{SPR}(F) - \text{x%} \right)^{2} \right\}$$
 
 Biological $SPR$-based reference points ($B_{x}$) can then be computed
 as:
 
-$$B_{x} = SS{BPR}^{\text{fished}} \cdot \frac{\sum_{RecYear}^{n_{y} - RecAge}{Rec}_{y,s}}{n_{y} - RecAge - RecYear}\psi_{y = y^{*},s}$$
+$$B_{x} = SS{BPR}^{\text{fished}} \cdot \frac{\sum_{RecYear}^{n_{y} - RecAge}{Rec}_{y,s}}{n_{y} - RecAge - RecYear}$$
 
 where $SS{BPR}^{\text{fished}}\ $is multiplied by mean recruitment over
-a user-defined period (i.e., $n_{y} - RecAge - RecYear$) and the
-recruitment sex-ratio.
+a user-defined period (i.e., $n_{y} - RecAge - RecYear$).
 
 #### Maximum Sustainable Yield (Beverton-Holt)
 
@@ -151,25 +150,25 @@ include:
 -   maturity at age for females ($Mat_{y = y^{*},a,s = 1}$),
 -   spawn timing ($t^{spawn})$,
 -   estimated recruitment values (${Rec}_{y,s}$),
--   the recruitment sex ratio ($\psi_{y = y^{*},s}$),
+-   the female recruitment sex ratio ($\psi_{y = y^{*},s = 1}$),
 -   an estimate of virgin recruitment ($\mu^{Rec}$), and
 -   an estimate of steepness ($h$).
 
 $MSY$ reference points can then be derived using the standard
 per-recruit calculations, where the initial number of fished and
-unfished individuals are set at an arbitrary value:
+unfished individuals are set at the female recruitment sex ratio:
 
-$$N_{a = 1}^{fished} = 1$$
+$$N_{a = 1}^{fished} = \psi_{y = y^{*},s = 1}$$
 
-$$N_{a = 1}^{unfished} = 1$$
+$$N_{a = 1}^{unfished} = \psi_{y = y^{*},s = 1}$$
 
 The numbers-at-age can then be decremented following an exponential
 mortality model. For $N_{a = 1}^{fished}$, this is given by:
 
 $$N_{a}^{\text{fished}} = \left\{ \begin{matrix}
-N_{a - 1}^{\text{fished}} \cdot \exp\left\lbrack - \left( NatMort_{y = y^{*},a - 1,s = 1} + \sum_{f}^{}\text{Frat}_{f} \cdot F_{msy} \cdot \text{Sel}_{y = y^{*},a - 1,s = 1,f}^{\text{Fsh}} \right) \right\rbrack & \text{if }2 < a < a_{+} \\
+N_{a - 1}^{\text{fished}} \cdot \exp\left\lbrack - \left( NatMort_{y = y^{*},a - 1,s = 1} + \sum_{f}^{}\text{Frat}_{f} \cdot F_{msy} \cdot \text{Sel}_{y = y^{*},a - 1,s = 1,f}^{\text{Fsh}} \right) \right\rbrack & \text{if  }2 < a < a_{+} \\
  & \\
-N_{a - 1}^{\text{fished}} \cdot \frac{\exp\left( - \left( NatMort_{y = y^{*},a_{+} - 1,s = 1} + \sum_{f}^{}\text{Frat}_{f} \cdot F_{msy} \cdot \text{Sel}_{y = y^{*},a_{+} - 1,s = 1,f}^{\text{Fsh}} \right) \right)}{1 - exp\left( - \left( NatMort_{y = y^{*},a_{+},s = 1} + \sum_{f}^{}\text{Frat}_{f} \cdot F_{msy} \cdot \text{Sel}_{y = y^{*},a_{+},s = 1,f}^{\text{Fsh}} \right) \right)} & \text{if }a = a_{+} \\
+N_{a - 1}^{\text{fished}} \cdot \frac{\exp\left( - \left( NatMort_{y = y^{*},a_{+} - 1,s = 1} + \sum_{f}^{}\text{Frat}_{f} \cdot F_{msy} \cdot \text{Sel}_{y = y^{*},a_{+} - 1,s = 1,f}^{\text{Fsh}} \right) \right)}{1 - exp\left( - \left( NatMort_{y = y^{*},a_{+},s = 1} + \sum_{f}^{}\text{Frat}_{f} \cdot F_{msy} \cdot \text{Sel}_{y = y^{*},a_{+},s = 1,f}^{\text{Fsh}} \right) \right)} & \text{if  }a = a_{+} \\
 \end{matrix} \right.\ $$
 
 where $F_{msy}$ here represents the fishing mortality that would result
@@ -177,9 +176,9 @@ in equilibrium yield being maximized. For $N_{a = 1}^{unfished}$, this
 is defined as:
 
 $$N_{a}^{\text{unfished}} = \left\{ \begin{matrix}
-N_{a - 1}^{\text{unfished}} \cdot exp\left( - NatMort_{y = y^{*},a - 1,s = 1} \right) & \text{if }2 < a < a_{+} \\
+N_{a - 1}^{\text{unfished}} \cdot exp\left( - NatMort_{y = y^{*},a - 1,s = 1} \right) & \text{if  }2 < a < a_{+} \\
  & \\
-N_{a - 1}^{\text{unfished}} \cdot \frac{\exp\left( - NatMort_{y = y^{*},a_{+} - 1,s = 1} \right)}{1 - exp\left( - NatMort_{y = y^{*},a_{+},s = 1} \right)} & \text{if }a = a_{+} \\
+N_{a - 1}^{\text{unfished}} \cdot \frac{\exp\left( - NatMort_{y = y^{*},a_{+} - 1,s = 1} \right)}{1 - exp\left( - NatMort_{y = y^{*},a_{+},s = 1} \right)} & \text{if  }a = a_{+} \\
 \end{matrix} \right.\ $$
 
 $YPR$ is then computed using Baranov's catch equation:
@@ -209,7 +208,7 @@ $SS{BPR}^{\text{fished}}$ by an estimate of equilibrium recruitment:
 
 $$Yield = \sum_{a}^{}C_{a} \cdot W_{y = y^{*},a,s = 1}^{spawn} \cdot EqRec$$
 
-$$B_{msy} = SS{BPR}^{\text{fished}} \cdot EqRec \cdot \psi_{y = y^{*},s}$$
+$$B_{msy} = SS{BPR}^{\text{fished}} \cdot EqRec$$
 
 Lastly, $F_{msy}$ is solved for using a non-linear function minimizer by
 minimizing the following criteria (maximizing yield):
@@ -237,13 +236,13 @@ exception that an additional subscript is added to all demographic
 rates. Following that, $F_{r,x}$ can then be solved for by minimizing
 the following criteria for each region:
 
-$$F_{r,x} = arg\min_{F_{r}}\left\{ 100 \cdot \left( \text{SPR}\left( F_{r} \right) - x\% \right)^{2} \right\}$$
+$$F_{r,x} = arg\min_{F_{r}}\left\{ 100 \cdot \left( \text{SPR}\left( F_{r} \right) - x\%\ \right)^{2} \right\}$$
 
 Regional biological $SPR$-based reference points ($B_{x}$) can then be
 derived by multiplying $SS{BPR}_{r}^{\text{fished}}$ by regional mean
 recruitment over a user-defined period and the recruitment sex-ratio:
 
-$$B_{r,x} = SS{BPR}_{r}^{\text{fished}} \cdot \frac{\sum_{RecYear}^{n_{y} - RecAge}{Rec}_{r,y,s}}{n_{y} - RecAge - RecYear}\psi_{r,y = y^{*},s}$$
+$$B_{r,x} = SS{BPR}_{r}^{\text{fished}} \cdot \frac{\sum_{RecYear}^{n_{y} - RecAge}{Rec}_{r,y,s}}{n_{y} - RecAge - RecYear}$$
 
 ##### Global
 
@@ -276,7 +275,7 @@ inputs. These include:
     ($\mathbf{M}_{y = y^{*},\, a,\, s = 1}$),
 -   spawn timing ($t^{spwn}$),
 -   estimated recruitment values (${Rec}_{r,y,s}$),
--   the recruitment sex ratio ($\psi_{r,y = y^{*},s}$),
+-   the female recruitment sex ratio ($\psi_{r,y = y^{*},s = 1}$),
 -   the recruitment proportions (apportionment) by area ($\zeta_{r}$),
 -   recruitment age ($RecAge$), and
 -   the first year in the recruitment vector ($RecYear$) to be used for
@@ -284,11 +283,12 @@ inputs. These include:
 
 Global $SPR$ reference points are calculated by first setting the
 regional numbers-at-age per-recruit model to the estimated recruitment
-apportionment parameters ($\zeta_{r}$), which sum to 1:
+apportionment parameters ($\zeta_{r}$) multiplied by the recruitment sex
+ratio, which sum to 1:
 
-$$N_{r,a = 1}^{\text{fished}} = \zeta_{r}$$
+$$N_{r,a = 1}^{\text{fished}} = \zeta_{r} \cdot \psi_{r,y = y^{*},s = 1}$$
 
-$$N_{r,a = 1}^{\text{unfished}} = \zeta_{r}$$
+$$N_{r,a = 1}^{\text{unfished}} = \zeta_{r} \cdot \psi_{r,y = y^{*},s = 1}$$
 
 where $N_{r,a = 1}^{\text{fished}}$ and $N_{r,a = 1}^{\text{unfished}}$
 are the regional numbers-at-age per-recruit under fished and unfished
@@ -296,12 +296,12 @@ conditions, respectively. Following the initialization of these
 quantities, movement dynamics are then applied:
 
 $$\mathbf{N}_{a}^{\text{fished}} = \left( \mathbf{N}_{a}^{\text{fished}} \right)^{\top}\mathbf{M}_{y = y^{*},a,s = 1}\quad\text{for }a = a_{\min},\ldots,A,\quad a_{\min} = \left\{ \begin{matrix}
-1 & \text{if recruits move} \\
+1 & \text{if  recruits move} \\
 2 & \text{otherwise} \\
 \end{matrix} \right.\ $$
 
 $$\mathbf{N}_{a}^{\text{unfished}} = \left( \mathbf{N}_{a}^{\text{unfished}} \right)^{\top}\mathbf{M}_{y = y^{*},a,s = 1}\quad\text{for }a = a_{\min},\ldots,A,\quad a_{\min} = \left\{ \begin{matrix}
-1 & \text{if recruits move} \\
+1 & \text{if  recruits move} \\
 2 & \text{otherwise} \\
 \end{matrix} \right.\ $$
 
@@ -315,17 +315,17 @@ mortality model is then applied. $N_{r,a}^{fished}$ is expressed as:
 
 $$N_{r,a}^{\text{fished}} = {N_{r,a - 1}^{fished} \cdot exp}\begin{matrix}
 \left\lbrack - \left( NatMort_{r,y = y^{*},a - 1,s = 1} + \sum_{f}^{}\text{Frat}_{r,f} \cdot F_{x} \cdot \text{Sel}_{r,y = y^{*},a - 1,s = 1,f}^{\text{Fsh}} \right) \right\rbrack \\
-\text{if }2 < a < A \\
+\text{if  }2 < a < A \\
 \end{matrix}$$
 
 For $N_{r,a}^{\text{unfished}}$, this is given by:
 
 $$N_{r,a}^{\text{un}\text{fished}} = {N_{r,a - 1}^{unfished} \cdot exp}\begin{matrix}
-\left\lbrack - \left( NatMort_{r,y = y^{*},a - 1,s = 1} \right) \right\rbrack,\ \ \ \text{if }2 < a < A \\
+\left\lbrack - \left( NatMort_{r,y = y^{*},a - 1,s = 1} \right) \right\rbrack,\ \ \ \text{if  }2 < a < A \\
 \end{matrix}$$
 
 Regional fished and unfished numbers-at-age per-recruit can then be
-converted to  SSBPR quantities. For regional fished  SSBPR
+converted to *SSBPR* quantities. For regional fished *SSBPR*
 ($SS{BPR}_{r}^{\text{fished}})$, this is written as:
 
 $$SS{BPR}_{r}^{\text{fished}} = \sum_{a}^{}N_{r,a}^{\text{fished}} \cdot W_{r,y = y^{*},a,s = 1}^{spawn} \cdot \text{Mat}_{r,y = y^{*},a,s = 1} \cdot exp\left( - t^{spawn} \cdot NatMort_{r,y = y^{*},a,s = 1} + \sum_{f}^{}\text{Frat}_{r,f} \cdot F_{x} \cdot \text{Sel}_{r,y = y^{*}a,s = 1,f}^{\text{Fsh}} \right)$$
@@ -342,14 +342,13 @@ $$SPR = \frac{\sum_{r}^{}{SS{BPR}_{r}^{\text{fished}}}}{\sum_{r}^{}{SS{BPR}_{r}^
 $F_{x}$ can then be solved for using a non-linear function minimizer by
 minimizing the following criteria for global $SPR$:
 
-$$F_{x} = arg\min_{F}\left\{ 100 \cdot \left( \text{SPR}(F) - \text{x\%} \right)^{2} \right\}$$
+$$F_{x} = arg\min_{F}\left\{ 100 \cdot \left( \text{SPR}(F) - \text{x%} \right)^{2} \right\}$$
 
 Biological $SPR$-based reference points are assumed to be regional
 ($B_{r,x}$) and are derived by multiplying $SS{BPR}_{r}^{\text{fished}}$
-by regional mean recruitment over a user-defined period and the
-recruitment sex-ratio:
+by regional mean recruitment over a user-defined period:
 
-$$B_{r,x} = SS{BPR}_{r}^{\text{fished}} \cdot \frac{\sum_{RecYear}^{n_{y} - RecAge}{Rec}_{r,y,s}}{n_{y} - RecAge - RecYear}\psi_{r,y = y^{*},s}$$
+$$B_{r,x} = SS{BPR}_{r}^{\text{fished}} \cdot \frac{\sum_{RecYear}^{n_{y} - RecAge}{Rec}_{r,y,s}}{n_{y} - RecAge - RecYear}$$
 
 Thus, the global $SPR$ calculations result in a global $F_{x}$ and
 regional $B_{r,x}$ estimates.
@@ -386,7 +385,7 @@ $$F_{r,msy} = arg\min_{F_{r}}\ Yield_{r}$$
 
 and $B_{r,msy}$ can then be written as:
 
-$$B_{r,msy} = SS{BPR}_{r}^{fished}{EqRec}_{r} \cdot \psi_{r,y = y^{*},s}$$
+$$B_{r,msy} = SS{BPR}_{r}^{fished}{EqRec}_{r}$$
 
 ##### Global
 
@@ -412,7 +411,7 @@ The following inputs are required for computing global $MSY$:
 -   a matrix of movement values
     ($\mathbf{M}_{y = y^{*},\, a,\, s = 1}$),
 -   spawn timing ($t^{spwn}$),
--   the recruitment sex ratio ($\psi_{r,y = y^{*},s}$),
+-   the female recruitment sex ratio ($\psi_{r,y = y^{*},s = 1}$),
 -   an estimate of virgin recruitment ($\mu^{Rec}$),
 -   the global steepness value to be used, which is taken as the mean
     across all regions if steepness is estimated to be regional,
@@ -423,22 +422,23 @@ The following inputs are required for computing global $MSY$:
 Using the standard per-recruit computations, global $MSY$ reference
 points are calculated by first setting the regional numbers-at-age
 per-recruit equal to the estimated recruitment apportionment parameters
-($\zeta_{r}$), which sum to 1:
+($\zeta_{r}$) multiplied by the female recruitment sex ratio, which sum
+to 1:
 
-$$N_{r,a = 1}^{\text{fished}} = \zeta_{r}$$
+$$N_{r,a = 1}^{\text{fished}} = \zeta_{r} \cdot \psi_{r,y = y^{*},s = 1}$$
 
-$$N_{r,a = 1}^{\text{unfished}} = \zeta_{r}$$
+$$N_{r,a = 1}^{\text{unfished}} = \zeta_{r} \cdot \psi_{r,y = y^{*},s = 1}$$
 
 After the numbers-at-age per-recruit quantities are initialized,
 Markovian movement dynamics are applied:
 
 $$\mathbf{N}_{a}^{\text{fished}} = \left( \mathbf{N}_{a}^{\text{fished}} \right)^{\top}\mathbf{M}_{y = y^{*},a,s = 1}\quad\text{for }a = a_{\min},\ldots,A,\quad a_{\min} = \left\{ \begin{matrix}
-1 & \text{if recruits move} \\
+1 & \text{if  recruits move} \\
 2 & \text{otherwise} \\
 \end{matrix} \right.\ $$
 
 $$\mathbf{N}_{a}^{\text{unfished}} = \left( \mathbf{N}_{a}^{\text{unfished}} \right)^{\top}\mathbf{M}_{y = y^{*},a,s = 1}\quad\text{for }a = a_{\min},\ldots,A,\quad a_{\min} = \left\{ \begin{matrix}
-1 & \text{if recruits move} \\
+1 & \text{if  recruits move} \\
 2 & \text{otherwise} \\
 \end{matrix} \right.\ $$
 
@@ -446,13 +446,13 @@ $N_{r,a}^{fished}$ can then be projected forward as:
 
 $$N_{r,a}^{\text{fished}} = {N_{r,a - 1}^{fished} \cdot exp}\begin{matrix}
 \left\lbrack - \left( NatMort_{r,y = y^{*},a - 1,s = 1} + \sum_{f}^{}\text{Frat}_{r,f} \cdot F_{msy} \cdot \text{Sel}_{r,y = y^{*},a - 1,s = 1,f}^{\text{Fsh}} \right) \right\rbrack \\
-\text{if }2 < a < A \\
+\text{if  }2 < a < A \\
 \end{matrix}$$
 
 For $N_{r,a}^{\text{unfished}}$, this is given by:
 
 $$N_{r,a}^{\text{un}\text{fished}} = {N_{r,a - 1}^{unfished} \cdot exp}\begin{matrix}
-\left\lbrack - \left( NatMort_{r,y = y^{*},a - 1,s = 1} \right) \right\rbrack,\ \ \ \text{if }2 < a < A \\
+\left\lbrack - \left( NatMort_{r,y = y^{*},a - 1,s = 1} \right) \right\rbrack,\ \ \ \text{if  }2 < a < A \\
 \end{matrix}$$
 
 Baranov's catch equation is then invoked to compute regional $YPR$:
@@ -462,7 +462,7 @@ $$C_{r,a} = \frac{\sum_{f}^{}\text{Frat}_{r,f} \cdot F_{\text{msy}} \cdot \text{
 Regional equilibrium recruitment is then computed using the
 Beverton-Holt stock recruitment relationship. To first derive these
 quantities, regional fished and unfished numbers-at-age per-recruit need
-to be converted to  SSBPR quantities. For regional fished  SSBPR
+to be converted to *SSBPR* quantities. For regional fished *SSBPR*
 ($SS{BPR}_{r}^{\text{fished}})$, this is written as:
 
 $$SS{BPR}_{r}^{\text{fished}} = \sum_{a}^{}N_{r,a}^{\text{fished}} \cdot W_{r,y = y^{*},a,s = 1}^{spawn} \cdot \text{Mat}_{r,y = y^{*},a,s = 1} \cdot exp\left( - t^{spawn} \cdot NatMort_{r,y = y^{*},a,s = 1} + \sum_{f}^{}\text{Frat}_{r,f} \cdot F_{msy} \cdot \text{Sel}_{r,y = y^{*}a,s = 1,f}^{\text{Fsh}} \right)$$
@@ -479,7 +479,7 @@ $${EqRec}_{r} = \frac{4 \cdot h \cdot \mu^{Rec}\zeta_{r} \cdot \sum_{r}^{}{SS{BP
 Yield and $B_{r,msy}$ are calculated as:
 
 $${Yield = \sum_{a}^{}{\sum_{r}^{}C_{r,a}} \cdot W_{r,y = y^{*},a,s = 1}^{spawn} \cdot {EqRec}_{r}
-}{B_{r,msy} = SS{BPR}_{r}^{\text{fished}} \cdot {EqRec}_{r} \cdot \psi_{r,y = y^{*},s}}$$
+}{B_{r,msy} = SS{BPR}_{r}^{\text{fished}} \cdot {EqRec}_{r}}$$
 
 $F_{msy}$ can then be solved for using the following:
 
@@ -513,7 +513,7 @@ The following inputs are required for computing local $MSY$:
 -   a matrix of movement values
     ($\mathbf{M}_{y = y^{*},\, a,\, s = 1}$),
 -   spawn timing ($t^{spwn}$),
--   the recruitment sex ratio ($\psi_{r,y = y^{*},s}$),
+-   the female recruitment sex ratio ($\psi_{r,y = y^{*},s = 1}$),
 -   an estimate of global virgin recruitment ($\mu^{Rec}$),
 -   the local steepness value to be used ($h_{r}$),
 -   the recruitment proportions (apportionment) by area ($\zeta_{r}$),
@@ -521,38 +521,40 @@ The following inputs are required for computing local $MSY$:
 
 To ensure identifiability, quantities are tracked by origin region ($o$)
 and destination region ($r$). Using standard per-recruit calculations,
-each region is initialized with one recruit:
+each region is initialized with one female recruit (i.e., the
+recruitment sex ratio):
 
 $$N_{o,r,a = 1}^{\text{fished}} = \left\{ \begin{matrix}
-1,\ \ \ if\ o = r \\
-0,\ \ \ if\ o\  \neq r \\
+\psi_{r,y = y^{*},s = 1},\ \ \ if  o = r \\
+0,\ \ \ if  o\  \neq r \\
 \end{matrix} \right.\ ,\ \ N_{o,r,a = 1}^{\text{un}\text{fished}} = \left\{ \begin{matrix}
-1,\ \ \ if\ o = r \\
-0,\ \ \ if\ o\  \neq r \\
+\psi_{r,y = y^{*},s = 1},\ \ \ if  o = r \\
+0,\ \ \ if  o\  \neq r \\
 \end{matrix} \right.\ $$
 
 Markovian movement dynamics are then applied:
 
 $$\mathbf{N}_{o,a}^{\text{fished}} = \left( \mathbf{N}_{o,a}^{\text{fished}} \right)^{\top}\mathbf{M}_{y = y^{*},a,s = 1}\quad\text{for }a = a_{\min},\ldots,A,\quad a_{\min} = \left\{ \begin{matrix}
-1 & \text{if recruits move} \\
+1 & \text{if  recruits move} \\
 2 & \text{otherwise} \\
 \end{matrix} \right.\ $$
 
 $$\mathbf{N}_{o,a}^{\text{unfished}} = \left( \mathbf{N}_{o,a}^{\text{unfished}} \right)^{\top}\mathbf{M}_{y = y^{*},a,s = 1}\quad\text{for }a = a_{\min},\ldots,A,\quad a_{\min} = \left\{ \begin{matrix}
-1 & \text{if recruits move} \\
+1 & \text{if  recruits move} \\
 2 & \text{otherwise} \\
 \end{matrix} \right.\ $$
 
 $N_{o,d,a}^{fished}$ can then be projected forward as:
 
 $$N_{o,r,a}^{\text{fished}} = {N_{o,r,a - 1}^{fished} \cdot exp}\begin{matrix}
-\left\lbrack - \left( NatMort_{r,y = y^{*},a - 1,s = 1} + \sum_{f}^{}\text{Frat}_{r,f} \cdot F_{r,msy} \cdot \text{Sel}_{r,y = y^{*},a - 1,s = 1,f}^{\text{Fsh}} \right) \right\rbrack, \text{if }2 < a < A \\
+\left\lbrack - \left( NatMort_{r,y = y^{*},a - 1,s = 1} + \sum_{f}^{}\text{Frat}_{r,f} \cdot F_{r,msy} \cdot \text{Sel}_{r,y = y^{*},a - 1,s = 1,f}^{\text{Fsh}} \right) \right\rbrack \\
+\text{if  }2 < a < A \\
 \end{matrix}$$
 
 For $N_{o,r,a}^{\text{unfished}}$, this is given by:
 
 $$N_{o,r,a}^{\text{un}\text{fished}} = {N_{o,r,a - 1}^{unfished} \cdot exp}\begin{matrix}
-\left\lbrack - \left( NatMort_{r,y = y^{*},a - 1,s = 1} \right) \right\rbrack,\ \ \ \text{if\ }2 < a < A \\
+\left\lbrack - \left( NatMort_{r,y = y^{*},a - 1,s = 1} \right) \right\rbrack,\ \ \ \text{if  }2 < a < A \\
 \end{matrix}$$
 
 Using Baranov's catch equation, area-specific $YPR$ can be calculated
@@ -563,8 +565,8 @@ $$C_{o,r,a} = \frac{\sum_{f}^{}\text{Frat}_{r,f} \cdot F_{r,msy} \cdot \text{Sel
 Regional equilibrium recruitment in each destination is computed by
 solving a non-linear Beverton-Holt stock-recruitment relationship that
 ensures internal consistency. To derive these quantities, regional
-fished and unfished numbers-at-age per-recruit are converted to  SSBPR
-quantities. For regional fished  SSBPR
+fished and unfished numbers-at-age per-recruit are converted to *SSBPR*
+quantities. For regional fished *SSBPR*
 ($SS{BPR}_{o,r}^{\text{fished}})$, this is written as:
 
 $$SS{BPR}_{o,r}^{\text{fished}} = \sum_{a}^{}N_{o,r,a}^{\text{fished}} \cdot W_{r,y = y^{*},a,s = 1}^{spawn} \cdot \text{Mat}_{r,y = y^{*},a,s = 1} \cdot exp\left( - t^{spawn} \cdot NatMort_{r,y = y^{*},a,s = 1} + \sum_{f}^{}\text{Frat}_{r,f} \cdot F_{msy} \cdot \text{Sel}_{r,y = y^{*}a,s = 1,f}^{\text{Fsh}} \right)$$
@@ -588,11 +590,7 @@ then defined as a function of contributions from all origin regions
 (${OrigEqRec}_{o}$):
 
 $${{DestEqRec}_{r} = g({OrigEqRec}_{o}) = \frac{A_{r} \cdot EqSSB_{r}^{\text{fished}}}{B_{r} + D_{r} \cdot EqSSB_{r}^{\text{fished}}}
-}$$
-
-$$
-{EqSSB_{r}^{\text{fished}} = \sum_{o}^{}{SS{BPR}_{o,r}^{\text{fished}} \cdot {OrigEqRec}_{o}}}
-$$
+}{EqSSB_{r}^{\text{fished}} = \sum_{o}^{}{SS{BPR}_{o,r}^{\text{fished}} \cdot {OrigEqRec}_{o}}}$$
 
 where $EqSSB_{r}^{\text{fished}}$ is the fished equilibrium $SSB$ in
 destination $r$ generated by contributions from all origin regions. The
@@ -601,8 +599,8 @@ analytical solution. Thus, an iterative solution is obtained using
 Newton-Raphson's method. Although the function is expressed in terms of
 destination recruitment, it is the origin recruitment that is
 iteratively solved for. Specifically, Newton-Raphson's method adjusts
-${OrigEqRec_o}$ until the contributions from all origins result in
-self-consistent ${DestEqRec_r}$ values.
+${OrigEqRec}_{o}$ until the contributions from all origins result in
+self-consistent ${DestEqRec}_{r}$ values.
 
 Total yield ($Yield$) and yield in the destination region
 (${Yield}_{r}$) is then defined as:
@@ -610,7 +608,7 @@ Total yield ($Yield$) and yield in the destination region
 $${{Yield}_{r} = \sum_{o}^{}{\left( \sum_{a}^{}{C_{o,r,a}W_{r,y = y^{*},a,s = 1}^{spawn}} \right){OrigEqRec}_{o}}
 }{Yield = \sum_{r}^{}{Yield}_{r}}$$
 
-$$B_{r,msy} = \sum_{o}^{}{SS{BPR}_{o,r}^{\text{fished}} \cdot {OrigEqRec}_{o}} \cdot \psi_{r,y = y^{*},s}$$
+$$B_{r,msy} = \sum_{o}^{}{SS{BPR}_{o,r}^{\text{fished}} \cdot {OrigEqRec}_{o}}$$
 
 Lastly, regional estimates of $F_{r,msy}$ are solved for by minimizing
 total yield:
@@ -619,13 +617,6 @@ $$F_{r,msy} = \arg\min_{F_{r,msy}}\ Yield$$
 
 where the system wide yield is minimized (or maximized).
 
-### Dynamic Reference Points
-
-Beyond traditional fishery reference points, SPoRC also computes dynamic
-reference points. In particular, it estimates dynamic $B_{0}$, which
-represents the unfished $SSB$ under time-varying demographic rates, and
-is derived from the population projection equations with fishing
-mortality set to zero.
 
 # Deriving Catch Advice and Projections
 
@@ -847,7 +838,7 @@ mlt_ref_pt_indp <- Get_Reference_Points(data = mlt_rg_sable_data, # data file
                                           calc_rec_st_yr = 20, # first year to calculate mean recruitment
                                           rec_age = 2,  # exclues the last rec_age years when computing mean recruitment
                                           t_spwn = 0,  # spawn timing
-                                          sex_ratio_f = 0.5 # recruitment sex-ratio for females
+                                          sex_ratio_f = rep(0.5, mlt_rg_sable_data$n_regions) # recruitment sex-ratio for females
                                           )
 mlt_ref_pt_indp$f_ref_pt # F40
 mlt_ref_pt_indp$b_ref_pt # B40
@@ -868,7 +859,7 @@ mlt_ref_pt_global <- SPoRC::Get_Reference_Points(data = mlt_rg_sable_data, # dat
                                                  calc_rec_st_yr = 20, # first year to calculate mean recruitment
                                                  rec_age = 2,  # exclues the last rec_age years when computing mean recruitment
                                                  t_spwn = 0,  # spawn timing
-                                                 sex_ratio_f = 0.5 # recruitment sex-ratio for females
+                                                 sex_ratio_f = rep(0.5, mlt_rg_sable_data$n_regions) # recruitment sex-ratio for females
                                                  )
 mlt_ref_pt_global$f_ref_pt # F40
 mlt_ref_pt_global$b_ref_pt # B40

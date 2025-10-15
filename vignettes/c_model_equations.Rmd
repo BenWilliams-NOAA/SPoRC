@@ -41,12 +41,12 @@ equations generally reduce by setting $r = 1$ and/or $s = 1$. In general, the sa
 
 ### Population Initialization
 
-In `SPoRC`, two primary methods exist to initialize the equilibrium
+In `SPoRC`, three primary methods exist to initialize the equilibrium
 population of the model. The first method derives the equilibrium
 population using the following process:
 
 $$\begin{matrix}
-N_{r,a,s}^{'} = \mu^{\text{Rec}}\exp\left( - (a - 1) \cdot \left( Z_{r,a,s}^{'} \right) \right)\psi_{r,y = 1,s}\zeta_{r},\quad\text{for }2 \leq a < a_{+} \\
+N_{r,a,s}^{'} = \mu^{\text{Rec}}\exp\left( - (a - 1) \cdot \left( Z_{r,a,s}^{'} \right) \right)\psi_{r,y = 1,s}\zeta_{r},\quad\text{FOR }2 \leq a < a_{+} \\
 \end{matrix}$$
 
 $$Z_{r,a,s}^{'} = \text{Natmort}_{r,y = 1,a,s} + \mu_{r,f = 1}^{\text{Fsh}}\text{Fmort}^{\text{InitProp}}\text{Sel}_{r,y = 1,a,s,f = 1}^{\text{Fsh}}$$
@@ -75,16 +75,21 @@ where:
 The plus group ($a_{+}$) of the initial population is then computed as:
 
 $$\begin{matrix}
-N_{r,a,s}^{'} = \mu^{\text{Rec}}\frac{\exp\left( - \left( a_{+} - 1 \right) \cdot \left( Z_{r,a = a_{+},s}^{'} \right) \right)}{1 - exp\left( Z_{r,a = a_{+},s}^{'} \right)}\psi_{r,y = 1,s}\zeta_{r} \\
+N_{r,a_{+},s}^{'} = N_{r,a_{+} - 1,s}^{'}\dfrac{\exp\left( - Z_{r,a = a_{+} - 1,s}^{'} \right)}{1 - \exp\left( Z_{r,a = a_{+},s}^{'} \right)} \\
 \end{matrix}$$
 
-In contrast, the second method derives the initial population by
-iterating the population to equilibrium. The second method for deriving
-the initial population is well-suited when movement dynamics occur,
-given that a closed-form solution cannot be easily solved for. Here, the
-total instantaneous mortality in each region is defined similarly as in
-the first method. An exponential decay model is used to initialize the
-age structure at the first iteration:
+However, this scalar geometric series solution assumes that the plus
+group accumulates in a closed system. Therefore, when movement dynamics
+are present, this solution does not correctly accumulate individuals
+into the plus group.
+
+To address this, additional methods are provided to explicitly
+incorporate movement dynamics into the plus group calculation. In
+particular, the initial population can be derived by iterating the
+population to equilibrium. Here, the total instantaneous mortality in
+each region is defined similarly as in the first method. An exponential
+decay model is used to first initialize the age structure at the first
+iteration:
 
 $$\begin{matrix}
 N_{r,a,s}^{'} = \left\{ \begin{matrix}
@@ -96,6 +101,37 @@ N_{r,a,s}^{'} = \left\{ \begin{matrix}
 The initialized age structure is then iterated forward to equilibrium by
 applying recruitment, movement, and mortality and ageing processes in
 order (see Population Projection section for equations).
+
+While the iterative method correctly accumulates the plus group when
+movement is present, it can be computationally inefficient due to the
+potentially large number of iterations required to propagate the initial
+population. Therefore, SPoRC enables users to compute the plus group
+using the matrix formulation of the geometric series, which correctly
+accounts for movement processes. Individuals are first initialized
+through recruitment processes, after which movement, mortality, and
+ageing processes are applied sequentially. The population (or cohort) is
+then projected forward to the penultimate age ($N_{r,a_{+} - 1,s}^{'}$),
+which is used to derive the plus group. Specifically, the penultimate
+age is projected forward once more:
+
+$$\mathbf{X}_{s}\mathbf{=}\left( \left( \mathbf{N}_{a_{+} - 1,s}^{'} \right)^{T}\mathbf{M}_{y = 1,a_{+} - 1,s} \right) \odot \exp\left( - \mathbf{Z}_{a = a_{+} - 1,s}^{'} \right)$$
+
+where $\mathbf{M}$ is a first-order Markov matrix representing movement,
+$\odot$ is the Hadamard product (elementwise multiplication), and
+$\mathbf{X}_{s}$ represents the culmination of processes applied to the
+penultimate age. A transition matrix $\mathbf{(G}_{s}$) is the
+constructed to represent the combined effects of survival and movement
+on the plus group:
+
+$$\mathbf{G}_{s} = \text{diag}\left( \exp\left( - \mathbf{Z}_{a = a_{+},s}^{'} \right) \right)\left( \mathbf{M}_{y = 1,a_{+},s} \right)^{T}$$
+
+The plus group solution incorporating movement is then given by:
+
+$$\mathbf{N}_{a_{+},s}^{'} = \left( \mathbf{I -}\mathbf{G}_{s} \right)^{- 1}\mathbf{X}_{s}$$
+
+When only a single region is modeled or no movement occurs (i.e., an
+identity matrix), the matrix formulation simplifies to the standard
+scalar geometric series solution.
 
 Following the definition of equilibrium age structure, initial age
 deviations can be applied:
@@ -132,13 +168,13 @@ the steepness parameterization (Mace and Doonan, 1988). Localized
 density-dependent recruitment is defined as:
 
 $$\begin{matrix}
-N_{r,y,a = 1,s} = \frac{4\mu^{\text{Rec}}\zeta_{r}h_{r}{SSB}_{r,y - RecLag}}{\left( 1 - h_{r} \right)SSB0_{r} + 5\left( h_{r} - 1 \right){SSB}_{r,y - RecLag}}\exp\left( \epsilon_{r,y}^{\text{Rec}} - \frac{\sigma_{\text{Rec}}^{2}}{2}b_{y} \right)\psi_{r,y,s} \\
+N_{r,y,a = 1,s} = \dfrac{4\mu^{\text{Rec}}\zeta_{r}h_{r}{SSB}_{r,y - RecLag}}{\left( 1 - h_{r} \right)SSB0_{r} + 5\left( h_{r} - 1 \right){SSB}_{r,y - RecLag}}\exp\left( \epsilon_{r,y}^{\text{Rec}} - \frac{\sigma_{\text{Rec}}^{2}}{2}b_{y} \right)\psi_{r,y,s} \\
 \end{matrix}$$
 
 while global density-dependent recruitment can be defined as:
 
 $$\begin{matrix}
-N_{r,y,a = 1,s} = \frac{4\mu^{\text{Rec}}\zeta_{r}h\sum_{r}^{}{SSB}_{r,y - RecLag}}{(1 - h)\sum_{r}^{}{SSB0_{r}} + 5(h - 1)\sum_{r}^{}{SSB}_{r,y - RecLag}}\exp\left( \epsilon_{r,y}^{\text{Rec}} - \frac{\sigma_{\text{Rec}}^{2}}{2}b_{y} \right)\psi_{r,y,s} \\
+N_{r,y,a = 1,s} = \dfrac{4\mu^{\text{Rec}}\zeta_{r}h\sum_{r}^{}{SSB}_{r,y - RecLag}}{(1 - h)\sum_{r}^{}{SSB0_{r}} + 5(h - 1)\sum_{r}^{}{SSB}_{r,y - RecLag}}\exp\left( \epsilon_{r,y}^{\text{Rec}} - \frac{\sigma_{\text{Rec}}^{2}}{2}b_{y} \right)\psi_{r,y,s} \\
 \end{matrix}$$
 
 where $\mu^{\text{Rec}}$ under this parameterization is the virgin
@@ -215,7 +251,7 @@ Expected catch-at-age ($C_{r,y,a,s,f}^{a}$) for a given fishery fleet is
 calculated using Baranov's catch equation:
 
 $$\begin{matrix}
-C_{r,y,a,s,f}^{a} = \frac{\text{Fmort}_{r,y,f}\text{Sel}_{r,y,a,s,f}^{\text{Fsh}}}{Z_{r,y,a,s}}N_{r,y,a,s}\left\lbrack 1 - exp\left( - Z_{r,y,a,s} \right) \right\rbrack \\
+C_{r,y,a,s,f}^{a} = \dfrac{\text{Fmort}_{r,y,f}\text{Sel}_{r,y,a,s,f}^{\text{Fsh}}}{Z_{r,y,a,s}}N_{r,y,a,s}\left\lbrack 1 - \exp\left( - Z_{r,y,a,s} \right) \right\rbrack \\
 \end{matrix}$$
 
 To track length-based dynamics, catch-at-length ($C_{r,y,l,s,f}^{l}$)
@@ -343,7 +379,7 @@ tag shedding). Similar to computations for catch-at-age, tag recaptures
 are calculated using a modified version of Baranov's catch equation:
 
 $$\begin{matrix}
-\text{Recap}_{r,y,a,s}^{k} = \beta_{r,y}\frac{\sum_{f}^{}\text{Sel}_{r,y,a,s,f}^{\text{Fsh}}}{Z_{r,y,a,s}^{\text{Tag}}}T_{r,y,a,s}^{k}\left\lbrack 1 - exp\left( - Z_{r,y,a,s}^{\text{Tag}} \right) \right\rbrack \\
+\text{Recap}_{r,y,a,s}^{k} = \beta_{r,y}\dfrac{\sum_{f}^{}\text{Sel}_{r,y,a,s,f}^{\text{Fsh}}}{Z_{r,y,a,s}^{\text{Tag}}}T_{r,y,a,s}^{k}\left\lbrack 1 - \exp\left( - Z_{r,y,a,s}^{\text{Tag}} \right) \right\rbrack \\
 \end{matrix}$$
 
 $\beta_{r,y}$ represents a tag reporting rate parameter that can vary
@@ -652,8 +688,8 @@ $$\begin{matrix}
 $$\left( \mathbf{R}_{C} \right)_{i,j}\mathbf{=}\rho_{C}^{|i - j|},\ \ i,j = \ 1,\ \cdots,\ C$$
 
 $$\left( \mathbf{R}_{S} \right)_{i,j}\mathbf{=}\left\{ \begin{matrix}
-1,\ \ if\ i = j \\
-\rho_{s},\ \ if\ i \neq j \\
+1,\ \ if i = j \\
+\rho_{s},\ \ if i \neq j \\
 \end{matrix} \right.\ ,\ \ i,j = 1,\ldots,n_{s}$$
 
 $\mathbf{R}_{S}$ is a constant correlation matrix dimensioned by
@@ -1005,8 +1041,8 @@ Extending the iid case, random walk selectivity deviations can also be
 specified about a given parameter, assuming a normal distribution:
 
 $$L\left( \epsilon_{r,y,i,s,j}^{\text{Sel}} \right) = \left\{ \begin{matrix}
-\frac{1}{\sqrt{2\pi \cdot 5^{2}}\,}\exp\left( - \frac{\left( \epsilon_{r,y = 1,i,s,j}^{\text{Sel}} \right)^{2}}{2{\cdot 5}^{2}} \right),\ if\ y = 1) \\
-\frac{1}{\sqrt{2\pi\sigma_{r,i,s,j,Sel}^{2}}\,}\exp\left( - \frac{\left( \epsilon_{r,y,i,s,j}^{\text{Sel}} - \epsilon_{r,y - 1,i,s,j}^{\text{Sel}} \right)^{2}}{2\sigma_{r,i,s,j,Sel}^{2}} \right),if\ y > 1) \\
+\frac{1}{\sqrt{2\pi \cdot 5^{2}}\,}\exp\left( - \frac{\left( \epsilon_{r,y = 1,i,s,j}^{\text{Sel}} \right)^{2}}{2{\cdot 5}^{2}} \right),\ if y = 1) \\
+\frac{1}{\sqrt{2\pi\sigma_{r,i,s,j,Sel}^{2}}\,}\exp\left( - \frac{\left( \epsilon_{r,y,i,s,j}^{\text{Sel}} - \epsilon_{r,y - 1,i,s,j}^{\text{Sel}} \right)^{2}}{2\sigma_{r,i,s,j,Sel}^{2}} \right),if y > 1) \\
 \end{matrix} \right.\ $$
 
 where process error deviations for the first year are initialized with a large variance. Following the first year, process error deviations follow a random

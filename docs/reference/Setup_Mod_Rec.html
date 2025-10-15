@@ -52,7 +52,7 @@
 <span>  max_bias_ramp_fct <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  sigmaR_switch <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  dont_est_recdev_last <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>  init_age_strc <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  init_age_strc <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>  equil_init_age_strc <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  init_F_prop <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  sigmaR_spec <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -142,7 +142,8 @@ If scalar, a constant uniform prior is applied across all dimensions.</p></dd>
 
 <dt id="arg-init-age-strc">init_age_strc<a class="anchor" aria-label="anchor" href="#arg-init-age-strc"></a></dt>
 <dd><p>Integer flag specifying initialization of initial age structure:</p><ul><li><p><code>0</code>: Initialize by iteration.</p></li>
-<li><p><code>1</code>: Initialize using a geometric series.</p></li>
+<li><p><code>1</code>: Initialize using a scalar geometric series (does not account for movement).</p></li>
+<li><p><code>2</code>: Initialize using a matrix geometric series (accounts for movement; default).</p></li>
 </ul></dd>
 
 

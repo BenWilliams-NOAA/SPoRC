@@ -15,7 +15,7 @@ Setup_Sim_Rec(
   rec_dd = "global",
   init_dd = "global",
   sim_list,
-  init_age_strc = 0,
+  init_age_strc = 2,
   t_spawn = 0,
   rec_lag = 1,
   Rec_input = NULL,
@@ -63,10 +63,11 @@ Setup_Sim_Rec(
 
 \item{sim_list}{Simulation list object from `Setup_Sim_Dim()`}
 
-\item{init_age_strc}{Initial age structure method (default = 0):
+\item{init_age_strc}{Integer flag specifying initialization of initial age structure:
 \itemize{
-  \item \code{0}: Iterative
-  \item \code{1}: Geometric series solution
+  \item \code{0}: Initialize by iteration.
+  \item \code{1}: Initialize using a scalar geometric series (does not account for movement).
+  \item \code{2}: Initialize using a matrix geometric series (accounts for movement; default).
 }}
 
 \item{t_spawn}{Spawn timing fraction of the year (scalar, default = 0)}

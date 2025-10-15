@@ -17,40 +17,72 @@ Get_Det_Recruitment(
   WAA,
   MatAA,
   natmort,
-  SSB_vals
+  SSB_vals,
+  Movement,
+  do_recruits_move,
+  t_spawn,
+  sex_ratio_f
 )
 }
 \arguments{
-\item{recruitment_model}{== 0, mean recruitment, == 1 beverton holt recruitment with steepness}
+\item{recruitment_model}{Integer flag specifying the recruitment model:
+\itemize{
+  \item `0` = mean recruitment
+  \item `1` = Beverton–Holt recruitment with steepness
+}}
 
-\item{recruitment_dd}{Recruitment density dependence (0 == local, 1 == global)}
+\item{recruitment_dd}{Integer flag specifying the scale of density dependence:
+\itemize{
+  \item `0` = local (region-specific)
+  \item `1` = global (shared across regions)
+}}
 
-\item{y}{year}
+\item{y}{Current model year (used for SSB lag indexing)}
 
-\item{rec_lag}{recruitment lag for indexing SSB year}
+\item{rec_lag}{Recruitment lag (number of years between spawning and recruitment)}
 
-\item{R0}{virgin or mean recruitment (global)}
+\item{R0}{Virgin or mean recruitment (global scalar)}
 
-\item{Rec_Prop}{Recruitment proportions to allocate global R0 if local density dependence}
+\item{Rec_Prop}{Vector of recruitment proportions by region (used to allocate global `R0` under local density dependence)}
 
-\item{h}{Vector of steepness values by n_regions}
+\item{h}{Vector of Beverton–Holt steepness values by region}
 
-\item{n_regions}{Number of regions}
+\item{n_regions}{Number of spatial regions}
 
-\item{n_ages}{number of ages}
+\item{n_ages}{Number of modeled age classes}
 
-\item{WAA}{Weight at age by region and age}
+\item{WAA}{Matrix of weight-at-age by region and age}
 
-\item{MatAA}{Maturity by region and age}
+\item{MatAA}{Matrix of maturity-at-age by region and age}
 
-\item{natmort}{Natural moratliaty by region and age}
+\item{natmort}{Matrix or vector of natural mortality by region and age}
 
-\item{SSB_vals}{SSB matrix by regiona and year}
+\item{SSB_vals}{Matrix of spawning stock biomass (SSB) by region and year}
+
+\item{Movement}{3D array of movement probabilities between regions by age (`[origin, destination, age]` or alternatively, `[n_regions, n_regions, age]`)}
+
+\item{do_recruits_move}{Logical or integer flag (0/1) indicating whether recruits move during their first year}
+
+\item{t_spawn}{Fraction of the year at which spawning occurs (used for survival to spawning)}
+
+\item{sex_ratio_f}{Vector of female proportions by region (used to scale initial recruits)}
 }
 \value{
-Vector of n_regions of deterministic recruitment values from mean recruitment or beverton holt
+A numeric vector of length `n_regions` containing deterministic
+recruitment values for each region.
 }
 \description{
-Get Deterministic Recruitment
+Computes deterministic recruitment for each region based on either
+a mean recruitment model or a Beverton–Holt stock–recruitment relationship.
+}
+\details{
+The function returns region-specific deterministic recruitment estimates
+based on the chosen recruitment model and density dependence structure.
+
+When `recruitment_model = 0`, recruitment is fixed at mean values (`R0 * Rec_Prop`).
+When `recruitment_model = 1`, Beverton–Holt recruitment is applied using:
+\deqn{R = \frac{4hR_0SSB}{(1 - h)S_0 + (5h - 1)SSB}}
+where `S_0` is unfished spawning biomass per recruit, computed separately for each
+region (local) or summed across all regions (global).
 }
 \keyword{internal}
