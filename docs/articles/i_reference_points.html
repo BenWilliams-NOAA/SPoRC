@@ -1029,9 +1029,9 @@ points, this can be derived by setting <code>what = 'BH_MSY'</code>.</p>
 <span>                                          sex_ratio_f <span class="op">=</span> <span class="fl">0.5</span> <span class="co"># recruitment sex-ratio for females</span></span>
 <span>                                          <span class="op">)</span></span>
 <span><span class="va">sgl_ref_pt</span><span class="op">$</span><span class="va">f_ref_pt</span> <span class="co"># F40</span></span>
-<span><span class="co">#&gt; [1] 0.0862704</span></span>
+<span><span class="co">#&gt; [1] 0.08625413</span></span>
 <span><span class="va">sgl_ref_pt</span><span class="op">$</span><span class="va">b_ref_pt</span> <span class="co"># B40</span></span>
-<span><span class="co">#&gt; [1] 121.3337</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 121.3814</span></span></code></pre></div>
 <p>Note that the sablefish example does not utilize a stock recruitment
 relationship. However, if a Beverton-Holt stock recruitment relationship
 is utilized and users want to estimate MSY-based reference points, this
@@ -1069,9 +1069,9 @@ are region-specific and can be applied accordingly.</p>
 <span>                                          sex_ratio_f <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="va">mlt_rg_sable_data</span><span class="op">$</span><span class="va">n_regions</span><span class="op">)</span> <span class="co"># recruitment sex-ratio for females</span></span>
 <span>                                          <span class="op">)</span></span>
 <span><span class="va">mlt_ref_pt_indp</span><span class="op">$</span><span class="va">f_ref_pt</span> <span class="co"># F40</span></span>
-<span><span class="co">#&gt; [1] 3.130855e-11 6.458127e-11 1.995563e-10 5.331961e-02 5.084283e-01</span></span>
+<span><span class="co">#&gt; [1] 1.868139e-11 2.913135e-11 1.757183e-10 4.829113e-02 5.021245e-01</span></span>
 <span><span class="va">mlt_ref_pt_indp</span><span class="op">$</span><span class="va">b_ref_pt</span> <span class="co"># B40</span></span>
-<span><span class="co">#&gt; [1]  7.151436 11.849269  7.196475 31.966677 14.831938</span></span></code></pre></div>
+<span><span class="co">#&gt; [1]  7.067837 11.328148  7.138283 32.894687 15.427392</span></span></code></pre></div>
 <p>By contrast, users can also specify global SPR rates. This involves
 simply changing the <code>what</code> argument to
 <code>global_SPR</code>, which results in a single
@@ -1098,9 +1098,9 @@ values are all identical.</p>
 <span>                                                 sex_ratio_f <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="va">mlt_rg_sable_data</span><span class="op">$</span><span class="va">n_regions</span><span class="op">)</span> <span class="co"># recruitment sex-ratio for females</span></span>
 <span>                                                 <span class="op">)</span></span>
 <span><span class="va">mlt_ref_pt_global</span><span class="op">$</span><span class="va">f_ref_pt</span> <span class="co"># F40</span></span>
-<span><span class="co">#&gt; [1] 0.07997828 0.07997828 0.07997828 0.07997828 0.07997828</span></span>
+<span><span class="co">#&gt; [1] 0.08099479 0.08099479 0.08099479 0.08099479 0.08099479</span></span>
 <span><span class="va">mlt_ref_pt_global</span><span class="op">$</span><span class="va">b_ref_pt</span> <span class="co"># B40</span></span>
-<span><span class="co">#&gt; [1] 31.46321 24.63865 20.11382 33.32957 13.30036</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 31.93313 26.89321 20.22807 30.01715 14.03777</span></span></code></pre></div>
 <p>Similarly, MSY-based reference points assuming a Beverton-Holt stock
 recruitment function can be specified as well. This can be easily
 specified and involves either assuming independent populations
@@ -1356,15 +1356,15 @@ value. For example, in the first projection year:</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># F40</span></span>
 <span><span class="va">f_ref_pt_indp</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span> <span class="co"># independent SPR</span></span>
-<span><span class="co">#&gt; [1] 3.130855e-11 6.458127e-11 1.995563e-10 5.331961e-02 5.084283e-01</span></span>
+<span><span class="co">#&gt; [1] 1.868139e-11 2.913135e-11 1.757183e-10 4.829113e-02 5.021245e-01</span></span>
 <span><span class="va">f_ref_pt_global</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span> <span class="co"># global SPR</span></span>
-<span><span class="co">#&gt; [1] 0.07997828 0.07997828 0.07997828 0.07997828 0.07997828</span></span>
+<span><span class="co">#&gt; [1] 0.08099479 0.08099479 0.08099479 0.08099479 0.08099479</span></span>
 <span></span>
 <span><span class="co"># b40</span></span>
 <span><span class="va">b_ref_pt_indp</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span> <span class="co"># independent SPR</span></span>
-<span><span class="co">#&gt; [1]  7.151436 11.849269  7.196475 31.966677 14.831938</span></span>
+<span><span class="co">#&gt; [1]  7.067837 11.328148  7.138283 32.894687 15.427392</span></span>
 <span><span class="va">b_ref_pt_global</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span> <span class="co"># global SPR</span></span>
-<span><span class="co">#&gt; [1] 31.46321 24.63865 20.11382 33.32957 13.30036</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 31.93313 26.89321 20.22807 30.01715 14.03777</span></span></code></pre></div>
 <p>For the projections that follow, we use independent SPR rates to
 allow for region-specific reference points:</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">

@@ -46,7 +46,7 @@ population of the model. The first method derives the equilibrium
 population using the following process:
 
 $$\begin{matrix}
-N_{r,a,s}^{'} = \mu^{\text{Rec}}\exp\left( - (a - 1) \cdot \left( Z_{r,a,s}^{'} \right) \right)\psi_{r,y = 1,s}\zeta_{r},\quad\text{FOR }2 \leq a < a_{+} \\
+N_{r,a,s}^{'} = \mu^{\text{Rec}}\exp\left( - (a - 1) \cdot \left( Z_{r,a,s}^{'} \right) \right)\psi_{r,y = 1,s}\zeta_{r},\quad\text{for }2 \leq a < a_{+} \\
 \end{matrix}$$
 
 $$Z_{r,a,s}^{'} = \text{Natmort}_{r,y = 1,a,s} + \mu_{r,f = 1}^{\text{Fsh}}\text{Fmort}^{\text{InitProp}}\text{Sel}_{r,y = 1,a,s,f = 1}^{\text{Fsh}}$$
@@ -109,8 +109,8 @@ population. Therefore, SPoRC enables users to compute the plus group
 using the matrix formulation of the geometric series, which correctly
 accounts for movement processes. Individuals are first initialized
 through recruitment processes, after which movement, mortality, and
-ageing processes are applied sequentially. The population (or cohort) is
-then projected forward to the penultimate age ($N_{r,a_{+} - 1,s}^{'}$),
+ageing processes are applied sequentially (up to the number of ages in the model).
+The population (or cohort) is then projected forward to the penultimate age ($N_{r,a_{+} - 1,s}^{'}$),
 which is used to derive the plus group. Specifically, the penultimate
 age is projected forward once more:
 

@@ -220,7 +220,7 @@ recruitment and movement if this is allowed
 (<code>do_recruits_move = 0</code>). Fixed movement is not used in this
 case (<code>use_fixed_movement = 0</code>) and a vague Dirichlet prior
 for movement (<code>Use_Movement_Prior = 1</code> and
-<code>Movement_prior = 1.5</code>) is used to penalize movement away
+<code>Movement_prior = 2.5</code>) is used to penalize movement away
 from the extremes (i.e, away from 0s and 1s).</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># setting up movement parameterization</span></span>
@@ -234,7 +234,7 @@ from the extremes (i.e, away from 0s and 1s).</p>
 <span>                                 do_recruits_move <span class="op">=</span> <span class="fl">0</span>, <span class="co"># recruits do not move</span></span>
 <span>                                 use_fixed_movement <span class="op">=</span> <span class="fl">0</span>, <span class="co"># estimating movement</span></span>
 <span>                                 Use_Movement_Prior <span class="op">=</span> <span class="fl">1</span>, <span class="co"># priors used for movement</span></span>
-<span>                                 Movement_prior <span class="op">=</span> <span class="fl">1.5</span></span>
+<span>                                 Movement_prior <span class="op">=</span> <span class="fl">2.5</span></span>
 <span>                                 <span class="co"># vague prior to penalize movement away from the extremes</span></span>
 <span>                                 <span class="op">)</span></span></code></pre></div>
 <p>Specification of tagging dynamics can be a bit cumbersome given the
@@ -377,9 +377,9 @@ can inspect the <code>mlt_rg_sable_data</code> data object to further
 understand the dimensions of data inputs, or refer to the Description of
 Model and Data Dimensions vignette. Given that we are going to be using
 TMB-style likelihoods, we are also specifying that the sigma for catch
-is fixed (<code>sigmaC_spec = 'fix'</code>) at a value of 0.02 for all
+is fixed (<code>sigmaC_spec = 'fix'</code>) at a value of 0.05 for all
 fleets, years, and regions
-(<code>ln_sigmaC = array(log(0.02), dim = c(input_list$data$n_regions, length(input_list$data$years), input_list$data$n_fish_fleets))</code>).</p>
+(<code>ln_sigmaC = array(log(0.05), dim = c(input_list$data$n_regions, length(input_list$data$years), input_list$data$n_fish_fleets))</code>).</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">input_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/Setup_Mod_Catch_and_F.html">Setup_Mod_Catch_and_F</a></span><span class="op">(</span>input_list <span class="op">=</span> <span class="va">input_list</span>,</span>
 <span>                                    <span class="co"># Data inputs</span></span>
@@ -391,7 +391,7 @@ fleets, years, and regions
 <span>                                    <span class="co"># whether to use f penalty, == 0 don't use, == 1 use</span></span>
 <span>                                    sigmaC_spec <span class="op">=</span> <span class="st">'fix'</span>,</span>
 <span>                                    ln_sigmaC <span class="op">=</span></span>
-<span>                                      <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">0.02</span><span class="op">)</span>, dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">input_list</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">n_regions</span>,</span>
+<span>                                      <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">0.05</span><span class="op">)</span>, dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">input_list</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">n_regions</span>,</span>
 <span>                                                               <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">input_list</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">years</span><span class="op">)</span>,</span>
 <span>                                                               <span class="va">input_list</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">n_fish_fleets</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>                                    <span class="co"># fixing catch sd at small value</span></span>
@@ -616,7 +616,7 @@ catchability is not estimated as no fishery indices are utilized
 <span><span class="va">map_ln_fish_fixed_sel_pars</span><span class="op">[</span>,,<span class="fl">2</span>,,<span class="fl">2</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="cn">NA</span> <span class="co"># no parameters estimated for time block 2 trawl gear</span></span>
 <span></span>
 <span><span class="va">input_list</span><span class="op">$</span><span class="va">map</span><span class="op">$</span><span class="va">ln_fish_fixed_sel_pars</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">map_ln_fish_fixed_sel_pars</span><span class="op">)</span> <span class="co"># input into map list</span></span>
-<span><span class="va">input_list</span><span class="op">$</span><span class="va">par</span><span class="op">$</span><span class="va">ln_fish_fixed_sel_pars</span><span class="op">[</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">5</span><span class="op">)</span> <span class="co"># some more inforamtive starting values</span></span></code></pre></div>
+<span><span class="va">input_list</span><span class="op">$</span><span class="va">par</span><span class="op">$</span><span class="va">ln_fish_fixed_sel_pars</span><span class="op">[</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">0.1</span><span class="op">)</span> <span class="co"># some more inforamtive starting values</span></span></code></pre></div>
 <p>Again, the same arguments are expected for setting up survey
 selectivity, and there are similarly some nuanced parameter fixing and
 sharing to help facilitate model stability.</p>
@@ -660,7 +660,7 @@ sharing to help facilitate model stability.</p>
 <span>                                         <span class="st">"est_shared_r"</span><span class="op">)</span>,</span>
 <span></span>
 <span>                                     <span class="co"># Starting values for survey catchability</span></span>
-<span>                                     ln_srv_q <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="fl">9</span>,</span>
+<span>                                     ln_srv_q <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="fl">8.75</span>,</span>
 <span>                                                      dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">input_list</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">n_regions</span>, <span class="fl">1</span>,</span>
 <span>                                                              <span class="va">input_list</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">n_srv_fleets</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
@@ -685,7 +685,7 @@ sharing to help facilitate model stability.</p>
 <span><span class="co"># (sharing with coop survey)</span></span>
 <span></span>
 <span><span class="va">input_list</span><span class="op">$</span><span class="va">map</span><span class="op">$</span><span class="va">ln_srv_fixed_sel_pars</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">map_ln_srv_fixed_sel_pars</span><span class="op">)</span>  <span class="co"># input into map list</span></span>
-<span><span class="va">input_list</span><span class="op">$</span><span class="va">par</span><span class="op">$</span><span class="va">ln_srv_fixed_sel_pars</span><span class="op">[</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">5</span><span class="op">)</span> <span class="co"># some more informative starting values</span></span></code></pre></div>
+<span><span class="va">input_list</span><span class="op">$</span><span class="va">par</span><span class="op">$</span><span class="va">ln_srv_fixed_sel_pars</span><span class="op">[</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">0.1</span><span class="op">)</span> <span class="co"># some more informative starting values</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="setup-model-weighting">Setup Model Weighting<a class="anchor" aria-label="anchor" href="#setup-model-weighting"></a>

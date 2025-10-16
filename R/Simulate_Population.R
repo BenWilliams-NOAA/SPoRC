@@ -287,29 +287,21 @@ run_annual_cycle <- function(y,
       # Matrix Geometric Series Solution (genearlizes to scalar w/o movement)
       if(init_age_strc == 2) {
 
-        # initialize age structure (starting point)
-        for(r in 1:n_regions) {
-          for(s in 1:n_sexes) {
-            tmp_cumsum_Z = cumsum(natmort[r,1,1:(n_ages-1),s,sim] + init_F * fish_sel[r,1,1:(n_ages-1),s,1,sim])
-            Init_NAA[r,,s,sim] = c(R0[r,1,sim] * sexratio[r,1,s,sim], R0[r,1,sim] * sexratio[r,1,s,sim] * exp(-tmp_cumsum_Z))
-          } # end s loop
-        } # end r loop
-
         # projection initial abundance forward
-        for(s in 1:n_sexes) {
-          Init_NAA_next_year[,1,s,sim] = R0[,1,sim] * sexratio[,1,s,sim] # recruitment
-          # movement
-          if(do_recruits_move == 0) for(a in 2:n_ages) Init_NAA[,a,s,sim] = t(Init_NAA[,a,s,sim]) %*% Movement[,,1,a,s,sim] # recruits don't move
-          if(do_recruits_move == 1) for(a in 1:n_ages) Init_NAA[,a,s,sim] = t(Init_NAA[,a,s,sim]) %*% Movement[,,1,a,s,sim] # recruits move
-          for(r in 1:n_regions) {
-            # ageing and mortality
-            Init_NAA_next_year[r,2:n_ages,s,sim] = Init_NAA[r,1:(n_ages-1),s,sim] * exp(-(natmort[r,1,1:(n_ages-1),s,sim] + (init_F * fish_sel[r,1,1:(n_ages-1),s,1,sim])))
-            # accumulate plus group
-            Init_NAA_next_year[r,n_ages,s,sim] = (Init_NAA_next_year[r,n_ages,s,sim]) + (Init_NAA[r,n_ages,s,sim] * exp(-(natmort[r,1,n_ages,s,sim] + (init_F * fish_sel[r,1,n_ages,s,1,sim]))))
-          } # end r loop
-        } # end s loop
-
-        Init_NAA = Init_NAA_next_year # update and save for use in next steps
+        for(i in 1:n_ages) {
+          for(s in 1:n_sexes) {
+            Init_NAA[,1,s,sim] = R0[,1,sim] * sexratio[,1,s,sim] # recruitment
+            # movement
+            if(do_recruits_move == 0) for(a in 2:n_ages) Init_NAA[,a,s,sim] = t(Init_NAA[,a,s,sim]) %*% Movement[,,1,a,s,sim] # recruits don't move
+            if(do_recruits_move == 1) for(a in 1:n_ages) Init_NAA[,a,s,sim] = t(Init_NAA[,a,s,sim]) %*% Movement[,,1,a,s,sim] # recruits move
+            for(r in 1:n_regions) {
+              # ageing and mortality
+              Init_NAA[r,2:n_ages,s,sim] = Init_NAA[r,1:(n_ages-1),s,sim] * exp(-(natmort[r,1,1:(n_ages-1),s,sim] + (init_F * fish_sel[r,1,1:(n_ages-1),s,1,sim])))
+              # accumulate plus group
+              Init_NAA[r,n_ages,s,sim] = (Init_NAA[r,n_ages,s,sim]) + (Init_NAA[r,n_ages,s,sim] * exp(-(natmort[r,1,n_ages,s,sim] + (init_F * fish_sel[r,1,n_ages,s,1,sim]))))
+            } # end r loop
+          } # end s loop
+        } # end i loop
 
         # Set up analytical solution for plus group
         for(s in 1:n_sexes) {

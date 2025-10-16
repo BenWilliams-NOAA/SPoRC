@@ -80,7 +80,7 @@ Get_Det_Recruitment <- function(recruitment_model,
     # local density dependence
     if(recruitment_dd == 0) {
       # Calculate unexploited naa per recruit by origin area and destination area
-      SB_age = Nspr = array(0, dim = c(n_regions, n_regions, n_ages_ext))
+      SB_age = Nspr = array(0, dim = c(n_regions, n_regions, n_ages))
       SB_unfished_mat = array(0, c(n_regions, n_regions))
 
       # Set up the initial recruits (1 recruit per area)

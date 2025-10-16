@@ -114,7 +114,7 @@ input_list <- Setup_Mod_Biologicals(input_list = input_list,
 
 ## Setup Movement and Tagging Dynamics
 
-Various options are available for parameterizing movement dynamics. In particular, users can specify any number of age, year, and sex blocks for movement. If users wish to specify blocks for the aforementioned partitions, a list needs to be supplied detailing the blocking structure, where the number of elements in the list represents the number of blocks to estiamte, and the elements within the list should specify the range of the block. For instance, the spatial model for sablefish estimates 3 age blocks, (`Movement_ageblk_spec = list(c(1:6), c(7:15), c(16:30))`), where the first element specifies the first age block, which ranges from ages 1 - 6, the second element specifies the second age block, which ranges from ages 7 - 15, and the third element specifies the third age block, which ranges from ages 16 - 30. No year and sex blocks are specified for this application. Thus, both `Movement_yearblk_spec` and `Movement_sexblk_spec` are set at `"constant"`. Additionally, recruits are not allowed to move, given the potential for severe confounding between recruitment and movement if this is allowed (`do_recruits_move = 0`). Fixed movement is not used in this case (`use_fixed_movement = 0`) and a vague Dirichlet prior for movement (`Use_Movement_Prior = 1` and `Movement_prior = 1.5`) is used to penalize movement away from the extremes (i.e, away from 0s and 1s).
+Various options are available for parameterizing movement dynamics. In particular, users can specify any number of age, year, and sex blocks for movement. If users wish to specify blocks for the aforementioned partitions, a list needs to be supplied detailing the blocking structure, where the number of elements in the list represents the number of blocks to estiamte, and the elements within the list should specify the range of the block. For instance, the spatial model for sablefish estimates 3 age blocks, (`Movement_ageblk_spec = list(c(1:6), c(7:15), c(16:30))`), where the first element specifies the first age block, which ranges from ages 1 - 6, the second element specifies the second age block, which ranges from ages 7 - 15, and the third element specifies the third age block, which ranges from ages 16 - 30. No year and sex blocks are specified for this application. Thus, both `Movement_yearblk_spec` and `Movement_sexblk_spec` are set at `"constant"`. Additionally, recruits are not allowed to move, given the potential for severe confounding between recruitment and movement if this is allowed (`do_recruits_move = 0`). Fixed movement is not used in this case (`use_fixed_movement = 0`) and a vague Dirichlet prior for movement (`Use_Movement_Prior = 1` and `Movement_prior = 2.5`) is used to penalize movement away from the extremes (i.e, away from 0s and 1s).
 
 ```{r Setup Movement, message = FALSE,  eval = FALSE}
 # setting up movement parameterization
@@ -128,7 +128,7 @@ input_list <- Setup_Mod_Movement(input_list = input_list,
                                  do_recruits_move = 0, # recruits do not move
                                  use_fixed_movement = 0, # estimating movement
                                  Use_Movement_Prior = 1, # priors used for movement
-                                 Movement_prior = 1.5
+                                 Movement_prior = 2.5
                                  # vague prior to penalize movement away from the extremes
                                  )
 ```
@@ -214,7 +214,7 @@ input_list <- Setup_Mod_Tagging(input_list = input_list,
 
 ## Setup Catch and Fishing Mortality
 
-In general, specifying catch and fishing mortality is relatively straightforward. Users need to supply several data inputs, which include an array of observed catches `ObsCatch`, the catch type (`Catch_Type`), which indicates if we gave region-specific or region-aggregated catch, and `UseCatch`, which indicates whether or not to fit to catch data in a given region and year. Users can inspect the `mlt_rg_sable_data` data object to further understand the dimensions of data inputs, or refer to the Description of Model and Data Dimensions vignette. Given that we are going to be using TMB-style likelihoods, we are also specifying that the sigma for catch is fixed (`sigmaC_spec = 'fix'`) at a value of 0.02 for all fleets, years, and regions (`ln_sigmaC = array(log(0.02), dim = c(input_list$data$n_regions, length(input_list$data$years), input_list$data$n_fish_fleets))`).
+In general, specifying catch and fishing mortality is relatively straightforward. Users need to supply several data inputs, which include an array of observed catches `ObsCatch`, the catch type (`Catch_Type`), which indicates if we gave region-specific or region-aggregated catch, and `UseCatch`, which indicates whether or not to fit to catch data in a given region and year. Users can inspect the `mlt_rg_sable_data` data object to further understand the dimensions of data inputs, or refer to the Description of Model and Data Dimensions vignette. Given that we are going to be using TMB-style likelihoods, we are also specifying that the sigma for catch is fixed (`sigmaC_spec = 'fix'`) at a value of 0.05 for all fleets, years, and regions (`ln_sigmaC = array(log(0.05), dim = c(input_list$data$n_regions, length(input_list$data$years), input_list$data$n_fish_fleets))`).
 
 ```{r Setup Catch and Fishing Mortality, message = FALSE,  eval = FALSE}
 input_list <- Setup_Mod_Catch_and_F(input_list = input_list,
@@ -227,7 +227,7 @@ input_list <- Setup_Mod_Catch_and_F(input_list = input_list,
                                     # whether to use f penalty, == 0 don't use, == 1 use
                                     sigmaC_spec = 'fix',
                                     ln_sigmaC =
-                                      array(log(0.02), dim = c(input_list$data$n_regions,
+                                      array(log(0.05), dim = c(input_list$data$n_regions,
                                                                length(input_list$data$years),
                                                                input_list$data$n_fish_fleets)),
                                     # fixing catch sd at small value
@@ -401,7 +401,7 @@ map_ln_fish_fixed_sel_pars[,2,1,2,2] <- 7 # delta, male, time block 1, trawl gea
 map_ln_fish_fixed_sel_pars[,,2,,2] <- NA # no parameters estimated for time block 2 trawl gear
 
 input_list$map$ln_fish_fixed_sel_pars <- factor(map_ln_fish_fixed_sel_pars) # input into map list
-input_list$par$ln_fish_fixed_sel_pars[] <- log(5) # some more inforamtive starting values
+input_list$par$ln_fish_fixed_sel_pars[] <- log(0.1) # some more inforamtive starting values
 ```
 
 Again, the same arguments are expected for setting up survey selectivity, and there are similarly some nuanced parameter fixing and sharing to help facilitate model stability.
@@ -446,7 +446,7 @@ input_list <- Setup_Mod_Srvsel_and_Q(input_list = input_list,
                                          "est_shared_r"),
 
                                      # Starting values for survey catchability
-                                     ln_srv_q = array(9,
+                                     ln_srv_q = array(8.75,
                                                       dim = c(input_list$data$n_regions, 1,
                                                               input_list$data$n_srv_fleets))
 )
@@ -471,7 +471,7 @@ map_ln_srv_fixed_sel_pars[,2,1,2,2] <- 4 # delta, domestic survey, time block 1,
 # (sharing with coop survey)
 
 input_list$map$ln_srv_fixed_sel_pars <- factor(map_ln_srv_fixed_sel_pars)  # input into map list
-input_list$par$ln_srv_fixed_sel_pars[] <- log(5) # some more informative starting values
+input_list$par$ln_srv_fixed_sel_pars[] <- log(0.1) # some more informative starting values
 ```
 
 ## Setup Model Weighting 

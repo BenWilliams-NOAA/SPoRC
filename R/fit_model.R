@@ -52,6 +52,8 @@ fit_model <- function(data,
                             , error = function(e){e}, warning = function(w){w})
   }
 
+  # save optim
+  obj$optim <- optim
   # save report
   obj$rep <- obj$report(obj$env$last.par.best)
 
