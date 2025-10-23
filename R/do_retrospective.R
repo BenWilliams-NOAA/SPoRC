@@ -93,9 +93,9 @@ truncate_yr <- function(j,
   if(data$n_regions > 1) {
     # Movement stuff
     retro_parameters$move_pars <- parameters$move_pars[,,1:(length(data$years) - j),,,drop = FALSE]
-    retro_parameters$logit_move_devs <- parameters$logit_move_devs[,,1:(length(data$years) - j),,,drop = FALSE]
+    retro_parameters$move_devs <- parameters$move_devs[,,1:(length(data$years) - j),,,drop = FALSE]
     retro_mapping$move_pars <- factor(array(mapping$move_pars, dim = dim(parameters$move_pars))[,,1:(length(data$years) - j),,,drop = FALSE])
-    retro_mapping$logit_move_devs <- factor(array(mapping$logit_move_devs, dim = dim(parameters$logit_move_devs))[,,1:(length(data$years) - j),,,drop = FALSE])
+    retro_mapping$move_devs <- factor(array(mapping$move_devs, dim = dim(parameters$move_devs))[,,1:(length(data$years) - j),,,drop = FALSE])
     retro_data$map_Movement_Pars <- data$map_Movement_Pars[,,1:(length(data$years) - j),,,drop = FALSE]
     retro_data$Fixed_Movement <- data$Fixed_Movement[,,1:(length(data$years) - j),,,drop = FALSE]
   }

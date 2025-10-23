@@ -32,6 +32,8 @@
 # Added equilibrium plus group calculations to initial abundance when movement occurs
 # Refactored Initial Numbers at Age module
 
+# version 5 - (M.LH Cheng)
+
 
 #' Generalized RTMB model
 #'
@@ -124,32 +126,36 @@ SPoRC_rtmb = function(pars, data) {
 
   # Model Process Equations -------------------------------------------------
   ## Movement Parameters (Set up) --------------------------------------------
-  ref_region = 1 # Set up reference region (always set at 0)
-  for(r in 1:n_regions) {
-    for(y in 1:(n_yrs + n_proj_yrs_devs)) {
-      for(a in 1:n_ages) {
-        for(s in 1:n_sexes) {
+  out_move = Get_Movement(
+    move_type = move_type, # movement type (unstructured markov, or continuous time markov chain)
+    do_recruits_move = do_recruits_move,
 
-          move_tmp = rep(0, n_regions) # temporary movement vector to store values
-          counter = 1  # counter
+    # Dimensions
+    n_regions = n_regions,
+    n_yrs = n_yrs,
+    n_proj_yrs_devs = n_proj_yrs_devs,
+    n_ages = n_ages,
+    n_sexes = n_sexes,
 
-          for(rr in 1:n_regions) {
-            if(rr != ref_region) {
-              # extract movement parameters
-              if(y <= n_yrs) tmp_move_pars = move_pars[r,counter,y,a,s]
-              else tmp_move_pars = move_pars[r,counter,n_yrs,a,s]
-              move_tmp[rr] = tmp_move_pars + logit_move_devs[r,counter,y,a,s]
-              counter = counter + 1
-            } # end if not reference region
-          } # end rr loop
+    # If move_type == 0
+    move_pars = move_pars, # movement parameters for unstructred markov
+    move_devs = move_devs, # logit movement deviations
+    use_fixed_movement = use_fixed_movement, # indicator for fixed movement
+    Fixed_Movement = Fixed_Movement, # fixed movement matrix
 
-          if(use_fixed_movement == 0) Movement[r,,y,a,s] = exp(move_tmp) / sum(exp(move_tmp)) # multinomial logit transform estimated movement
-          if(use_fixed_movement == 1 && y <= n_yrs) Movement[r,,y,a,s] = Fixed_Movement[r,,y,a,s] # fixed movement matrix
+    # If move_type == 1
+    ctmc_move_dat = ctmc_move_dat,
+    preference_formula = preference_formula,
+    diffusion_formula = diffusion_formula,
+    log_move_diffusion_pars = log_move_diffusion_pars,
+    move_preference_pars = move_preference_pars,
+    area_r = area_r,
+    adjacency_mat = adjacency_mat
+  )
 
-        } # end s loop
-      } # end a loop
-    } # end y loop
-  } # end r loop
+  # output movement stuff into model
+  Movement = out_move$Movement
+  Movement_nLL = Movement_nLL + out_move$move_pen
 
   ## Natural Mortality Parameters (Set up) -----------------------------------
   if(use_fixed_natmort == 0) {
@@ -1044,8 +1050,8 @@ SPoRC_rtmb = function(pars, data) {
   if(cont_vary_movement > 0) {
     Movement_nLL = Movement_nLL + - Get_move_PE_loglik(PE_model = cont_vary_movement,
                                                        PE_pars = move_pe_pars,
-                                                       logit_devs = logit_move_devs,
-                                                       map_move_devs = map_logit_move_devs,
+                                                       move_devs = move_devs,
+                                                       map_move_devs = map_move_devs,
                                                        do_recruits_move = do_recruits_move
     )
   }
@@ -1161,7 +1167,7 @@ SPoRC_rtmb = function(pars, data) {
 
   # Parameter Deviations
   RTMB::REPORT(ln_RecDevs)
-  RTMB::REPORT(logit_move_devs)
+  RTMB::REPORT(move_devs)
   RTMB::REPORT(ln_fishsel_devs)
   RTMB::REPORT(ln_srvsel_devs)
 

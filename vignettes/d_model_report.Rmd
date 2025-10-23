@@ -88,15 +88,14 @@ The following tables describes all elements contained within `obj$rep`, which is
 | `jnLL`             | Joint negative log-likelihood                         | scalar                                                   |
 
 ## Parameter Deviations
-
 | Name              | Description                                                                 | Dimensions                                                                                       |
 | ------------------ | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
 | `ln_RecDevs`       | Log recruitment deviations by region and year (including projected years).  | `n_regions × (n_years + n_proj_yrs_devs)`                                                       |
-| `logit_move_devs`  | Logit-scale movement deviations among regions, by year, age, and sex.       | `n_regions × (n_regions - 1) × (n_years + n_proj_yrs_devs) × n_ages × n_sexes`                  |
+| `move_devs`  | Movement deviations among regions, by year, age, and sex.       | `n_regions × (n_regions - 1) × (n_years + n_proj_yrs_devs) × n_ages × n_sexes`                  |
 | `ln_fishsel_devs`  | Log-scale deviations in fishery selectivity-at-length or age, by fleet.     | `n_regions × (n_years + n_proj_yrs_devs) × bins × n_sexes × n_fish_fleets`                      |
 | `ln_srvsel_devs`   | Log-scale deviations in survey selectivity-at-length or age, by fleet.      | `n_regions × (n_years + n_proj_yrs_devs) × bins × n_sexes × n_srv_fleets`                       |
 
-## Derived Quantities
+## Derived Quantities (also reported in ADREPORT)
 | Name                      | Description                                | Dimensions            |
 | ------------------------- | ------------------------------------------ | --------------------- |
 | `Total_Biom`              | Total biomass                              | `n_regions × n_years` |

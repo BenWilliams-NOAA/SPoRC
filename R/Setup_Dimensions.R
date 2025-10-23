@@ -71,7 +71,7 @@ Setup_Sim_Dim <- function(n_sims,
 #' @param years Numeric vector of years.
 #' @param lens Numeric vector of length bins; can be set to \code{1} if length data are not modeled.
 #' @param verbose Logical flag indicating whether to print progress messages (default \code{FALSE}).
-#' @param n_proj_yrs_devs Number of projection years for deviation parameters (ln_RecDevs, logit_move_devs, ln_fishsel_devs, ln_srvsel_devs)
+#' @param n_proj_yrs_devs Number of projection years for deviation parameters (ln_RecDevs, move_devs, ln_fishsel_devs, ln_srvsel_devs)
 #'
 #' @returns A list containing three named elements:
 #' \describe{

@@ -108,7 +108,7 @@ The following table describes all elements contained within `input_list$pars`, w
 | Parameter | Dimension | Description | Default |
 |-----------|-----------|-------------|---------|
 | `move_pars` | `n_regions, n_regions - 1, n_years, n_ages, n_sexes` | Logit-scale movement probabilities | 0 |
-| `logit_move_devs` | `n_regions, n_regions - 1, n_years + n_proj_yrs_devs, n_ages, n_sexes` | Logit-scale movement deviations w/ projection years (can be specified as random effects) | 0 |
+| `move_devs` | `n_regions, n_regions - 1, n_years + n_proj_yrs_devs, n_ages, n_sexes` | Movement deviations w/ projection years (can be specified as random effects) | 0 |
 | `move_pe_pars` | `n_regions, n_ages, n_sexes` | Process error parameters for movement | 0 |
 
 ## Tagging
