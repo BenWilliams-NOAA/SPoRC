@@ -432,6 +432,7 @@ local_BH_Fmsy <- function(pars, data) {
       # Get temporary values from origin region
       tmp_unfished = Nspr[1,o,,j-1]
       tmp_fished = Nspr[2,o,,j-1]
+
       # Apply movement
       if(do_recruits_move == 1 || (do_recruits_move == 0 && j > 2)) {
         tmp_unfished = t(tmp_unfished) %*% Movement[,,j - 1]

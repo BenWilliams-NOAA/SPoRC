@@ -502,7 +502,7 @@ run_osa <- function(obs,
                     comp_like) {
 
   if (!requireNamespace("compResidual", quietly = TRUE)) {
-    stop("Package 'compResidual' is required for get_osa(). Please install it with remotes::install_github('fishfollower/compResidual').")
+    stop("Package 'compResidual' is required for get_osa(). Please install it with remotes::install_github('fishfollower/compResidual/compResidual').")
   } else{
     set.seed(722533474)
 
@@ -682,7 +682,7 @@ get_osa <- function(obs_mat,
                     ) {
 
   if (!requireNamespace("compResidual", quietly = TRUE)) {
-    stop("Package 'compResidual' is required for get_osa(). Please follow installation instructions from https://github.com/fishfollower/compResidual.")
+    stop("Package 'compResidual' is required for get_osa(). Please follow installation instructions from https://github.com/fishfollower/compResidual/compResidual")
   } else{
     obs <- obs_mat[,years,,,fleet, drop = FALSE] # get filtered observed matrix
     exp <- exp_mat[,years,,,fleet, drop = FALSE] # get filtered expected matrix

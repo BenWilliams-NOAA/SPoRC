@@ -241,85 +241,6 @@ run_annual_cycle <- function(y,
     # Initialize Age Structure ------------------------------------------------
     if(y == 1) {
 
-      # Iterative Solution
-      if(init_age_strc == 0) {
-        # Set up initial equilibrium age structure
-        for(r in 1:n_regions) {
-          for(s in 1:n_sexes) {
-            tmp_cumsum_Z <- cumsum(natmort[r,1,1:(n_ages-1),s,sim] + init_F * fish_sel[r,1,1:(n_ages-1),s,1,sim]) # cumulative sum of total mortality
-            Init_NAA[r,,s,sim] <- c(R0[r,1,sim] * sexratio[r,1,s,sim], R0[r,1,sim] * sexratio[r,1,s,sim] * exp(-tmp_cumsum_Z)) # exponential mortality model
-          } # end s loop
-        } # end r loop
-
-        # Apply annual cycle and iterate to equilibrium
-        for(i in 1:init_iter) {
-          for(s in 1:n_sexes) {
-            Init_NAA_next_year[,1,s,sim] <- R0[,1,sim] * sexratio[,1,s,sim] # recruitment
-            # movement
-            if(do_recruits_move == 0) for(a in 2:n_ages) Init_NAA[,a,s,sim] <- t(Init_NAA[,a,s,sim]) %*% Movement[,,1,a,s,sim] # recruits dont move
-            if(do_recruits_move == 1) for(a in 1:n_ages) Init_NAA[,a,s,sim] <- t(Init_NAA[,a,s,sim]) %*% Movement[,,1,a,s,sim] # recruits move
-            # ageing and mortality
-            Init_NAA_next_year[,2:n_ages,s,sim] <- Init_NAA[,1:(n_ages-1),s,sim] * exp(-(natmort[,1,1:(n_ages-1),s,sim] + (init_F * fish_sel[,1,1:(n_ages-1),s,1,sim])))
-            # accumulate plus group
-            Init_NAA_next_year[,n_ages,s,sim] <- (Init_NAA_next_year[,n_ages,s,sim]) + (Init_NAA[,n_ages,s,sim] *
-                                                                                          exp(-(natmort[,1,n_ages,s,sim] + (init_F * fish_sel[,1,n_ages,s,1,sim]))))
-            Init_NAA <- Init_NAA_next_year # iterate to next cycle
-          } # end s loop
-        } # end i loop
-        # Save result
-        NAA[,1,,,sim] <- Init_NAA[,,,sim]
-      }
-
-      # Scalar Geometric Series (No Movement)
-      if(init_age_strc == 1) {
-        for(r in 1:n_regions) {
-          for(s in 1:n_sexes) {
-            NAA[r,1,1,s,sim] = R0[r,1,sim] * sexratio[r,1,s,sim] # initialize population
-            for(a in 2:(n_ages-1))  NAA[r,1,a,s,sim] = NAA[r,1,a-1,s,sim] * exp(-(natmort[r,1,a-1,s,sim] + (init_F * fish_sel[r,1,a-1,s,1,sim]))) # iterate
-            # Plus group - scalar geometric series
-            Z_penult = natmort[r,1,n_ages-1,s,sim] + (init_F * fish_sel[r,1,n_ages-1,s,1,sim])
-            Z_plus = natmort[r,1,n_ages,s,sim] + (init_F * fish_sel[r,1,n_ages,s,1,sim])
-            NAA[r,1,n_ages,s,sim] = NAA[r,1,n_ages-1,s,sim] * exp(-Z_penult) / (1 - exp(-Z_plus))
-          } # end s loop
-        } # end r loop
-      } # end if
-
-      # Matrix Geometric Series Solution (genearlizes to scalar w/o movement)
-      if(init_age_strc == 2) {
-
-        # projection initial abundance forward
-        for(i in 1:n_ages) {
-          for(s in 1:n_sexes) {
-            Init_NAA[,1,s,sim] = R0[,1,sim] * sexratio[,1,s,sim] # recruitment
-            # movement
-            if(do_recruits_move == 0) for(a in 2:n_ages) Init_NAA[,a,s,sim] = t(Init_NAA[,a,s,sim]) %*% Movement[,,1,a,s,sim] # recruits don't move
-            if(do_recruits_move == 1) for(a in 1:n_ages) Init_NAA[,a,s,sim] = t(Init_NAA[,a,s,sim]) %*% Movement[,,1,a,s,sim] # recruits move
-            for(r in 1:n_regions) {
-              # ageing and mortality
-              Init_NAA[r,2:n_ages,s,sim] = Init_NAA[r,1:(n_ages-1),s,sim] * exp(-(natmort[r,1,1:(n_ages-1),s,sim] + (init_F * fish_sel[r,1,1:(n_ages-1),s,1,sim])))
-              # accumulate plus group
-              Init_NAA[r,n_ages,s,sim] = (Init_NAA[r,n_ages,s,sim]) + (Init_NAA[r,n_ages,s,sim] * exp(-(natmort[r,1,n_ages,s,sim] + (init_F * fish_sel[r,1,n_ages,s,1,sim]))))
-            } # end r loop
-          } # end s loop
-        } # end i loop
-
-        # Set up analytical solution for plus group
-        for(s in 1:n_sexes) {
-          Move_penult = Movement[,,1,n_ages-1,s,sim] # get movement matrices
-          Move_plus = Movement[,,1,n_ages,s,sim] # get movement matrices
-          s_penult = exp(-(natmort[,1,n_ages-1,s,sim] + (init_F * fish_sel[,1,n_ages-1,s,1,sim]))) # survival of penultimate age
-          s_plus = exp(-(natmort[,1,n_ages,s,sim] + (init_F * fish_sel[,1,n_ages,s,1,sim]))) # survival of plus group age
-          init_penult <- Init_NAA[,n_ages-1,s,sim] # get initial penultimate age
-          source = (t(Move_penult) %*% init_penult) * s_penult # compute forward projection of penultimate age to plus group
-          T_mat = diag(s_plus, n_regions) %*% t(Move_plus) # transition matrix
-          I_mat = diag(n_regions) # get identity matrix
-          plus = solve(I_mat - T_mat, source) # solve to get plus group (I-T)^-1 %*% source
-          Init_NAA[,n_ages,s,sim] = plus # input plus group here
-        }
-        # Save result
-        NAA[,1,,,sim] <- Init_NAA[,,,sim]
-      }
-
       # Set up initial age deviations
       tmp_ln_init_devs <- NULL
       for(r in 1:n_regions) {
@@ -330,10 +251,47 @@ run_annual_cycle <- function(y,
           if(init_dd == 1) tmp_ln_init_devs <- stats::rnorm(n_ages-1, 0, exp(ln_sigmaR[1])) # local initial age deviations
         }
         ln_InitDevs[r,,sim] <- tmp_ln_init_devs # save ln_init_devs
-        for(s in 1:n_sexes) NAA[r,1,2:n_ages,s,sim] <- NAA[r,1,2:n_ages,s,sim] * exp(ln_InitDevs[r,,sim]) # apply deviations
       }
 
-      NAA0[,1,,,sim] <- NAA[,1,,,sim] # Initialize Unfished NAA
+      # Get initial fished NAA
+      Init_Fished_NAA = Get_Init_NAA(
+        init_age_strc = init_age_strc, # initial age structure
+        init_iter = n_ages * 5, # if init_age_strc == 0, number of iterations to run
+        n_regions = n_regions, # regions
+        n_sexes = n_sexes, # sexes
+        n_ages = n_ages, # ages
+        natmort = array(natmort[,1,,,sim], dim = c(n_regions, n_ages, n_sexes)), # natural mortality in first year
+        init_F = init_F, # initial F applied (0 for unfished)
+        fish_sel = array(fish_sel[,1,,,,sim], dim = c(n_regions, n_ages, n_sexes, n_fish_fleets)), # fishery selectivity in first year
+        R0_r = array(R0[,1,sim], dim = n_regions), # regional mean or virgin recruitment
+        sexratio = array(sexratio[,1,,sim], dim = c(n_regions, n_sexes)), # sex ratio in first year
+        Movement = array(Movement[,,1,,,sim], dim = c(n_regions, n_regions, n_ages, n_sexes)), # movement in first year
+        do_recruits_move = do_recruits_move, # whether recruits move
+        ln_InitDevs = array(ln_InitDevs[,,sim], dim = c(n_regions, n_ages - 2)) # initial deviations
+      )
+
+
+      # Get initial unfished NAA
+      Init_Unfished_NAA = Get_Init_NAA(
+        init_age_strc = init_age_strc, # initial age structure
+        init_iter = n_ages * 5, # if init_age_strc == 0, number of iterations to run
+        n_regions = n_regions, # regions
+        n_sexes = n_sexes, # sexes
+        n_ages = n_ages, # ages
+        natmort = array(natmort[,1,,,sim], dim = c(n_regions, n_ages, n_sexes)), # natural mortality in first year
+        init_F = 0, # initial F applied (0 for unfished)
+        fish_sel = array(fish_sel[,1,,,,sim], dim = c(n_regions, n_ages, n_sexes, n_fish_fleets)), # fishery selectivity in first year
+        R0_r = array(R0[,1,sim], dim = n_regions), # regional mean or virgin recruitment
+        sexratio = array(sexratio[,1,,sim], dim = c(n_regions, n_sexes)), # sex ratio in first year
+        Movement = array(Movement[,,1,,,sim], dim = c(n_regions, n_regions, n_ages, n_sexes)), # movement in first year
+        do_recruits_move = do_recruits_move, # whether recruits move
+        ln_InitDevs = array(ln_InitDevs[,,sim], dim = c(n_regions, n_ages - 2)) # initial deviations
+      )
+
+      # Input into model arrays
+      NAA[,1,,,sim] = Init_Fished_NAA
+      NAA0[,1,,,sim] = Init_Unfished_NAA
+
     } # end initializing age structure
 
     # Run Annual Cycle --------------------------------------------------------
@@ -814,7 +772,6 @@ Simulate_Pop_Static <- function(sim_list,
                   MatAA = sim_env$MatAA,
                   ln_sigmaR = sim_env$ln_sigmaR,
                   Movement = sim_env$Movement,
-                  Init_NAA = sim_env$Init_NAA,
                   NAA = sim_env$NAA,
                   NAA0 = sim_env$NAA0,
                   Dynamic_SSB0 = sim_env$Dynamic_SSB0,
@@ -1121,9 +1078,9 @@ simulation_self_test <- function(data,
         tmp_data$Wt_SrvLenComps[] <- 1
 
         # input simulated uncertainty
-        tmp_pars$ln_sigmaC[] <- sim_list$ln_sigmaC[,,i]
-        tmp_data$ObsFishIdx_SE[] <- sim_list$ObsFishIdx_SE[,,i]
-        tmp_data$ObsSrvIdx_SE[] <- sim_list$ObsSrvIdx_SE[,,i]
+        tmp_pars$ln_sigmaC[] <- sim_list$ln_sigmaC
+        tmp_data$ObsFishIdx_SE[] <- sim_list$ObsFishIdx_SE
+        tmp_data$ObsSrvIdx_SE[] <- sim_list$ObsSrvIdx_SE
         tmp_data$ISS_FishAgeComps[] <- sim_list$ISS_FishAgeComps[,,,,i]
         tmp_data$ISS_FishLenComps[] <- sim_list$ISS_FishLenComps[,,,,i]
         tmp_data$ISS_SrvAgeComps[] <- sim_list$ISS_SrvAgeComps[,,,,i]
@@ -1153,8 +1110,8 @@ simulation_self_test <- function(data,
 
       }, error = function(e) {
         # Skip failed simulations
-        for(j in 1:length(what)) store_res_list[[j]][[i]] <<- NA
-        if(do_sdrep == TRUE) store_res_list[[length(what) + 1]][[i]] <<- NA
+        for(j in 1:length(what)) store_res_list[[j]][[i]] <- NA
+        if(do_sdrep == TRUE) store_res_list[[length(what) + 1]][[i]] <- NA
       })
 
     } # end i loop
@@ -1176,7 +1133,10 @@ simulation_self_test <- function(data,
       sim_results <- future.apply::future_lapply(1:n_sims, function(i) {
 
         tryCatch({
+
+          # set up data stuff
           tmp_data <- data # set up temporary data list
+          tmp_pars <- parameters # set up temporary parameter list
           tmp_data$ObsFishIdx <- array(sim_obj$ObsFishIdx[,,,i], dim = dim(tmp_data$ObsFishIdx)) # new fish index
           tmp_data$ObsSrvIdx <- array(sim_obj$ObsSrvIdx[,,,i], dim = dim(tmp_data$ObsSrvIdx)) # new srv index
           tmp_data$ObsCatch <- array(sim_obj$ObsCatch[,,,i], dim = dim(tmp_data$ObsCatch)) # new catch
@@ -1192,10 +1152,30 @@ simulation_self_test <- function(data,
             tmp_data$tag_release_indicator <- sim_obj$tag_release_indicator # release indicator
           }
 
+          # reset weights
+          tmp_data$Wt_Rec <- 1
+          tmp_data$Wt_Tagging <- 1
+          tmp_data$Wt_Catch[] <- 1
+          tmp_data$Wt_FishAgeComps[] <- 1
+          tmp_data$Wt_FishIdx <- 1
+          tmp_data$Wt_FishLenComps[] <- 1
+          tmp_data$Wt_SrvAgeComps[] <- 1
+          tmp_data$Wt_SrvIdx <- 1
+          tmp_data$Wt_SrvLenComps[] <- 1
+
+          # input simulated uncertainty
+          tmp_pars$ln_sigmaC[] <- sim_list$ln_sigmaC
+          tmp_data$ObsFishIdx_SE[] <- sim_list$ObsFishIdx_SE
+          tmp_data$ObsSrvIdx_SE[] <- sim_list$ObsSrvIdx_SE
+          tmp_data$ISS_FishAgeComps[] <- sim_list$ISS_FishAgeComps[,,,,i]
+          tmp_data$ISS_FishLenComps[] <- sim_list$ISS_FishLenComps[,,,,i]
+          tmp_data$ISS_SrvAgeComps[] <- sim_list$ISS_SrvAgeComps[,,,,i]
+          tmp_data$ISS_SrvLenComps[] <- sim_list$ISS_SrvLenComps[,,,,i]
+
           # Fit model
           obj <- fit_model(
             data = tmp_data,
-            parameters = parameters,
+            parameters = tmp_pars,
             mapping = mapping,
             random = random,
             newton_loops = newton_loops,

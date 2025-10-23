@@ -39,6 +39,41 @@ get_AR1_CorrMat <- function(n, rho) {
   return(corrMatrix)
 }
 
+#' Create sparse precision matrix for AR(1) process
+#'
+#' @param n Number of bins
+#' @param rho Correlation parameter (|rho| < 1)
+#'
+#' @return Sparse precision matrix (dgCMatrix) for an AR(1) process
+#' @keywords internal
+#'
+#' @examples
+#' \dontrun{
+#' Q = get_AR1_PrecisionMat(10, 0.5)
+#' }
+get_AR1_PrecisionMat = function(n, rho) {
+  # init empty matrix
+  Q = matrix(0, nrow = n, ncol = n)
+  # fill in the tridiagonal structure
+  for (i in 1:n) {
+    # main diagonal
+    if (i == 1 || i == n) {
+      Q[i, i] = 1 / (1 - rho^2)
+    } else {
+      Q[i, i] = (1 + rho^2) / (1 - rho^2)
+    }
+    # off-diagonals
+    if (i < n) {
+      Q[i, i + 1] = -rho / (1 - rho^2)
+      Q[i + 1, i] = -rho / (1 - rho^2)
+    }
+  }
+  # convert to sparse matrix
+  Q = as(Q, "sparseMatrix")
+
+  return(Q)
+}
+
 #' Constant correlation matrix
 #'
 #' @param n Number of bins
@@ -60,6 +95,45 @@ get_Constant_CorrMat <- function(n, rho) {
     } # end i
   } # end j
   return(corrMatrix)
+}
+
+#' Precision matrix for constant correlation structure
+#'
+#' @param n Number of bins
+#' @param rho Correlation parameter (|rho| < 1)
+#'
+#' @return Sparse precision matrix (dgCMatrix) for constant correlation
+#' @keywords internal
+#'
+#' @examples
+#' \dontrun{
+#' Q = get_Constant_PrecisionMat(10, 0.5)
+#' }
+get_Constant_PrecisionMat = function(n, rho) {
+
+  # For constant correlation, the precision matrix has a specific structure:
+  # Diagonal: (1 + (n-2)*rho) / ((1-rho)*(1+(n-1)*rho))
+  # Off-diagonal: -rho / ((1-rho)*(1+(n-1)*rho))
+
+  denom = (1 - rho) * (1 + (n - 1) * rho)
+  diag_val = (1 + (n - 2) * rho) / denom
+  off_diag_val = -rho / denom
+  # init matrix
+  Q = matrix(0, nrow = n, ncol = n)
+  for (i in 1:n) {
+    for (j in 1:n) {
+      if (i == j) {
+        Q[i, j] = diag_val
+      } else {
+        Q[i, j] = off_diag_val
+      }
+    }
+  }
+
+  # convert to sparse matrix
+  Q = as(Q, "sparseMatrix")
+
+  return(Q)
 }
 
 #' For combining a parameter and data list in RTMB so a data object can be explicitly defined
@@ -631,3 +705,28 @@ get_logistN_Sigma <- function(comp_like,
 
   return(Sigma)
 }
+
+#' Calculate the Corrected marginal AIC (AICc) from Optimization Results
+#'
+#' Computes the corrected marginal Akaike Information Criterion (AICc)
+#' for model selection using optimization results. It supports objects returned
+#' from different optimizers, such as `optim` or `nlminb`.
+#'
+#' @param opt A list containing optimization results. Must include either:
+#'   \itemize{
+#'     \item `"par"` and `"objective"` (e.g., from `optim`), or
+#'     \item `"par"` and `"value"` (e.g., from `nlminb`)
+#'   }
+#' @param p Numeric. Penalty multiplier for the number of parameters. Default is 2.
+#' @param n Numeric. Sample size. Default is `Inf`.
+#'
+#' @return Numeric. The corrected AIC (AICc) value.
+#' @export marg_AIC
+marg_AIC <- function(opt, p = 2, n = Inf){
+  k <- length(opt[["par"]])
+  if(all(c("par","objective") %in% names(opt))) negloglike <- opt[["objective"]]
+  if(all(c("par","value") %in% names(opt))) negloglike <- opt[["value"]]
+  Return <- p * k + 2 * negloglike + 2 * k * (k + 1) / (n - k - 1)
+  return(Return)
+}
+

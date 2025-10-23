@@ -75,24 +75,29 @@ ddirmult = function(obs, pred, Ntotal, ln_theta, give_log = TRUE) {
 #'
 #' @param obs Vector of observed values in numbers (can be integers or non-integers - vector length of n_bins)
 #' @param pred Vector of predicted values in proportions (vector length of n_bins)
-#' @param Sigma Covariance matrix
 #' @param give_log whether or not to use log space likelihood
+#' @param Sigma_or_Q Sigma or Precision Matrix
+#' @param type Whether to fit using dgmrf (default; uses precision) or dmvnorm (uses sigma)
 #'
 #' @import RTMB
 #' @returns Returns likelihood values from a logistic normal
 #' @keywords internal
 #'
-dlogistnormal = function(obs, pred, Sigma, give_log = TRUE) {
+dlogistnormal = function(obs, pred, Sigma_or_Q, type = 'dgmrf', give_log = TRUE) {
   # do logistic transformation on observed values
   tmp_Obs = log(obs[-length(obs)])
   tmp_Obs = tmp_Obs - log(obs[length(obs)])
   # do logistic transformation on expected values
   mu = log(pred[-length(pred)]) # remove last bin since it's known
   mu = mu - log(pred[length(pred)]) # calculate log ratio
-  res = RTMB::dmvnorm(as.vector(tmp_Obs), as.vector(mu), Sigma = Sigma, log = give_log) # fit multivariate normal on log ratios
+  if(type == 'dgmrf') {
+    res = RTMB::dgmrf(x = as.vector(tmp_Obs), mu = as.vector(mu), Q = Sigma_or_Q, log = give_log)
+  }
+  if(type == 'dmvnorm') {
+    res = RTMB::dmvnorm(x = as.vector(tmp_Obs), mean = as.vector(mu), Sigma = Sigma_or_Q, log = give_log)
+  }
   return(res)
 }
-
 
 #' Negative Binomial Likelihood
 #'

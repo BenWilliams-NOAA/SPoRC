@@ -34,7 +34,6 @@ The following tables describes key elements generated from simulations conducted
 | `sexratio`     | `n_regions, n_years, n_sexes, n_sims`                        | Sex ratio values                        |
 | `R0`           | `n_regions, n_years, n_sims`                                 | Regional Unfished or mean recruitment   |
 | `Rec`          | `n_regions, n_years, n_sims`                                 | Realized recruitment                    |
-| `Init_NAA`     | `n_regions, n_ages, n_sexes, n_sims`                         | Equilibrium initial abundance-at-age    |
 | `NAA`          | `n_regions, n_ages, n_years, n_sexes, n_sims`                | Numbers-at-age                          |
 | `NAA0`         | `n_regions, n_ages, n_years, n_sexes, n_sims`                | Dynamic unfished numbers-at-age         |
 | `Dynamic_SSB0` | `n_regions, n_years, n_sims`                                 | Dynamic unfished spawning stock biomass |

@@ -29,6 +29,8 @@
 # Removed unncessary constants added to likelihoods
 # Refactored natural mortality module
 # Removed ADMB likelihoods and Sablefish specific calculations
+# Added equilibrium plus group calculations to initial abundance when movement occurs
+# Refactored Initial Numbers at Age module
 
 
 #' Generalized RTMB model
@@ -56,9 +58,6 @@ SPoRC_rtmb = function(pars, data) {
   sexratio = array(0, dim = c(n_regions, n_yrs, n_sexes)) # recruitment sex ratio
 
   # Population Dynamics
-  init_iter = n_ages * 5 # Number of times to iterate to equilibrium when movement occurs
-  Init_NAA = array(0, dim = c(n_regions, n_ages, n_sexes)) # initial age structure
-  Init_NAA_next_year = Init_NAA # initial age structure
   NAA = array(data = 0, dim = c(n_regions, n_yrs + 1, n_ages, n_sexes)) # Numbers at age
   NAA0 = array(data = 0, dim = c(n_regions, n_yrs + 1, n_ages, n_sexes)) # Unfished Numbers at age
   ZAA = array(data = 0, dim = c(n_regions, n_yrs, n_ages, n_sexes)) # Total mortality at age
@@ -151,7 +150,6 @@ SPoRC_rtmb = function(pars, data) {
       } # end a loop
     } # end y loop
   } # end r loop
-
 
   ## Natural Mortality Parameters (Set up) -----------------------------------
   if(use_fixed_natmort == 0) {
@@ -336,95 +334,43 @@ SPoRC_rtmb = function(pars, data) {
 
   ## Initial Age Structure ---------------------------------------------------
 
-  # Iterative Solution
-  if(init_age_strc == 0) {
-    # initialize age structure (starting point)
-    for(r in 1:n_regions) {
-      for(s in 1:n_sexes) {
-        tmp_cumsum_Z = cumsum(natmort[r,1,1:(n_ages-1),s] + init_F * fish_sel[r,1,1:(n_ages-1),s,1])
-        Init_NAA[r,,s] = c(R0 * sexratio[r,1,s] * Rec_trans_prop[r], R0 * sexratio[r,1,s] * Rec_trans_prop[r] * exp(-tmp_cumsum_Z))
-      } # end s loop
-    } # end r loop
+  # Get initial fished NAA
+  Init_Fished_NAA = Get_Init_NAA(
+    init_age_strc = init_age_strc, # initial age structure
+    init_iter = n_ages * 5, # if init_age_strc == 0, number of iterations to run
+    n_regions = n_regions, # regions
+    n_sexes = n_sexes, # sexes
+    n_ages = n_ages, # ages
+    natmort = array(natmort[,1,,], dim = c(n_regions, n_ages, n_sexes)), # natural mortality in first year
+    init_F = init_F, # initial F applied (0 for unfished)
+    fish_sel = array(fish_sel[,1,,,], dim = c(n_regions, n_ages, n_sexes, n_fish_fleets)), # fishery selectivity in first year
+    R0_r = R0 * Rec_trans_prop, # regional mean or virgin recruitment
+    sexratio = array(sexratio[,1,], dim = c(n_regions, n_sexes)), # sex ratio in first year
+    Movement = array(Movement[,,1,,], dim = c(n_regions, n_regions, n_ages, n_sexes)), # movement in first year
+    do_recruits_move = do_recruits_move, # whether recruits move
+    ln_InitDevs = ln_InitDevs # initial deviations
+  )
 
-    # Apply annual cycle and iterate to equilibrium
-    for(i in 1:init_iter) {
-      for(s in 1:n_sexes) {
-        Init_NAA_next_year[,1,s] = R0 * sexratio[,1,s] * Rec_trans_prop # recruitment
-        # movement
-        if(do_recruits_move == 0) for(a in 2:n_ages) Init_NAA[,a,s] = t(Init_NAA[,a,s]) %*% Movement[,,1,a,s] # recruits don't move
-        if(do_recruits_move == 1) for(a in 1:n_ages) Init_NAA[,a,s] = t(Init_NAA[,a,s]) %*% Movement[,,1,a,s] # recruits move
-        for(r in 1:n_regions) {
-          # ageing and mortality
-          Init_NAA_next_year[r,2:n_ages,s] = Init_NAA[r,1:(n_ages-1),s] * exp(-(natmort[r,1,1:(n_ages-1),s] + (init_F * fish_sel[r,1,1:(n_ages-1),s,1])))
-          # accumulate plus group
-          Init_NAA_next_year[r,n_ages,s] = (Init_NAA_next_year[r,n_ages,s]) + (Init_NAA[r,n_ages,s] * exp(-(natmort[r,1,n_ages,s] + (init_F * fish_sel[r,1,n_ages,s,1]))))
-        } # end r loop
-        Init_NAA = Init_NAA_next_year # iterate to next cycle
-      } # end s loop
-    } # end i loop
-    # save result
-    NAA[,1,,] = Init_NAA
-  } # end if iterative solution
+  # Get initial unfished NAA
+  Init_Unfished_NAA = Get_Init_NAA(
+    init_age_strc = init_age_strc, # initial age structure
+    init_iter = n_ages * 5, # if init_age_strc == 0, number of iterations to run
+    n_regions = n_regions, # regions
+    n_sexes = n_sexes, # sexes
+    n_ages = n_ages, # ages
+    natmort = array(natmort[,1,,], dim = c(n_regions, n_ages, n_sexes)), # natural mortality in first year
+    init_F = 0, # initial F applied (0 for unfished)
+    fish_sel = array(fish_sel[,1,,,], dim = c(n_regions, n_ages, n_sexes, n_fish_fleets)), # fishery selectivity in first year
+    R0_r = R0 * Rec_trans_prop, # regional mean or virgin recruitment
+    sexratio = array(sexratio[,1,], dim = c(n_regions, n_sexes)), # sex ratio in first year
+    Movement = array(Movement[,,1,,], dim = c(n_regions, n_regions, n_ages, n_sexes)), # movement in first year
+    do_recruits_move = do_recruits_move, # whether recruits move
+    ln_InitDevs = ln_InitDevs # initial deviations
+  )
 
-  # Scalar Geometric Series Solution (no movement in plus group)
-  if(init_age_strc == 1) {
-    for(r in 1:n_regions) {
-      for(s in 1:n_sexes) {
-        NAA[r,1,1,s] = R0 * sexratio[r,1,s] * Rec_trans_prop[r] # initialize population
-        for(a in 2:(n_ages-1))  NAA[r,1,a,s] = NAA[r,1,a-1,s] * exp(-(natmort[r,1,a-1,s] + (init_F * fish_sel[r,1,a-1,s,1]))) # iterate
-        # Plus group - scalar geometric series
-        Z_penult = natmort[r,1,n_ages-1,s] + (init_F * fish_sel[r,1,n_ages-1,s,1])
-        Z_plus = natmort[r,1,n_ages,s] + (init_F * fish_sel[r,1,n_ages,s,1])
-        NAA[r,1,n_ages,s] = NAA[r,1,n_ages-1,s] * exp(-Z_penult) / (1 - exp(-Z_plus))
-      } # end s loop
-    } # end r loop
-  } # end if
-
-  # Matrix Geometric Series Solution (genearlizes to scalar w/o movement)
-  if(init_age_strc == 2) {
-
-    # projection initial abundance forward
-    for(i in 1:n_ages) {
-      for(s in 1:n_sexes) {
-        Init_NAA[,1,s] = R0 * sexratio[,1,s] * Rec_trans_prop # initialize recruitment
-        # movement
-        if(do_recruits_move == 0) for(a in 2:n_ages) Init_NAA[,a,s] = t(Init_NAA[,a,s]) %*% Movement[,,1,a,s] # recruits don't move
-        if(do_recruits_move == 1) for(a in 1:n_ages) Init_NAA[,a,s] = t(Init_NAA[,a,s]) %*% Movement[,,1,a,s] # recruits move
-        for(r in 1:n_regions) {
-          # ageing and mortality
-          Init_NAA[r,2:n_ages,s] = Init_NAA[r,1:(n_ages-1),s] * exp(-(natmort[r,1,1:(n_ages-1),s] + (init_F * fish_sel[r,1,1:(n_ages-1),s,1])))
-          # accumulate plus group
-          Init_NAA[r,n_ages,s] = (Init_NAA[r,n_ages,s]) + (Init_NAA[r,n_ages,s] * exp(-(natmort[r,1,n_ages,s] + (init_F * fish_sel[r,1,n_ages,s,1]))))
-        } # end r loop
-      } # end s loop
-    } # end a loop
-
-    # Set up analytical solution for plus group
-    for(s in 1:n_sexes) {
-      Move_penult = Movement[,,1,n_ages-1,s] # get movement matrices
-      Move_plus = Movement[,,1,n_ages,s] # get movement matrices
-      s_penult = exp(-(natmort[,1,n_ages-1,s] + (init_F * fish_sel[,1,n_ages-1,s,1]))) # survival of penultimate age
-      s_plus = exp(-(natmort[,1,n_ages,s] + (init_F * fish_sel[,1,n_ages,s,1]))) # survival of plus group age
-      init_penult <- Init_NAA[,n_ages-1,s] # get initial penultimate age
-      source = (t(Move_penult) %*% init_penult) * s_penult # compute forward projection of penultimate age to plus group
-      T_mat = diag(s_plus, n_regions) %*% t(Move_plus) # transition matrix
-      I_mat = diag(n_regions) # get identity matrix
-      plus = solve(I_mat - T_mat, source) # solve to get plus group (I-T)^-1 %*% source
-      Init_NAA[,n_ages,s] = plus # input plus group here
-    }
-    # save result
-    NAA[,1,,] = Init_NAA
-  }
-
-  # Apply initial age deviations
-  for(r in 1:n_regions) {
-    for(s in 1:n_sexes) {
-      NAA[r,1,2:n_ages,s] = NAA[r,1,2:n_ages,s] * exp(ln_InitDevs[r,])
-    } # end s loop
-  } # end r loop
-
-  # Initialize Unfished NAA w/ starting NAA
-  NAA0[,1,,] = NAA[,1,,]
+  # Input into model arrays
+  NAA[,1,,] = Init_Fished_NAA
+  NAA0[,1,,] = Init_Unfished_NAA
 
   ## Population Projection ---------------------------------------------------
   for(y in 1:n_yrs) {

@@ -106,6 +106,7 @@ reference:
       - get_retrospective_plot
       - do_likelihood_profile
       - get_model_rep_from_mcmc
+      - marg_AIC
 
   - title: "Utility"
     desc: "Functions for convenience"

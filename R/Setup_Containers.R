@@ -9,8 +9,6 @@
 Setup_Sim_Containers <- function(sim_list) {
 
   # Biological Containers
-  sim_list$Init_NAA <- array(0, dim = c(sim_list$n_regions, sim_list$n_ages, sim_list$n_sexes, sim_list$n_sims)) # initial numbers
-  sim_list$Init_NAA_next_year <- sim_list$Init_NAA
   sim_list$NAA <- array(0, dim = c(sim_list$n_regions, sim_list$n_yrs+1, sim_list$n_ages, sim_list$n_sexes, sim_list$n_sims)) # numbers at age
   sim_list$NAA0 <- array(0, dim = c(sim_list$n_regions, sim_list$n_yrs+1, sim_list$n_ages, sim_list$n_sexes, sim_list$n_sims)) # unfished numbers at age
   sim_list$ZAA <- array(0, dim = c(sim_list$n_regions, sim_list$n_yrs, sim_list$n_ages, sim_list$n_sexes, sim_list$n_sims)) # total mortality at age

@@ -28,6 +28,7 @@
 <url><loc>https://chengmatt.github.io/SPoRC/reference/Get_Comp_Likelihoods.html</loc></url>
 <url><loc>https://chengmatt.github.io/SPoRC/reference/Get_Det_Recruitment.html</loc></url>
 <url><loc>https://chengmatt.github.io/SPoRC/reference/Get_Feedback_Data.html</loc></url>
+<url><loc>https://chengmatt.github.io/SPoRC/reference/Get_Init_NAA.html</loc></url>
 <url><loc>https://chengmatt.github.io/SPoRC/reference/Get_Reference_Points.html</loc></url>
 <url><loc>https://chengmatt.github.io/SPoRC/reference/Get_Selex.html</loc></url>
 <url><loc>https://chengmatt.github.io/SPoRC/reference/Get_Tagging_Mortality.html</loc></url>
@@ -112,7 +113,9 @@
 <url><loc>https://chengmatt.github.io/SPoRC/reference/extend_years.html</loc></url>
 <url><loc>https://chengmatt.github.io/SPoRC/reference/fit_model.html</loc></url>
 <url><loc>https://chengmatt.github.io/SPoRC/reference/get_AR1_CorrMat.html</loc></url>
+<url><loc>https://chengmatt.github.io/SPoRC/reference/get_AR1_PrecisionMat.html</loc></url>
 <url><loc>https://chengmatt.github.io/SPoRC/reference/get_Constant_CorrMat.html</loc></url>
+<url><loc>https://chengmatt.github.io/SPoRC/reference/get_Constant_PrecisionMat.html</loc></url>
 <url><loc>https://chengmatt.github.io/SPoRC/reference/get_beta_scaled_pars.html</loc></url>
 <url><loc>https://chengmatt.github.io/SPoRC/reference/get_biological_plot.html</loc></url>
 <url><loc>https://chengmatt.github.io/SPoRC/reference/get_catch_fits_plot.html</loc></url>
@@ -139,6 +142,7 @@
 <url><loc>https://chengmatt.github.io/SPoRC/reference/index.html</loc></url>
 <url><loc>https://chengmatt.github.io/SPoRC/reference/is_package_available.html</loc></url>
 <url><loc>https://chengmatt.github.io/SPoRC/reference/local_BH_Fmsy.html</loc></url>
+<url><loc>https://chengmatt.github.io/SPoRC/reference/marg_AIC.html</loc></url>
 <url><loc>https://chengmatt.github.io/SPoRC/reference/mcmc_diag.html</loc></url>
 <url><loc>https://chengmatt.github.io/SPoRC/reference/mcmc_par_names.html</loc></url>
 <url><loc>https://chengmatt.github.io/SPoRC/reference/mlt_rg_sable_data.html</loc></url>

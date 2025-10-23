@@ -4,14 +4,16 @@
 \alias{dlogistnormal}
 \title{Logistic Normal Likelihood}
 \usage{
-dlogistnormal(obs, pred, Sigma, give_log = TRUE)
+dlogistnormal(obs, pred, Sigma_or_Q, type = "dgmrf", give_log = TRUE)
 }
 \arguments{
 \item{obs}{Vector of observed values in numbers (can be integers or non-integers - vector length of n_bins)}
 
 \item{pred}{Vector of predicted values in proportions (vector length of n_bins)}
 
-\item{Sigma}{Covariance matrix}
+\item{Sigma_or_Q}{Sigma or Precision Matrix}
+
+\item{type}{Whether to fit using dgmrf (default; uses precision) or dmvnorm (uses sigma)}
 
 \item{give_log}{whether or not to use log space likelihood}
 }
