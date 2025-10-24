@@ -156,7 +156,7 @@ Get_Init_NAA <- function(init_age_strc,
         # Plus group - scalar geometric series
         Z_penult = natmort[r,n_ages-1,s] + (init_F * fish_sel[r,n_ages-1,s,1])
         Z_plus = natmort[r,n_ages,s] + (init_F * fish_sel[r,n_ages,s,1])
-        NAA[r,n_ages,s] = NAA[r,n_ages-1,s] * exp(-Z_penult) / (1 - exp(-Z_plus))
+        Init_NAA[r,n_ages,s] = Init_NAA[r,n_ages-1,s] * exp(-Z_penult) / (1 - exp(-Z_plus))
       } # end s loop
     } # end r loop
 
