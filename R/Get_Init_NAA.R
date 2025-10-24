@@ -8,8 +8,9 @@
 #'
 #' @param init_age_strc Integer specifying the initialization method for the age structure:
 #'   - 0: Iterative solution to equilibrium
-#'   - 1: Scalar geometric series solution (no movement in plus group)
+#'   - 1: Scalar geometric series solution w/o movement in any groups (no movement in all groups)
 #'   - 2: Matrix geometric series solution (generalizes scalar solution with movement)
+#'   - 3: Scalar geometric series solution w/o movement only in plus group (no movement in plus groups)
 #' @param init_iter Integer; number of iterations to run when `init_age_strc = 0`.
 #' @param n_regions Integer; number of spatial regions.
 #' @param n_sexes Integer; number of sexes.
@@ -79,7 +80,7 @@ Get_Init_NAA <- function(init_age_strc,
     NAA[,,] = Init_NAA
   } # end if iterative solution
 
-  # Scalar Geometric Series Solution (no movement in plus group)
+  # Scalar Geometric Series Solution (no movement in all ages)
   if(init_age_strc == 1) {
     for(r in 1:n_regions) {
       for(s in 1:n_sexes) {
@@ -125,6 +126,40 @@ Get_Init_NAA <- function(init_age_strc,
       plus = solve(I_mat - T_mat, source) # solve to get plus group (I-T)^-1 %*% source
       Init_NAA[,n_ages,s] = plus # input plus group here
     }
+
+    # save result
+    NAA = Init_NAA
+  }
+
+  # Scalar approach for last age, but with movement in preceeding ages
+  if(init_age_strc == 3) {
+
+    # projection initial abundance forward
+    for(i in 1:n_ages) {
+      for(s in 1:n_sexes) {
+        Init_NAA[,1,s] = R0_r * sexratio[,s] # initialize recruitment
+        # movement
+        if(do_recruits_move == 0) for(a in 2:n_ages) Init_NAA[,a,s] = t(Init_NAA[,a,s]) %*% Movement[,,a,s] # recruits don't move
+        if(do_recruits_move == 1) for(a in 1:n_ages) Init_NAA[,a,s] = t(Init_NAA[,a,s]) %*% Movement[,,a,s] # recruits move
+        for(r in 1:n_regions) {
+          # ageing and mortality
+          Init_NAA[r,2:n_ages,s] = Init_NAA[r,1:(n_ages-1),s] * exp(-(natmort[r,1:(n_ages-1),s] + (init_F * fish_sel[r,1:(n_ages-1),s,1])))
+          # accumulate plus group
+          Init_NAA[r,n_ages,s] = (Init_NAA[r,n_ages,s]) + (Init_NAA[r,n_ages,s] * exp(-(natmort[r,n_ages,s] + (init_F * fish_sel[r,n_ages,s,1]))))
+        } # end r loop
+      } # end s loop
+    } # end a loop
+
+    # Set up analytical solution for plus group
+    for(r in 1:n_regions) {
+      for(s in 1:n_sexes) {
+        # Plus group - scalar geometric series
+        Z_penult = natmort[r,n_ages-1,s] + (init_F * fish_sel[r,n_ages-1,s,1])
+        Z_plus = natmort[r,n_ages,s] + (init_F * fish_sel[r,n_ages,s,1])
+        NAA[r,n_ages,s] = NAA[r,n_ages-1,s] * exp(-Z_penult) / (1 - exp(-Z_plus))
+      } # end s loop
+    } # end r loop
+
     # save result
     NAA = Init_NAA
   }

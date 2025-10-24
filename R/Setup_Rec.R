@@ -380,8 +380,9 @@ do_Rec_prop_mapping <- function(input_list) {
 #' @param init_age_strc Integer flag specifying initialization of initial age structure:
 #'   \itemize{
 #'     \item \code{0}: Initialize by iteration.
-#'     \item \code{1}: Initialize using a scalar geometric series (does not account for movement).
+#'     \item \code{1}: Initialize using a scalar geometric series w/o any movement in all groups (does not account for movement in all group).
 #'     \item \code{2}: Initialize using a matrix geometric series (accounts for movement; default).
+#'     \item \code{3}: Initialize using a scalar geometric series w/o any movement in only plus groups (does not account for movement in plus group).
 #'   }
 #' @param init_F_prop Numeric value specifying the initial fishing mortality proportion relative to mean fishing mortality for initializing age structure.
 #' @param sigmaR_spec Character string specifying estimation of recruitment variability (\code{sigmaR}):
@@ -563,13 +564,13 @@ Setup_Mod_Rec <- function(input_list,
 
   # Validation
   check_in(do_rec_bias_ramp, 0:1, "do_rec_bias_ramp")
-  check_in(init_age_strc, 0:2, "init_age_strc")
+  check_in(init_age_strc, 0:3, "init_age_strc")
   if(!is.numeric(sigmaR_switch)) stop("sigmaR_switch must be numeric")
-  if(max_bias_ramp_fct > 1 || max_bias_ramp_fct < 0) stop("max_bias_ramp_fct must be either 0, 1, or 2!")
+  if(max_bias_ramp_fct > 1 || max_bias_ramp_fct < 0) stop("max_bias_ramp_fct must be between 0 and 1")
 
   # print messages
   collect_message("Recruitment Bias Ramp is: ", ifelse(do_rec_bias_ramp == 0, "Off", 'On'))
-  init_age_methods <- c("Iterated", "Scalar Geometric Series", "Matrix Geometric Series")
+  init_age_methods <- c("Iterated", "No Movement and Scalar Geometric Series", "Movement and Matrix Geometric Series", "Movement but Scalar Geometric Series for plus group")
   collect_message("Initial Age Structure is: ", init_age_methods[init_age_strc + 1])
   if(sigmaR_switch > 1) collect_message("Sigma R switches from an early period value to a late period value at year: ", sigmaR_switch)
   collect_message("Recruitment deviations for ", ifelse(dont_est_recdev_last == 0, "every year are estimated", paste("terminal year not estimated -", dont_est_recdev_last)))

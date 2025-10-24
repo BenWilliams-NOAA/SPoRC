@@ -41,9 +41,11 @@ Get_Movement <- function(move_type,
   if(use_fixed_movement == 1) {
     Movement = Fixed_Movement
   } else if(move_type == 0) { # Unstructured markov movement
+
     Movement = array(data = 0, dim = c(n_regions, n_regions, n_yrs + n_proj_yrs_devs, n_ages, n_sexes)) # movement "matrix"
     ref_region = 1 # Set up reference region (always set at 0)
-    for(r in 1:n_regions) {
+
+     for(r in 1:n_regions) {
       for(y in 1:(n_yrs + n_proj_yrs_devs)) {
         for(a in 1:n_ages) {
           for(s in 1:n_sexes) {
@@ -61,7 +63,7 @@ Get_Movement <- function(move_type,
               } # end if not reference region
             } # end rr loop
 
-            if(use_fixed_movement == 0) Movement[r,,y,a,s] = exp(move_tmp) / sum(exp(move_tmp)) # multinomial logit transform estimated movement
+            Movement[r,,y,a,s] = exp(move_tmp) / sum(exp(move_tmp)) # multinomial logit transform estimated movement
 
           } # end s loop
         } # end a loop
@@ -129,9 +131,6 @@ Get_Movement <- function(move_type,
 
     } # end index loop
   }
-
-  # recruits don't move
-  if(do_recruits_move == 0) Movement[,,,1,] = diag(1, n_regions)
 
   return(list(Movement = Movement, move_pen = move_pen))
 }

@@ -560,8 +560,14 @@ SPoRC_rtmb = function(pars, data) {
           # Initialize tagging dynamics for first recapture year
           tmp_Z = tmp_Z * t_tagging # discounting mortality if t_tagging != 1
           Tags_Avail[ry,tc,tr,,] = Tagged_Fish[tc,,] * exp(-Init_Tag_Mort) # Input tag releases to the first year
-          if(t_tagging == 1) for(a in 1:n_ages) for(s in 1:n_sexes) Tags_Avail[ry,tc,,a,s] = t(Tags_Avail[ry,tc,,a,s]) %*% Movement[,,y,a,s] # Only apply movement if t_tagging == 1 in first recapture year
-        } else for(a in 1:n_ages) for(s in 1:n_sexes) Tags_Avail[ry,tc,,a,s] = t(Tags_Avail[ry,tc,,a,s]) %*% Movement[,,y,a,s] # Movement always occurs after first release year
+          if(t_tagging == 1) {
+            if(do_recruits_move == 0) for(a in 2:n_ages) for(s in 1:n_sexes) Tags_Avail[ry,tc,,a,s] = t(Tags_Avail[ry,tc,,a,s]) %*% Movement[,,y,a,s] # Only apply movement if t_tagging == 1 in first recapture year
+            if(do_recruits_move == 1) for(a in 1:n_ages) for(s in 1:n_sexes) Tags_Avail[ry,tc,,a,s] = t(Tags_Avail[ry,tc,,a,s]) %*% Movement[,,y,a,s] # Only apply movement if t_tagging == 1 in first recapture year
+          }
+        } else {
+          if(do_recruits_move == 0) for(a in 2:n_ages) for(s in 1:n_sexes) Tags_Avail[ry,tc,,a,s] = t(Tags_Avail[ry,tc,,a,s]) %*% Movement[,,y,a,s] # Movement always occurs after first release year
+          if(do_recruits_move == 1) for(a in 1:n_ages) for(s in 1:n_sexes) Tags_Avail[ry,tc,,a,s] = t(Tags_Avail[ry,tc,,a,s]) %*% Movement[,,y,a,s] # Movement always occurs after first release year
+        }
 
         # Mortality and ageing of tagged fish
         Tags_Avail[ry+1,tc,,2:n_ages,] = Tags_Avail[ry,tc,,1:(n_ages-1),] * exp(-tmp_Z[,1,1:(n_ages-1),]) # not in plus group

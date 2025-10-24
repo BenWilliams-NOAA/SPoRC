@@ -592,11 +592,8 @@ run_annual_cycle <- function(y,
           # Move tagged fish around
           if(t_tagging != 1 && recap_yr == 1) { # Movement does not occur if tagging does not happen at start of year
           } else{
-            for(a in 1:n_ages) {
-              for(s in 1:n_sexes) {
-                Tag_Avail[recap_yr,tag_rel,,a,s,sim] <- Tag_Avail[recap_yr,tag_rel,,a,s,sim] %*% Movement[,,y,a,s,sim]
-              } # end s loop
-            } # end a loop
+            if(do_recruits_move == 0) for(a in 2:n_ages) for(s in 1:n_sexes) Tag_Avail[recap_yr,tag_rel,,a,s,sim] <- Tag_Avail[recap_yr,tag_rel,,a,s,sim] %*% Movement[,,y,a,s,sim]
+            if(do_recruits_move == 1) for(a in 1:n_ages) for(s in 1:n_sexes) Tag_Avail[recap_yr,tag_rel,,a,s,sim] <- Tag_Avail[recap_yr,tag_rel,,a,s,sim] %*% Movement[,,y,a,s,sim]
           }
 
           # Apply mortality and ageing to tagged fish
