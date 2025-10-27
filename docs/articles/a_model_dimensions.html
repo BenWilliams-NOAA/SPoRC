@@ -560,12 +560,17 @@ structured as:
 </td>
 </tr>
 <tr class="odd">
+<td><code>catch_units</code></td>
+<td>Array dimensioned by n_regions, n_fish_fleets describing catch
+units. 0 == Abundance, 1 == Biomass (default)</td>
+</tr>
+<tr class="even">
 <td><code>UseCatch</code></td>
 <td>Array dimensioned by n_regions, n_years, n_fish_fleets describing
 whether to fit to catch data in a given year for a given fleet. 0: Don’t
 fit catch, 1: Fit catch</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>est_all_regional_F</code></td>
 <td>Value specifying whether regional fishing mortality deviations are
 all estimated or only a subset are. 0: A subset of fishing mortality
@@ -573,7 +578,7 @@ deviations are spatially aggregated, 1: All fishing mortality deviations
 are spatially explicit, irrespective of whether catch is aggregated
 across regions in certain periods</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>Use_F_pen</code></td>
 <td>Value specifying whether to use a fishing mortality penalty to
 regularize fishing mortality deviations. 0: Don’t use regularity

@@ -8,6 +8,7 @@ Setup_Sim_Fishing(
   sim_list,
   ln_sigmaC = array(log(0.02), dim = c(sim_list$n_regions, sim_list$n_yrs,
     sim_list$n_fish_fleets)),
+  catch_units = array(1, dim = c(sim_list$n_regions, sim_list$n_fish_fleets)),
   init_F_val = 0,
   Fmort_input = array(0.1, dim = c(sim_list$n_regions, sim_list$n_yrs,
     sim_list$n_fish_fleets, sim_list$n_sims)),
@@ -45,6 +46,12 @@ Setup_Sim_Fishing(
 \item{ln_sigmaC}{Observation error for catch
 [n_regions × n_yrs × n_fish_fleets]
 (default: `log(0.02)`)}
+
+\item{catch_units}{Units of catch - Array [n_regions × n_fish_fleets]
+\itemize{
+  \item \code{0}: Abundance
+  \item \code{1}: Biomass (default)
+}}
 
 \item{init_F_val}{Initial fishing mortality value
 (default: `0`)}

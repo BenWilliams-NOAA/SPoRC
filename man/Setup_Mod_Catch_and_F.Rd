@@ -6,7 +6,10 @@
 \usage{
 Setup_Mod_Catch_and_F(
   input_list,
-  ObsCatch,
+  ObsCatch = array(1, dim = c(length(input_list$data$years),
+    input_list$data$n_fish_fleets)),
+  catch_units = array("biom", dim = c(input_list$data$n_regions,
+    input_list$data$n_fish_fleets)),
   Catch_Type,
   UseCatch,
   Use_F_pen = 1,
@@ -22,6 +25,12 @@ Setup_Mod_Catch_and_F(
 \item{input_list}{A list containing data, parameters, and map lists used by the model.}
 
 \item{ObsCatch}{Numeric array of observed catches, dimensioned \code{[n_regions, n_years, n_fish_fleets]}.}
+
+\item{catch_units}{Catch units - Array dimensioned by n_regions x n_fish_fleets
+\itemize{
+  \item \code{"abd"}: Catch units in abundance
+  \item \code{"biom"}: Catch units in biomass (default)
+}}
 
 \item{Catch_Type}{Integer matrix with dimensions \code{[n_years, n_fish_fleets]}, specifying catch data types:
 \itemize{
