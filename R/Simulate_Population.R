@@ -386,7 +386,8 @@ run_annual_cycle <- function(y,
         if(exists("SizeAgeTrans") && !is.null(SizeAgeTrans)) for(s in 1:n_sexes) CAL[r,y,,s,f,sim] <- SizeAgeTrans[r,y,,,s,sim] %*% CAA[r,y,,s,f,sim] # Catch at length
 
         #### Catch -------------------------------------------------------------------
-        TrueCatch[r,y,f,sim] <- sum(CAA[r,y,,,f,sim] * WAA_fish[r,y,,,f,sim]) # True Catch
+        if(catch_units[r,f] == 0) TrueCatch[r,y,f,sim] <- sum(CAA[r,y,,,f,sim]) # abundance
+        if(catch_units[r,f] == 1) TrueCatch[r,y,f,sim] <- sum(CAA[r,y,,,f,sim] * WAA_fish[r,y,,,f,sim]) # biomass
         ObsCatch[r,y,f,sim] <- TrueCatch[r,y,f,sim] * exp(stats::rnorm(1, 0, exp(ln_sigmaC[r,y,f]))) # Observed Catch w/ lognormal deviations
 
         #### Fishery Index -------------------------------------------------------------------
@@ -927,6 +928,7 @@ simulation_self_test <- function(data,
   # setup fishery simulation processes
   sim_list <- Setup_Sim_Fishing(sim_list = sim_list, # update simulate list
                                 ln_sigmaC = ln_sigmaC, # sigmaC
+                                catch_units = data$catch_units, # catch units
                                 Fmort_input = replicate(n = sim_list$n_sims, rep$Fmort[,1:length(data$years),,drop = FALSE]), # use fishing mortality from report
                                 fish_sel_input = replicate(n = sim_list$n_sims, rep$fish_sel[,1:length(data$years),,,,drop = FALSE]), # use fishery selectivity from report
                                 fish_q_input = replicate(n = sim_list$n_sims, rep$fish_q[,1:length(data$years),,drop = FALSE]), # use fishery catchability from report
