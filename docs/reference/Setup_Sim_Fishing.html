@@ -42,6 +42,7 @@
 <span>  <span class="va">sim_list</span>,</span>
 <span>  ln_sigmaC <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">0.02</span><span class="op">)</span>, dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sim_list</span><span class="op">$</span><span class="va">n_regions</span>, <span class="va">sim_list</span><span class="op">$</span><span class="va">n_yrs</span>,</span>
 <span>    <span class="va">sim_list</span><span class="op">$</span><span class="va">n_fish_fleets</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  catch_units <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="fl">1</span>, dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sim_list</span><span class="op">$</span><span class="va">n_regions</span>, <span class="va">sim_list</span><span class="op">$</span><span class="va">n_fish_fleets</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  init_F_val <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  Fmort_input <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="fl">0.1</span>, dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sim_list</span><span class="op">$</span><span class="va">n_regions</span>, <span class="va">sim_list</span><span class="op">$</span><span class="va">n_yrs</span>,</span>
 <span>    <span class="va">sim_list</span><span class="op">$</span><span class="va">n_fish_fleets</span>, <span class="va">sim_list</span><span class="op">$</span><span class="va">n_sims</span><span class="op">)</span><span class="op">)</span>,</span>
@@ -86,6 +87,12 @@
 <dd><p>Observation error for catch
 [n_regions × n_yrs × n_fish_fleets]
 (default: `log(0.02)`)</p></dd>
+
+
+<dt id="arg-catch-units">catch_units<a class="anchor" aria-label="anchor" href="#arg-catch-units"></a></dt>
+<dd><p>Units of catch - Array [n_regions × n_fish_fleets]</p><ul><li><p><code>0</code>: Abundance</p></li>
+<li><p><code>1</code>: Biomass (default)</p></li>
+</ul></dd>
 
 
 <dt id="arg-init-f-val">init_F_val<a class="anchor" aria-label="anchor" href="#arg-init-f-val"></a></dt>

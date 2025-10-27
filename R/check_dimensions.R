@@ -70,6 +70,11 @@ check_data_dimensions <- function(x,
       stop(paste(what, " is not the correct dimension. Should be n_regions, n_years, n_fish_fleets"))
   }
 
+  if(what %in% c("catch_units")) {
+    if(sum(dim(x) == c(n_regions, n_fish_fleets)) != 2)
+      stop(paste(what, "is not the correct dimension. Should be n_regions, n_fish_fleets"))
+  }
+
   if(what == 'Catch_Type') {
     if(sum(dim(x) == c(n_years, n_fish_fleets)) != 2)
       stop("Catch_Type is not the correct dimension. Should be n_years, n_fish_fleets")
@@ -177,6 +182,11 @@ check_sim_dimensions <- function(x,
   if(what %in% c('Fmort_input', 'fish_q_input')) {
     if(sum(dim(x) == c(n_regions, n_years, n_fish_fleets, n_sims)) != 4)
       stop(paste("Dimensions of", what, "are not correct. Should be n_regions, n_years, n_fish_fleets, n_sims"))
+  }
+
+  if(what %in% c('catch_units')) {
+    if(sum(dim(x) == c(n_regions, n_fish_fleets)) != 2)
+      stop(paste("Dimensions of", what, "are not correct. Should be n_regions, n_fish_fleets"))
   }
 
   if(what == 'fish_sel_input') {

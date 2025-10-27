@@ -91,11 +91,16 @@
 #'     \item \code{2}: Joint by sex, split by region
 #'     \item \code{999}: Not simulated
 #'   }
-#'
+#' @param catch_units Units of catch - Array [n_regions × n_fish_fleets]
+#'   \itemize{
+#'     \item \code{0}: Abundance
+#'     \item \code{1}: Biomass (default)
+#'   }
 #' @export Setup_Sim_Fishing
 #' @family Simulation Setup
 Setup_Sim_Fishing <- function(sim_list,
                               ln_sigmaC = array(log(0.02), dim = c(sim_list$n_regions, sim_list$n_yrs, sim_list$n_fish_fleets)),
+                              catch_units = array(1, dim = c(sim_list$n_regions, sim_list$n_fish_fleets)),
                               init_F_val = 0,
                               Fmort_input = array(0.1, dim = c(sim_list$n_regions, sim_list$n_yrs, sim_list$n_fish_fleets, sim_list$n_sims)),
                               fish_sel_input,
@@ -121,6 +126,7 @@ Setup_Sim_Fishing <- function(sim_list,
   # Validate dimensions of all input parameters
   check_sim_dimensions(ln_sigmaC, n_regions = sim_list$n_regions, n_years = sim_list$n_yrs,
                        n_fish_fleets = sim_list$n_fish_fleets, what = "ln_sigmaC")
+  check_sim_dimensions(catch_units, n_regions = sim_list$n_regions, n_fish_fleets = sim_list$n_fish_fleets, what = "catch_units")
   check_sim_dimensions(Fmort_input, n_regions = sim_list$n_regions, n_years = sim_list$n_yrs,
                        n_fish_fleets = sim_list$n_fish_fleets, n_sims = sim_list$n_sims, what = "Fmort_input")
   check_sim_dimensions(fish_sel_input, n_regions = sim_list$n_regions, n_years = sim_list$n_yrs,
@@ -162,6 +168,7 @@ Setup_Sim_Fishing <- function(sim_list,
 
   # output variables into list
   sim_list$Fmort <- Fmort_input # input fishing mortality pattern
+  sim_list$catch_units <- catch_units # catch units
   sim_list$ln_sigmaC <- ln_sigmaC # Observation sd for catch
   sim_list$init_F <- init_F_val # initial F value
   sim_list$fish_sel <- fish_sel_input # fishery selectivity
@@ -489,11 +496,17 @@ do_Fmort_mapping <- function(input_list) {
 #'   \item \code{"fix"}: Fix at the starting value.
 #'   \item \code{"est_all"}: Estimate separate parameters for each year and fleet combination.
 #' }
+#' @param catch_units Catch units - Array dimensioned by n_regions x n_fish_fleets
+#' \itemize{
+#'   \item \code{"abd"}: Catch units in abundance
+#'   \item \code{"biom"}: Catch units in biomass (default)
+#' }
 #'
 #' @export Setup_Mod_Catch_and_F
 #' @family Model Setup
 Setup_Mod_Catch_and_F <- function(input_list,
-                                  ObsCatch,
+                                  ObsCatch = array(1, dim = c(length(input_list$data$years), input_list$data$n_fish_fleets)),
+                                  catch_units = array("biom", dim = c(input_list$data$n_regions, input_list$data$n_fish_fleets)),
                                   Catch_Type,
                                   UseCatch,
                                   Use_F_pen = 1,
@@ -514,6 +527,7 @@ Setup_Mod_Catch_and_F <- function(input_list,
   check_data_dimensions(ObsCatch, n_regions = input_list$data$n_regions, n_years = length(input_list$data$years), n_fish_fleets = input_list$data$n_fish_fleets, what = 'ObsCatch')
   check_data_dimensions(Catch_Type, n_years = length(input_list$data$years), n_fish_fleets = input_list$data$n_fish_fleets, what = 'Catch_Type')
   check_data_dimensions(UseCatch, n_regions = input_list$data$n_regions, n_years = length(input_list$data$years), n_fish_fleets = input_list$data$n_fish_fleets, what = 'UseCatch')
+  check_data_dimensions(catch_units, n_regions = input_list$data$n_region, n_fish_fleets = input_list$data$n_fish_fleets, what = 'catch_units')
 
   # Indicators for whether catch is aggregated across regions
   if(est_all_regional_F == 0 && any(unique(Catch_Type) == 0)) collect_message("Catch is aggregated by region in some years, with a separate aggregated ln_F_Mean and ln_F_devs estimated in those years")
@@ -532,6 +546,11 @@ Setup_Mod_Catch_and_F <- function(input_list,
   if(sigmaF_spec == "fix" && !("ln_sigmaF" %in% names(starting_values))) warning("sigmaF_spec is specified as fix, but no starting values / fixed values are provided. Either do this post-hoc, or use the ... argument if you do not want to use default values")
   if(sigmaF_agg_spec == "fix" && !("ln_sigmaF_agg" %in% names(starting_values))) warning("sigmaF_agg_spec is specified as fix, but no starting values / fixed values are provided. Either do this post-hoc, or use the ... argument if you do not want to use default values")
 
+  # Catch units
+  catch_units[catch_units == 'abd'] <- 0
+  catch_units[catch_units == 'biom'] <- 1
+  catch_units <- array(as.numeric(catch_units), dim = c(input_list$data$n_regions, input_list$data$n_fish_fleets)) # convert to numeric array
+
   # Populate Data List ------------------------------------------------------
 
   input_list$data$ObsCatch <- ObsCatch
@@ -539,6 +558,7 @@ Setup_Mod_Catch_and_F <- function(input_list,
   input_list$data$UseCatch <- UseCatch
   input_list$data$est_all_regional_F <- est_all_regional_F
   input_list$data$Use_F_pen <- Use_F_pen
+  input_list$data$catch_units <- catch_units
 
   # Populate Parameter List -------------------------------------------------
 
