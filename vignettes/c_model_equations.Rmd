@@ -114,10 +114,9 @@ The population (or cohort) is then projected forward to the penultimate age ($N_
 which is used to derive the plus group. Specifically, the penultimate
 age is projected forward once more:
 
-$$\mathbf{X}_{s}\mathbf{=}\left( \left( \mathbf{N}_{a_{+} - 1,s}^{'} \right)^{T}\mathbf{M}_{y = 1,a_{+} - 1,s} \right) \odot \exp\left( - \mathbf{Z}_{a = a_{+} - 1,s}^{'} \right)$$
+$$\mathbf{X}_{s}\mathbf{=}\left( \left( \mathbf{N}_{a_{+} - 1,s}^{'} \right)^{T}\mathbf{M}_{y = 1,a_{+} - 1,s} \right) \text{diag}\left( \exp\left( - \mathbf{Z}_{a = a_{+}-1,s}^{'} \right)\right)$$
 
-where $\mathbf{M}$ is a first-order Markov matrix representing movement,
-$\odot$ is the Hadamard product (elementwise multiplication), and
+where $\mathbf{M}$ is a first-order Markov matrix representing movement, and
 $\mathbf{X}_{s}$ represents the culmination of processes applied to the
 penultimate age. A transition matrix $\mathbf{(G}_{s}$) is the
 constructed to represent the combined effects of survival and movement
@@ -263,15 +262,28 @@ C_{r,y,l,s,f}^{l} = \mathbf{A}_{r,y,s}^{l}{\mathbf{C}^{\mathbf{a}}}_{r,y,s,f} \\
 
 where $\mathbf{A}_{r,y,s}^{l}$ is a user-defined size-age transition
 matrix to convert ages to lengths. Expected catch
-($\text{Catch}_{r,y,f}$) is then computed summation of the expected
-catch-at-age across ages and sexes, multiplied by their respective
-fishery weights-at-age ($W_{r,y,a,s,f}^{fish}$):
+($\text{Catch}_{r,y,f}$) can then be computed as either abundance or biomass. For catch in units of abundance, this is given by the summation of the expected catch-at-age across ages and sexes:
+
+$$\begin{matrix}
+\text{Catch}_{r,y,f} = \sum_{a}^{a_{+}}{\sum_{s}^{n_{s}}C_{r,y,a,s,f}^{a}} \\
+\end{matrix}$$
+
+For catch in biomass, this is given by the summation of expected catch-at-age, multiplied by their respective fishery weights-at-age  ($W_{r,y,a,s,f}^{fish}$):
 
 $$\begin{matrix}
 \text{Catch}_{r,y,f} = \sum_{a}^{a_{+}}{\sum_{s}^{n_{s}}C_{r,y,a,s,f}^{a}}W_{r,y,a,s,f}^{fish} \\
 \end{matrix}$$
 
-The expected fishery index ($\text{FshIdx}_{r,y,f}$) is computed as:
+Similarly expected fishery indices  ($\text{FshIdx}_{r,y,f}$) can be computed as either abundance-based or biomass-based. For abundance-based fishery indices, this is computed as:
+
+$$\begin{matrix}
+\begin{matrix}
+\text{FshIdx}_{r,y,f} = q_{r,y,f}^{\text{Fsh}}\sum_{a}^{a_{+}}{\sum_{s}^{n_{s}}N_{r,y,a,s}}\exp\left( - Z_{r,y,a,s} \right)\text{Sel}_{r,y,a,s,f}^{\text{Fsh}} \\
+\end{matrix} \\
+\end{matrix}$$
+
+where $q_{r,y,f}^{\text{Fsh}}$ is the catchability coefficient for a
+given fishery fleet. Biomass-based fishery indices are computed as:
 
 $$\begin{matrix}
 \begin{matrix}
@@ -279,8 +291,6 @@ $$\begin{matrix}
 \end{matrix} \\
 \end{matrix}$$
 
-where $q_{r,y,f}^{\text{Fsh}}$ is the catchability coefficient for a
-given fishery fleet.
 
 ### Survey Observation Model
 

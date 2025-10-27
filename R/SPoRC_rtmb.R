@@ -476,7 +476,9 @@ SPoRC_rtmb = function(pars, data) {
           } # end s loop
         } # fitting lengths
 
-        PredCatch[r,y,f] = sum(CAA[r,y,,,f] * WAA_fish[r,y,,,f]) # get total catch
+        # Get catch
+        if(catch_units[r,f] == 0) PredCatch[r,y,f] = sum(CAA[r,y,,,f]) # abundance
+        if(catch_units[r,f] == 1) PredCatch[r,y,f] = sum(CAA[r,y,,,f] * WAA_fish[r,y,,,f]) # biomass
 
         # Get fishery index
         if(fish_idx_type[r,f] == 0) PredFishIdx[r,y,f] = fish_q[r,y,f] * sum(NAA[r,y,,] * fish_sel[r,y,,,f]) # abundance
