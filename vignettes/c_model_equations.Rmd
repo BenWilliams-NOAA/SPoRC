@@ -240,6 +240,66 @@ deviations ($\epsilon_{r,y,f}^{\text{Fsh}})$ about a mean fishing
 mortality parameter for a given fishery fleet
 ($\mu_{r,f}^{\text{Fsh}}$).
 
+### Movement Processes
+Movement processes can be parameterized as either an unstructured Markov process (discrete-time Markov) or as a Continuous-time Markov chain (CTMC) process. Movement parameterized as an unstructured Markov process is estimated using a multinomial logit link function, with $n_r \times n_r-1$ free parameters:
+
+$$
+M_{r,k,y,a,s} = \frac{\exp(\omega_{r,k,y,a,s})}{\sum_k\exp(\omega_{r,k,y,a,s})}
+$$
+
+where the reference region $k = 1$ is set as $\omega_{r,k=1,y,a,s} = 0$. Under this parameterization, movement fractions can be estimated independently for each stratum $(y,a,s)$, or grouped into blocks to reduce the number of parameters. While parameter blocking can help reduce the parameter load, estimating all pairwise movement probabilities under the unstructured Markov approach can still result in a large number of parameters. 
+
+Alternatively, movement can be specified as a continuous-time Markov chain (CTMC) process, which decomposes into diffusive and taxis components. Diffusive processes represent undirected movement of individuals, while taxis processes represent directed movement toward more preferred habitat. This CTMC movement parameterization is governed by an adjacency matrix ($A_{r,k}$), which defines neighboring regions that can receive individuals within a given time step. Diffusive processes are given by:
+
+$$
+\dot{D}_{r,k,y,a,s} =
+\begin{cases} 
+\dfrac{e^{2\theta}}{V_r}, & \text{if } A_{r,k} = 1 \text{ and } r \neq k, \\[0.5em]
+- \sum_{j \neq r} \dot{D}_{r,j,y,a,s}, & \text{if } r = k, \\[0.5em]
+0, & \text{otherwise.}
+\end{cases}
+$$
+
+where $\dot{D}_{r,k,y,a,s}$ represents diffusion, $\theta$ is the log diffusion rate, $V_r$ scales the log diffusion rate, such that smaller regions have higher diffusion rates, and $j$ in the second equation indexes all destinations except the source to ensure that the rows of the matrix sum to 0, thereby conserving abundance. Taxis processes (preference) can then be written as:
+
+$$
+\dot{P}_{r,k,y,a,s} =
+\begin{cases} 
+h_{k,y,a,s} - h_{r,y,a,s}, & \text{if } A_{r,k} = 1 \text{ and } r \neq k, \\[0.5em]
+- \sum_{j \neq r} \dot{P}_{r,j,y,a,s}, & \text{if } r = k, \\[0.5em]
+0, & \text{otherwise.}
+\end{cases}
+$$
+Here, $\dot{P}_{r,k,y,a,s}$ represents the taxis (preference) component of movement. Equation 1 determines local differences in the habitat preference function, $\mathbf{h}_{y,a,s}$, while equation 2 ensures that the rows of the matrix sum to 0, conserving abundance. 
+
+Habitat preference can be defined flexibly as a combination of linear effects and basis splines:
+
+$$
+h_{y,a,s} = \mathbf{x}_{y,a,s}^\mathsf{T} \mathbf{\beta} + \mathbf{P}_{y,a,s} \, \mathbf{\gamma}
+$$
+
+where $\mathbf{x}_{y,a,s}$ represents covariates associated with linear coefficients $\mathbf{\beta}$, and $\mathbf{P}_{y,a,s}$ are spline basis covariates weighted by spline coefficients $\mathbf{\gamma}$. 
+
+Diffusive and taxis processes can then be combined to construct a generator matrix:
+
+$$
+\dot{Q}_{r,k,y,a,s} = \dot{D}_{r,k,y,a,s} + \dot{P}_{r,k,y,a,s}
+$$
+
+Here, $\dot{Q}_{r,k,y,a,s}$ represents instantaneous movement rates. The generator matrix $\dot{\mathbf{Q}}_{y,a,s}$ is Metzler, such that all off-diagonal elements satisfy:
+
+$$
+\dot{Q}_{r,k,y,a,s} \ge 0 \quad \text{for } r \neq k.
+$$
+
+Given that movement in SPoRC is defined sequentially, the instantaneous movement matrix can then be converted to annual movement fractions using the matrix exponential:
+
+$$
+\mathbf{M}_{y,a,s} = \exp\Big( \dot{\mathbf{Q}}_{y,a,s} \, \Delta t \Big)
+$$
+
+where $\Delta t$ is the duration of the movement interval. 
+
 ## Observation Equations
 
 ### Fishery Observation Model

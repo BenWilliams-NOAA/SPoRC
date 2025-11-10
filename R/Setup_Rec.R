@@ -34,12 +34,11 @@
 #'   (default = log(c(1, 1)))
 #' @param Rec_input Recruitment array [n_regions × n_yrs × n_sims] (default = NULL)
 #' @param ln_InitDevs_input Initial deviations [n_regions × (n_ages-1) × n_sims] (default = NULL)
-#' @param init_age_strc Integer flag specifying initialization of initial age structure:
-#'   \itemize{
-#'     \item \code{0}: Initialize by iteration.
-#'     \item \code{1}: Initialize using a scalar geometric series (does not account for movement).
-#'     \item \code{2}: Initialize using a matrix geometric series (accounts for movement; default).
-#'   }
+#' @param init_age_strc Integer specifying the initialization method for the age structure:
+#'   - 0: Iterative solution to equilibrium
+#'   - 1: Scalar geometric series solution w/o movement in any groups (no movement in all groups)
+#'   - 2: Matrix geometric series solution (generalizes scalar solution with movement)
+#'   - 3: Scalar geometric series solution w/o movement only in plus group (no movement in plus groups)
 #' @param t_spawn Spawn timing fraction of the year (scalar, default = 0)
 #'
 #' @export Setup_Sim_Rec

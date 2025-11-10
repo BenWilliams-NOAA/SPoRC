@@ -33,6 +33,8 @@
 # Refactored Initial Numbers at Age module
 
 # version 5 - (M.LH Cheng)
+# Refactored movement priors and movement setup
+# Added in CTMC movement
 
 
 #' Generalized RTMB model
@@ -150,10 +152,12 @@ SPoRC_rtmb = function(pars, data) {
     log_move_diffusion_pars = log_move_diffusion_pars,
     move_preference_pars = move_preference_pars,
     area_r = area_r,
-    adjacency_mat = adjacency_mat
+    adjacency_mat = adjacency_mat,
+    ctmc_diffusion_bounds = ctmc_diffusion_bounds
   )
 
   # output movement stuff into model
+  Mrate = out_move$Mrate
   Movement = out_move$Movement
   Movement_nLL = Movement_nLL + out_move$move_pen
 
@@ -1060,25 +1064,23 @@ SPoRC_rtmb = function(pars, data) {
                                                        PE_pars = move_pe_pars,
                                                        move_devs = move_devs,
                                                        map_move_devs = map_move_devs,
-                                                       do_recruits_move = do_recruits_move
+                                                       do_recruits_move = do_recruits_move,
+                                                       adjacency_collapsed = adjacency_collapsed,
+                                                       move_type = move_type
     )
   }
 
   ### Movement Rates (Prior) ------------------------------------------------
-  # NOTE: If continuous varying movement is estimated, there should only be one set of movement parameters
-  # estimated (i.e., the base, mean movement parameters), such that the prior is applied onto the base parameters
   if(Use_Movement_Prior == 1) {
-    unique_movement_pars = sort(unique(as.vector(map_Movement_Pars))) # Figure out unique movement parameters estimated
-    for(i in 1:length(unique_movement_pars)) {
-      par_idx = which(map_Movement_Pars == unique_movement_pars[i], arr.ind = TRUE)[1,] # figure out where unique movement parameter first occurs
-      r_from = par_idx[1] # from region
-      y = par_idx[3] # year index
-      a = par_idx[4] # age index
-      s = par_idx[5] # sex index
-      Movement_nLL = Movement_nLL - ddirichlet(x = Movement[r_from,,y,a,s], alpha = Movement_prior[r_from,,y,a,s], log = TRUE) # dirichlet prior
+    for(i in 1:nrow(Movement_prior)) {
+      region_from = Movement_prior$region_from[i] # region from
+      y = Movement_prior$year[i] # year
+      a = Movement_prior$age[i] # age
+      s = Movement_prior$sex[i] # sex
+      alpha = Movement_prior$alpha[[i]] # get prior values
+      Movement_nLL = Movement_nLL - ddirichlet(x = Movement[region_from,,y,a,s], alpha = alpha, log = TRUE) # dirichlet prior
     } # end i loop
-  } # end if using movement prior
-
+  }
 
   ### Recruitment Proportions (Prior) -----------------------------------------
   if(Use_Rec_prop_Prior == 1) {
@@ -1139,6 +1141,7 @@ SPoRC_rtmb = function(pars, data) {
   RTMB::REPORT(natmort)
   RTMB::REPORT(bias_ramp)
   RTMB::REPORT(Movement)
+  RTMB::REPORT(Mrate)
 
   # Fishery Processes
   RTMB::REPORT(init_F)

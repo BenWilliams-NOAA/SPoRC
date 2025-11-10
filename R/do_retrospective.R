@@ -96,8 +96,9 @@ truncate_yr <- function(j,
     retro_parameters$move_devs <- parameters$move_devs[,,1:(length(data$years) - j),,,drop = FALSE]
     retro_mapping$move_pars <- factor(array(mapping$move_pars, dim = dim(parameters$move_pars))[,,1:(length(data$years) - j),,,drop = FALSE])
     retro_mapping$move_devs <- factor(array(mapping$move_devs, dim = dim(parameters$move_devs))[,,1:(length(data$years) - j),,,drop = FALSE])
-    retro_data$map_Movement_Pars <- data$map_Movement_Pars[,,1:(length(data$years) - j),,,drop = FALSE]
     retro_data$Fixed_Movement <- data$Fixed_Movement[,,1:(length(data$years) - j),,,drop = FALSE]
+    retro_data$ctmc_move_dat <- retro_data$ctmc_move_dat[which(data$ctmc_move_dat$years %in% 1:(length(data$years) - j)),]
+    retro_data$map_move_devs <- retro_data$map_move_devs[,,1:(length(data$years) - j),,,drop = FALSE]
   }
 
 # Tagging -----------------------------------------------------------------
@@ -194,33 +195,6 @@ truncate_yr <- function(j,
 #' @import progressr
 #' @importFrom reshape2 melt
 #' @importFrom stats nlminb optimHess
-#'
-#' @examples
-#' \dontrun{
-#' # Run a 7-year retrospective
-#' ret <- do_retrospective(
-#'   n_retro = 7,
-#'   data = data,
-#'   parameters = parameters,
-#'   mapping = mapping,
-#'   random = NULL,
-#'   do_par = TRUE,
-#'   n_cores = 7,
-#'   do_francis = TRUE,
-#'   n_francis_iter = 5
-#' )
-#'
-#' # Plot retrospective SSB and Recruitment
-#' library(ggplot2)
-#' ggplot(ret, aes(x = Year + 1959, y = value, group = peel, color = 2024 - peel)) +
-#'   geom_line(lwd = 1.3) +
-#'   facet_wrap(~Type) +
-#'   guides(color = guide_colourbar(barwidth = 10, barheight = 1.3)) +
-#'   labs(x = 'Year', y = 'Value', color = 'Retrospective Year') +
-#'   scale_color_viridis_c() +
-#'   theme_bw(base_size = 15) +
-#'   theme(legend.position = 'top')
-#' }
 do_retrospective <- function(n_retro,
                              data,
                              parameters,
@@ -512,20 +486,6 @@ do_retrospective <- function(n_retro,
 #' @family Model Diagnostics
 #' @import dplyr
 #' @importFrom tidyr pivot_longer pivot_wider
-#' @examples
-#' \dontrun{
-#'  ret <- do_retrospective(7, data, parameters, mapping, random = NULL, do_par = TRUE, n_cores = 7, do_francis = TRUE, n_francis_iter = 5)
-#'  ret_df <- get_retrospective_relative_difference(ret)
-#'  ggplot(ret_df %>% filter(Type == 'SSB'), aes(x = Year, y = rd, group = 2024- as.numeric(peel), color = 2024 - as.numeric(peel))) +
-#'  geom_hline(yintercept = 0, lty = 2, lwd = 1.3) +
-#'    coord_cartesian(ylim = c(-0.4, 0.4)) +
-#'    geom_line(lwd = 1.5) +
-#'    guides (color = guide_colourbar(barwidth = 15, barheight = 1.3)) +
-#'    labs(x = 'Year', y = 'Relative Difference from Terminal Year', color = 'Retrospective Year') +
-#'    scale_color_viridis_c() +
-#'    theme_bw(base_size = 15) +
-#'    theme(legend.position = 'top')
-#' }
 get_retrospective_relative_difference <- function(retro_data) {
 
   unique_peels <- length(unique(retro_data$peel)) - 1 # get unique peels

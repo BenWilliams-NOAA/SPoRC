@@ -141,10 +141,6 @@ get_Constant_PrecisionMat = function(n, rho) {
 #' @param f Parameter list
 #' @param d Data list
 #' @keywords internal
-#' @examples
-#' \dontrun{
-#'   obj <- RTMB::MakeADFun(cmb(sabie_RTMB, data), parameters = parameters, map = mapping, random = random, silent = TRUE)
-#' }
 cmb <- function(f, d) {
   function(p) f(p, d)
 }

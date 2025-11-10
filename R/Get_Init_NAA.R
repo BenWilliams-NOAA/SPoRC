@@ -40,7 +40,8 @@ Get_Init_NAA <- function(init_age_strc,
                          Movement,
                          do_recruits_move,
                          NAA,
-                         ln_InitDevs) {
+                         ln_InitDevs
+                         ) {
 
   "c" <- RTMB::ADoverload("c")
   "[<-" <- RTMB::ADoverload("[<-")

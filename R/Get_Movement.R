@@ -1,8 +1,30 @@
+#' Get Design Matrices for CTMC Movement
+#'
+#' Constructs the design matrices for the diffusion and preference components of a
+#' Continuous Time Markov Chain (CTMC) movement model. These matrices are used
+#' to parameterize movement rates in terms of covariates specified by formulas.
+#'
+#' @param data A \code{data.frame} containing the CTMC covariates. Must include all variables
+#'   referenced in \code{diffusion_formula} and \code{preference_formula}.
+#' @param preference_formula An R formula describing the linear predictor for movement
+#'   preference. Variables must exist in \code{data}.
+#' @param diffusion_formula An R formula describing the linear predictor for diffusion
+#'   rates. Variables must exist in \code{data}.
+#'
+#' @return A \code{list} with the following components:
+#' \describe{
+#'   \item{\code{n_theta}}{Number of diffusion parameters (number of columns in diffusion design matrix).}
+#'   \item{\code{n_gamma}}{Number of preference parameters (number of columns in preference design matrix).}
+#'   \item{\code{X_zk}}{Diffusion design matrix constructed from \code{diffusion_formula} and \code{data}.}
+#'   \item{\code{W_zk}}{Preference design matrix constructed from \code{preference_formula} and \code{data}.}
+#' }
+#'
+#' @keywords internal
 get_movement_dp_design_matrix <- function(data,
                                           preference_formula,
                                           diffusion_formula
 ) {
-  X_zk = model.matrix(diffusion_formula, data) # diffussion design matrix
+  X_zk = model.matrix(diffusion_formula, data) # diffusion design matrix
   W_zk = model.matrix(preference_formula, data) # preference design matrix
   return(list(
     n_theta = ncol(X_zk),
@@ -12,6 +34,49 @@ get_movement_dp_design_matrix <- function(data,
   ))
 }
 
+#' Construct Movement Matrices for Unstructured or CTMC Movement
+#'
+#' Generates movement matrices for a population model based on either unstructured
+#' multinomial logit movement or a Continuous Time Markov Chain (CTMC) formulation.
+#' Also calculates a movement penalty if applicable. For CTMC movement, projection
+#' years are supported: base parameters (preference/diffusion) can either be frozen
+#' at the last historical year or extended via user-provided covariates in ctmc_move_dat.
+#'
+#' @param move_type Integer flag indicating movement type: 0 = unstructured Markov,
+#'   1 = CTMC movement.
+#' @param do_recruits_move Integer flag: 0 = recruits do not move, 1 = recruits move.
+#' @param n_regions Number of spatial regions.
+#' @param n_yrs Number of years in the observed data.
+#' @param n_proj_yrs_devs Number of projected years for deviations.
+#' @param n_ages Number of age classes.
+#' @param n_sexes Number of sexes.
+#' @param move_pars Array of movement parameters for unstructured movement.
+#' @param move_devs Array of movement deviations (applies to both unstructured and CTMC movement).
+#' @param use_fixed_movement Integer flag: 0 = estimate movement, 1 = use fixed matrix.
+#' @param Fixed_Movement Optional fixed movement matrix.
+#' @param ctmc_move_dat Data.frame with CTMC covariates used to build design matrices
+#'   for diffusion and preference. Required columns (when \code{move_type == 1}) include
+#'   \code{regions}, \code{years}, \code{ages}, and \code{sexes}, plus any covariates
+#'   referenced in \code{diffusion_formula} and \code{preference_formula}.
+#'   Can include projection years (years > n_yrs) with projected covariate values.
+#'   Year effects in formulas (e.g., splines) are automatically capped at \code{n_yrs}
+#'   to prevent extrapolation, while other covariates use their actual projected values.
+#' @param preference_formula R formula specifying preference covariates for CTMC movement.
+#' @param diffusion_formula R formula specifying diffusion covariates for CTMC movement.
+#' @param log_move_diffusion_pars Log-transformed diffusion parameters for CTMC movement.
+#' @param move_preference_pars Preference parameters for CTMC movement.
+#' @param area_r Vector of areas for each region (used for scaling diffusion rates).
+#' @param adjacency_mat Square adjacency matrix defining connectivity between regions for CTMC movement.
+#' @param ctmc_diffusion_bounds Integer flag: 1 = apply diffusion bounds to generator matrix, 0 = no bounds.
+#'
+#' @return A list with components:
+#' \describe{
+#'   \item{\code{Movement}}{Array of movement fractions for each stratum (from regions × to regions × years × ages × sexes).}
+#'   \item{\code{Mrate}}{Instantaneous movement rate matrix if CTMC movement is used (from regions × to regions × years × ages × sexes); otherwise NULL.}
+#'   \item{\code{move_pen}}{Numeric value of movement penalty calculated from preference parameters (for CTMC only).}
+#' }
+#'
+#' @keywords internal
 Get_Movement <- function(move_type,
                          do_recruits_move,
                          n_regions,
@@ -29,23 +94,27 @@ Get_Movement <- function(move_type,
                          log_move_diffusion_pars,
                          move_preference_pars,
                          area_r,
-                         adjacency_mat
-                         ) {
+                         adjacency_mat,
+                         ctmc_diffusion_bounds
+) {
 
   "c" <- RTMB::ADoverload("c")
   "[<-" <- RTMB::ADoverload("[<-")
 
   move_pen = 0 # initialize movement penalty if used
+  Mrate = NULL # initialize for non-CTMC cases
 
   # use fixed movement matrix
   if(use_fixed_movement == 1) {
     Movement = Fixed_Movement
+
   } else if(move_type == 0) { # Unstructured markov movement
 
-    Movement = array(data = 0, dim = c(n_regions, n_regions, n_yrs + n_proj_yrs_devs, n_ages, n_sexes)) # movement "matrix"
+    dims = list(from = 1:n_regions, to = 1:n_regions, years = 1:(n_yrs + n_proj_yrs_devs), ages = 1:n_ages, sexes = 1:n_sexes)
+    Movement = array(0, dim = sapply(dims, length),  dimnames = dims)
     ref_region = 1 # Set up reference region (always set at 0)
 
-     for(r in 1:n_regions) {
+    for(r in 1:n_regions) {
       for(y in 1:(n_yrs + n_proj_yrs_devs)) {
         for(a in 1:n_ages) {
           for(s in 1:n_sexes) {
@@ -69,23 +138,24 @@ Get_Movement <- function(move_type,
         } # end a loop
       } # end y loop
     } # end r loop
-  } else if(move_type == 1) { # continuous markov chain movement, NOTE: no projections supported at the moment
+
+  } else if(move_type == 1) { # continuous markov chain movement with projection support
 
     # set up dimensions of movement matrix
-    dims = list(from = 1:n_regions, to = 1:n_regions, years = 1:n_yrs, ages = 1:n_ages, sexes = 1:n_sexes)
-    Movement = Taxis = Diffusion = array(0, dim = sapply(dims, length),  dimnames = dims)
+    dims = list(from = 1:n_regions, to = 1:n_regions, years = 1:(n_yrs + n_proj_yrs_devs), ages = 1:n_ages, sexes = 1:n_sexes)
+    Mrate = Movement = Taxis = Diffusion = array(0, dim = sapply(dims, length),  dimnames = dims)
     loop = expand.grid(dims[-(1:2)]) # get year, age, and sexes to loop through
-    if(do_recruits_move == 0) loop = loop[-which(loop$ages == 1),] # remove age 1, if recruits move
+    if(do_recruits_move == 0) loop = loop[-which(loop$ages == 1),] # remove age 1, if recruits don't move
 
     # setup design matrix
     design_mat = get_movement_dp_design_matrix(ctmc_move_dat, preference_formula, diffusion_formula)
-    X_zk = design_mat$X_zk # diffussion
+    X_zk = design_mat$X_zk # diffusion
     W_zk = design_mat$W_zk # preference
 
     # diffusion rate from each region
-    theta_k = exp(log_move_diffusion_pars) # get difussion parameter
-    theta_z = (X_zk %*% theta_k)[,1] # multiply difussion parameter by design matrix
-    theta_z = theta_z/area_r[ctmc_move_dat[,'regions']]  # scale difussion matrix by area
+    theta_k = exp(2 * log_move_diffusion_pars) # get diffusion parameter
+    theta_z = (X_zk %*% theta_k)[,1] # multiply diffusion parameter by design matrix
+    theta_z = theta_z/area_r[ctmc_move_dat[,'regions']]  # scale diffusion matrix by area
 
     # preference for each region
     gamma_k = move_preference_pars # get preference parameters
@@ -99,39 +169,73 @@ Get_Movement <- function(move_type,
       which_rows$index = NA
       colnames(which_rows) = c( "regions", names(loop), "index" )
 
-      # match up indices to provided data
+      # Cap year spline look up parameters at n_yrs
+      y_lookup = min(loop[index,"years"], n_yrs)
+
+      # Match the current stratum (region, year, age, sex) to rows in ctmc_move_dat
       for( i2 in seq_len(nrow(which_rows)) ){
         which_rows$index[i2] = which((which_rows[i2,'regions'] == ctmc_move_dat[,'regions']) &
-                                       which_rows[i2, "years"] == ctmc_move_dat[,"years"] &
+                                       y_lookup == ctmc_move_dat[,"years"] &
                                        (which_rows[i2,'ages'] == ctmc_move_dat[,'ages']) &
                                        (which_rows[i2,'sexes'] == ctmc_move_dat[,'sexes']) )
-      } # end i2 loop
-
-      # create difussion matrix for strat, year, age, sex combinations
-      D_ss = adjacency_mat %*% diag(theta_z[which_rows$index], n_regions) # get corresponding thetas
-      diag(D_ss) = -1 * Matrix::colSums(D_ss) # diag to enforce sum to 1
-      D_ss = as(D_ss, "sparseMatrix") # force sparse
+      }
 
       # preference for each strata, year, age, sex combination
-      gamma_s = gamma_z[which_rows$index] # get corresponding gammas
-      pref_s = exp(gamma_s) / sum(exp(gamma_s)) # softmax to keep estimation constrainted
-      Z_ss = adjacency_mat * outer( pref_s, pref_s, FUN = "-" ) # h(i) - h(j)
-      diag(Z_ss) = -1 * Matrix::colSums(Z_ss) # diag to enforce sum to 1
+      pref_s = gamma_z[which_rows$index] # get corresponding gammas
+      Z_ss = adjacency_mat * outer( pref_s, pref_s, FUN = "-" )
 
-      # turn continuous rates to movement fractions
-      M_ss = Matrix::expm( D_ss + Z_ss  )
+      # base diffusion parameters for this stratum
+      theta_base = theta_z[which_rows$index]
+
+      # create base diffusion matrix (w/ corresponding thetas)
+      D_ss = adjacency_mat %*% diag(theta_base, n_regions)
+
+      # Add origin-destination deviations (always uses actual year, not y_lookup)
+      y_idx = loop$years[index]
+      a_idx = loop$ages[index]
+      s_idx = loop$sexes[index]
+
+      # Note: move_devs is indexed as [origin_region, counter, year, age, sex]
+      # where counter goes through non-diagonal destinations for that origin
+      for(rr in 1:n_regions) {  # rr = origin (from)
+        counter = 1  # Reset counter for each origin region
+        for(r in 1:n_regions) {  # r = destination (to)
+          # Only apply deviations to off-diagonal elements (actual transitions, not residency)
+          if(adjacency_mat[r, rr] == 1 && r != rr) {  # if adjacent BUT NOT diagonal
+            # Apply deviation: rr is origin, counter indexes non-diagonal destinations
+            D_ss[r, rr] = D_ss[r, rr] * exp(move_devs[rr, counter, y_idx, a_idx, s_idx])
+            counter = counter + 1  # Increment counter for next valid destination from rr
+          } # end if
+        } # end r (to)
+      } # end rr (from)
+
+      # apply diffusion bounds to ensure valid generator matrix
+      if(ctmc_diffusion_bounds == 1) { # ensure D_ss(i,j) + Z_ss(i,j) > 0 for all i != j
+        for(j in 1:n_regions) {
+          minval = min(Z_ss[,j])  # minimum value in column j
+          for(i in 1:n_regions) D_ss[i,j] = D_ss[i,j] - adjacency_mat[i,j] * minval
+        } # end j loop
+      }
+
+      # conserve abundance
+      diag(D_ss) = -1 * Matrix::colSums(D_ss) # diag to enforce sum to 0
+      diag(Z_ss) = -1 * Matrix::colSums(Z_ss) # diag to enforce sum to 0
+      D_ss = as(D_ss, "sparseMatrix") # force sparse
+
+      Q_ss = D_ss + Z_ss # rate matrix
+      M_ss = Matrix::expm( Q_ss ) # turn rate matrix into fractions
 
       # populate matrices
       Movement[,,loop$years[index],loop$ages[index],loop$sexes[index]] = t(as.matrix(M_ss))
       Taxis[,,loop$years[index],loop$ages[index],loop$sexes[index]] = t(as.matrix(Z_ss))
       Diffusion[,,loop$years[index],loop$ages[index],loop$sexes[index]] = t(as.matrix(D_ss))
+      Mrate[,,loop$years[index],loop$ages[index],loop$sexes[index]] = t(as.matrix(Q_ss))
 
       # return penalty (Lagrange multiplier)
-      move_pen = move_pen + sum(gamma_s)^2
+      move_pen = move_pen + sum(pref_s)^2
 
     } # end index loop
   }
 
-  return(list(Movement = Movement, move_pen = move_pen))
+  return(list(Movement = Movement, Mrate = Mrate, move_pen = move_pen))
 }
-

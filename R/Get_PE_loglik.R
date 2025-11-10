@@ -158,6 +158,8 @@ Get_sel_PE_loglik <- function(PE_model,
 #' @param move_devs Deviations
 #' @param map_move_devs movement deviations to share
 #' @param do_recruits_move Whether recruits move (0, don't move, 1 move)
+#' @param adjacency_collapsed Adjacency matrix collapsed w/o retention
+#' @param move_type Movement type (0 == unstructed; all regions connected, 1 == ctmc)
 #'
 #' @returns numeric value of log likelihood (in positive space)
 #' @keywords internal
@@ -166,7 +168,9 @@ Get_move_PE_loglik <- function(PE_model,
                                PE_pars,
                                move_devs,
                                map_move_devs,
-                               do_recruits_move
+                               do_recruits_move,
+                               adjacency_collapsed,
+                               move_type
                                ) {
 
   "c" <- RTMB::ADoverload("c")
@@ -177,7 +181,7 @@ Get_move_PE_loglik <- function(PE_model,
 
   ll = 0 # initialize likelihood
 
-  # Get dimensions for penalty penalty
+  # Get dimensions for penalty
   n_regions_from = dim(map_move_devs)[1]
   n_regions_to = dim(map_move_devs)[2]
   n_yrs = dim(map_move_devs)[3]
@@ -190,6 +194,8 @@ Get_move_PE_loglik <- function(PE_model,
   # Penalize Deviations
   for(rr in 1:n_regions_to) {
     for(r in 1:n_regions_from) {
+
+      if(adjacency_collapsed[r,rr] == 0) next # skip
 
       if(PE_model == 1) {
         for(y in 1:n_yrs) {

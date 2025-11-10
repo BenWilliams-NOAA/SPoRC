@@ -33,7 +33,7 @@ Starting values can be specified in two ways:
   *ln_M*, *M_offset*
 
 - `SPoRC::Setup_Mod_Movement`  
-  *move_pars*, *move_devs*, *move_pe_pars*
+  *move_pars*, *move_devs*, *move_pe_pars*, *log_move_diffusion_pars*, *move_preference_pars*
 
 - `SPoRC::Setup_Mod_Tagging`  
   *ln_Init_Tag_Mort*, *ln_Tag_Shed*, *ln_tag_theta*, *Tag_Reporting_Pars*

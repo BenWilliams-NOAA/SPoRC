@@ -505,9 +505,9 @@ do_Fmort_mapping <- function(input_list) {
 #' @export Setup_Mod_Catch_and_F
 #' @family Model Setup
 Setup_Mod_Catch_and_F <- function(input_list,
-                                  ObsCatch = array(1, dim = c(length(input_list$data$years), input_list$data$n_fish_fleets)),
+                                  ObsCatch,
                                   catch_units = array("biom", dim = c(input_list$data$n_regions, input_list$data$n_fish_fleets)),
-                                  Catch_Type,
+                                  Catch_Type = array(1, dim = c(length(input_list$data$years), input_list$data$n_fish_fleets)),
                                   UseCatch,
                                   Use_F_pen = 1,
                                   est_all_regional_F = 1,

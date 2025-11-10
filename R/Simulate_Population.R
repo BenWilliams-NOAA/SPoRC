@@ -267,7 +267,7 @@ run_annual_cycle <- function(y,
         sexratio = array(sexratio[,1,,sim], dim = c(n_regions, n_sexes)), # sex ratio in first year
         Movement = array(Movement[,,1,,,sim], dim = c(n_regions, n_regions, n_ages, n_sexes)), # movement in first year
         do_recruits_move = do_recruits_move, # whether recruits move
-        ln_InitDevs = array(ln_InitDevs[,,sim], dim = c(n_regions, n_ages - 2)) # initial deviations
+        ln_InitDevs = array(ln_InitDevs[,,sim], dim = c(n_regions, n_ages - 1)) # initial deviations
       )
 
 
@@ -285,7 +285,7 @@ run_annual_cycle <- function(y,
         sexratio = array(sexratio[,1,,sim], dim = c(n_regions, n_sexes)), # sex ratio in first year
         Movement = array(Movement[,,1,,,sim], dim = c(n_regions, n_regions, n_ages, n_sexes)), # movement in first year
         do_recruits_move = do_recruits_move, # whether recruits move
-        ln_InitDevs = array(ln_InitDevs[,,sim], dim = c(n_regions, n_ages - 2)) # initial deviations
+        ln_InitDevs = array(ln_InitDevs[,,sim], dim = c(n_regions, n_ages - 1)) # initial deviations
       )
 
       # Input into model arrays
@@ -1273,8 +1273,8 @@ simulation_data_to_SPoRC <- function(sim_env,
 
     # Biologicals
     WAA <- array(sim_env$WAA[,1:y,,,sim, drop = FALSE], dim = c(sim_env$n_regions, length(1:y), sim_env$n_ages, sim_env$n_sexes))
-    WAA_fish <- array(sim_env$WAA_fish[,1:y,,,,sim, drop = FALSE], dim = c(sim_env$n_regions, length(1:y), sim_env$n_ages, sim_env$n_sexes, sim_list$n_fish_fleets))
-    WAA_srv <- array(sim_env$WAA_srv[,1:y,,,,sim, drop = FALSE], dim = c(sim_env$n_regions, length(1:y), sim_env$n_ages, sim_env$n_sexes, sim_list$n_srv_fleets))
+    WAA_fish <- array(sim_env$WAA_fish[,1:y,,,,sim, drop = FALSE], dim = c(sim_env$n_regions, length(1:y), sim_env$n_ages, sim_env$n_sexes, sim_env$n_fish_fleets))
+    WAA_srv <- array(sim_env$WAA_srv[,1:y,,,,sim, drop = FALSE], dim = c(sim_env$n_regions, length(1:y), sim_env$n_ages, sim_env$n_sexes, sim_env$n_srv_fleets))
     MatAA <- array(sim_env$MatAA[,1:y,,,sim, drop = FALSE], dim = c(sim_env$n_regions, length(1:y), sim_env$n_ages, sim_env$n_sexes))
     SizeAgeTrans <- if(!is.null(sim_env$SizeAgeTrans)) {
       array(sim_env$SizeAgeTrans[,1:y,,,,sim, drop = FALSE], dim = c(sim_env$n_regions, length(1:y), sim_env$n_lens, sim_env$n_ages, sim_env$n_sexes))
@@ -1285,8 +1285,8 @@ simulation_data_to_SPoRC <- function(sim_env,
     if(sim_env$UseTagging == 1) {
       keep_tag_cohorts <- which(sim_env$tag_release_indicator[,2] %in% 1:y)
       tag_release_indicator <- sim_env$tag_release_indicator[keep_tag_cohorts,,drop = FALSE]
-      Obs_Tag_Recap <- sim_env$Obs_Tag_Recap[,keep_tag_cohorts,,,sim, drop = FALSE]
-      Tagged_Fish <- sim_env$Tagged_Fish[,keep_tag_cohorts,sim, drop = FALSE]
+      Obs_Tag_Recap <- array(sim_env$Obs_Tag_Recap[,keep_tag_cohorts,,,,sim], dim = dim(sim_env$Obs_Tag_Recap)[-length(dim(sim_env$Obs_Tag_Recap))])
+      Tagged_Fish <- array(sim_env$Tagged_Fish[keep_tag_cohorts,,,sim], dim = c(dim(sim_env$Tagged_Fish)[-length(dim(sim_env$Tagged_Fish))]))
       n_tag_cohorts <- nrow(tag_release_indicator)
     } else {
       tag_release_indicator = Obs_Tag_Recap = Tagged_Fish = n_tag_cohorts = NULL

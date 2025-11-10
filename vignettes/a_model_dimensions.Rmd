@@ -81,10 +81,17 @@ The following tables describes all elements contained within `input_list$data`, 
 | `use_fixed_movement` | Value specifying whether or not to use a fixed movement matrix. 0: Don't use fixed movement, 1: Use fixed movement |
 | `Fixed_Movement` | Fixed movement matrix dimensioned by n_regions, n_regions, n_years, n_ages, n_sexes |
 | `Use_Movement_Prior` | Value specifying whether or not to use movement priors. 0: Don't use movement prior, 1: Use movement prior |
-| `Movement_prior` | Array dimensioned by n_regions, n_regions, n_years, n_ages, n_sexes specifying values for a Dirichlet prior |
-| `map_Movement_Pars` | Array by n_regions, n_regions, n_years, n_ages, n_sexes specifying which movement parameters are shared and mapped off |
+| `Movement_prior` | Data frame with columns representing origin region (`region_from`), representative age (`age`), sex (`sex`), and a list column (`alpha`) containing Dirichlet prior parameters. Each element of `alpha` is a numeric vector of length *n_regions*, specifying the prior concentration (`alpha` values) for movement among destination regions. |
 | `cont_vary_movement` | Integer indicating whether movement is continuously varying across regions, years, and ages (0 = none, 1 = iid deviations) |
 | `map_move_devs` | Array dimensioned by n_regions, n_regions - 1, n_years, n_ages, and n_sexes specifying which movement parameters are shared and mapped off |
+| `move_type` | Integer indicating movement model type: 0 = unstructured Markov (multinomial logit), 1 = Continuous Time Markov Chain (CTMC) |
+| `ctmc_move_dat` | Data frame with CTMC covariates (`regions`, `years`, `ages`, `sexes`, plus formula variables) used to build design matrices for diffusion and preference when `move_type == 1`. Can include projection years with projected covariate values. |
+| `diffusion_formula` | R formula specifying diffusion covariates for CTMC movement (when `move_type == 1`) |
+| `preference_formula` | R formula specifying preference covariates for CTMC movement (when `move_type == 1`) |
+| `adjacency_mat` | Square adjacency matrix (`n_regions` × `n_regions`) defining allowed transitions between regions for CTMC movement |
+| `adjacency_collapsed` | Collasped adjacency matrix (`n_regions` × `n_regions - 1`) defining allowed transitions between regions for CTMC movement (but excluding diagonals) |
+| `area_r` | Numeric vector of region areas (length `n_regions`) used to scale diffusion rates in CTMC movement |
+| `ctmc_diffusion_bounds` | Integer flag (0 or 1) indicating whether diffusion bounds are applied to ensure the generator matrix is Metzler (1 = bounds enforced) |
 
 ## Data Inputs for Defining Tagging Processes
 
@@ -106,7 +113,6 @@ The following tables describes all elements contained within `input_list$data`, 
 | `move_age_tag_pool` | Data list object detailing how tag recaptures along the age axis should be pooled. If we have age information for tagging data, but are fitting two age blocks (10 total ages) and want to pool these two age blocks together when fitting to reduce computational cost, this can be specified as: `move_age_tag_pool <- list(c(1:5), c(6:10))` where the first element in the list specifies the ages to sum or pool across when, while the second element in the list specifies the age groups to pool across when fitting. Conversely, if we don't have an age information, this list would be specified as: `move_age_tag_pool <- list(c(1:30))` where we are summing across all ages for the observed and predicted tag recaptures when fitting to these data |
 | `move_sex_tag_pool` | Data list object detailing how tag recaptures along the sex axis should be pooled. If we have sex information for tagging data and are estimating sex-specific movement (2 sexes in this case), this would be specified as: `move_sex_tag_pool <- list(1, 2)` where the first element in the list specifies the first sex and the second element in the list specifies the second sex (i.e., no pooling in this case). Conversely, if we don't have sex information, this list would be specified as: `move_sex_tag_pool <- list(c(1:2))` where we are summing across all sexes for the observed and predicted tag recaptures when fitting to these data |
 | `Tag_Reporting_blocks` | Array dimensioned by n_regions and n_years indicating the regions and years for which a block is specified |
-| `map_Tag_Reporting_Pars` | Array dimensioned by n_regions and n_years indicating the regions and years for which a block is specified and which tagging parameters are mapped off / shared. |
 
 ## Data Inputs for Defining Catch and Fishing Mortality Processes
 
@@ -171,7 +177,6 @@ The following tables describes all elements contained within `input_list$data`, 
 | `Use_fish_q_prior` | Fishery catchability prior indicator 0 == don't use, 1 == use |
 | `fish_q_prior` | Data frame containing prior specifications for fishery catchability parameters. Must include columns: `region` (region index), `fleet` (fleet index), `block` (time block index), `mu` (prior mean on natural scale), and `sd` (prior standard deviation on log scale). Each row specifies a log-normal prior N(log(mu), sd) for one catchability parameter. |
 | `map_ln_fishsel_devs` | Array of values dimensioned by n_regions, n_years, n_ages, n_sexes, and n_fish_fleets indicating which values are mapped off |
-| `map_fish_q` | Array of values dimensioned by n_regions, n_q_time_blocks, and n_fish_fleets indicating which values are mapped off |
 | `Use_fish_selex_prior` | Integer (0 or 1). Flag to enable/disable fishery selectivity priors. When set to 1, applies log-normal priors to fishery selectivity parameters as specified in `fish_selex_prior`. When set to 0, no priors are applied. |
 | `fish_selex_prior` | Data frame containing prior specifications for fishery selectivity parameters. Must include columns: `region` (region index), `fleet` (fleet index), `block` (time block index), `sex` (sex index), `par` (parameter index), `mu` (prior mean on natural scale), and `sd` (prior standard deviation on log scale). Each row specifies a log-normal prior N(log(mu), sd) for one selectivity parameter. |
 |`cont_tv_fish_sel_penalty` | Boolean on whether fishery selectivity penalties are applied to continous time-varying selectivity | 
@@ -187,7 +192,6 @@ The following tables describes all elements contained within `input_list$data`, 
 | `Use_srv_q_prior` | Survey catchability prior indicator 0 == don't use, 1 == use |
 | `srv_q_prior` | Data frame containing prior specifications for survey catchability parameters. Must include columns: `region` (region index), `fleet` (fleet index), `block` (time block index), `mu` (prior mean on natural scale), and `sd` (prior standard deviation on log scale). Each row specifies a log-normal prior N(log(mu), sd) for one catchability parameter. |
 | `map_ln_srvsel_devs` | Array of values dimensioned by n_regions, n_years, n_ages, n_sexes, and n_srv_fleets indicating which values are mapped off |
-| `map_srv_q` | Array of values dimensioned by n_regions, n_q_time_blocks, and n_srv_fleets indicating which values are mapped off |
 | `do_srv_q_cov` | Numeric value indicating whether a survey catchability covariate is used in the model. 0 == Not used, 1 == Used |
 | `srv_q_cov` | Array dimensioned by `n_regions`, `n_years`, `n_srv_fleets`, `n_covariates` representing the covariates used to compute survey catchability. |
 | `Use_srv_selex_prior` | Integer (0 or 1). Flag to enable/disable survey selectivity priors. When set to 1, applies log-normal priors to survey selectivity parameters as specified in `srv_selex_prior`. When set to 0, no priors are applied. |
