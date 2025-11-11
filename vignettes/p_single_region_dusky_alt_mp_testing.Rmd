@@ -862,10 +862,12 @@ sd_rep <- dusky_rtmb_model$sdrep
 
 # Define operating model parameters
 closed_loop_yrs <- 50      # Years to project forward
+n_years <- length(data$years)  # number of years
 burnin_years <- 1:length(data$years)  # Historical conditioning period
 n_sims <- 200              # Number of replicate simulations
 assess_freq <- 2           # Assessment frequency (every 3 years)
 data_yr_freq <- 2          # Data collection frequency
+n_regions <- 1            # number of regions
 
 # Condition closed-loop simulations
 set.seed(123)
