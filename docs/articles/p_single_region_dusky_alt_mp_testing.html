@@ -1047,10 +1047,12 @@ years),</p>
 <span></span>
 <span><span class="co"># Define operating model parameters</span></span>
 <span><span class="va">closed_loop_yrs</span> <span class="op">&lt;-</span> <span class="fl">50</span>      <span class="co"># Years to project forward</span></span>
+<span><span class="va">n_years</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">years</span><span class="op">)</span>  <span class="co"># number of years</span></span>
 <span><span class="va">burnin_years</span> <span class="op">&lt;-</span> <span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">years</span><span class="op">)</span>  <span class="co"># Historical conditioning period</span></span>
 <span><span class="va">n_sims</span> <span class="op">&lt;-</span> <span class="fl">200</span>              <span class="co"># Number of replicate simulations</span></span>
 <span><span class="va">assess_freq</span> <span class="op">&lt;-</span> <span class="fl">2</span>           <span class="co"># Assessment frequency (every 3 years)</span></span>
 <span><span class="va">data_yr_freq</span> <span class="op">&lt;-</span> <span class="fl">2</span>          <span class="co"># Data collection frequency</span></span>
+<span><span class="va">n_regions</span> <span class="op">&lt;-</span> <span class="fl">1</span>            <span class="co"># number of regions</span></span>
 <span></span>
 <span><span class="co"># Condition closed-loop simulations</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
