@@ -194,7 +194,7 @@ SSB_{r,y} = \sum_{a = 1}^{a_{+}}{N_{r,y,a,s = 1}W_{r,y,a,s = 1}^{spawn}{Mat}_{r,
 
 Note that $RecLag$ denotes the delay between spawning and when recruits
 enter the population. Thus, if $RecLag > y$, `SPoRC` utilizes $SSB0_{r}$
-instead of ${SSB}_{r,y - RecLag}$ to compute deterministic recruitment.
+instead of ${SSB}_{r,y - RecLag}$ to compute deterministic recruitment ($SSB0_{r}$ is further decremented if $\mu_{r,f = 1}^{\text{Fsh}}\text{Fmort}^{\text{InitProp}} \neq 0$).
 
 ### Population Projection
 

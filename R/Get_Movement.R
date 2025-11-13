@@ -103,15 +103,14 @@ Get_Movement <- function(move_type,
 
   move_pen = 0 # initialize movement penalty if used
   Mrate = NULL # initialize for non-CTMC cases
+  dims = list(from = 1:n_regions, to = 1:n_regions, years = 1:(n_yrs + n_proj_yrs_devs), ages = 1:n_ages, sexes = 1:n_sexes)
 
   # use fixed movement matrix
   if(use_fixed_movement == 1) {
-    Movement = Fixed_Movement
-
+    Movement = array(Fixed_Movement, dim = sapply(dims, length), dimnames = dims)
   } else if(move_type == 0) { # Unstructured markov movement
 
-    dims = list(from = 1:n_regions, to = 1:n_regions, years = 1:(n_yrs + n_proj_yrs_devs), ages = 1:n_ages, sexes = 1:n_sexes)
-    Movement = array(0, dim = sapply(dims, length),  dimnames = dims)
+    Movement = array(0, dim = sapply(dims, length), dimnames = dims)
     ref_region = 1 # Set up reference region (always set at 0)
 
     for(r in 1:n_regions) {
@@ -142,7 +141,6 @@ Get_Movement <- function(move_type,
   } else if(move_type == 1) { # continuous markov chain movement with projection support
 
     # set up dimensions of movement matrix
-    dims = list(from = 1:n_regions, to = 1:n_regions, years = 1:(n_yrs + n_proj_yrs_devs), ages = 1:n_ages, sexes = 1:n_sexes)
     Mrate = Movement = Taxis = Diffusion = array(0, dim = sapply(dims, length),  dimnames = dims)
     loop = expand.grid(dims[-(1:2)]) # get year, age, and sexes to loop through
     if(do_recruits_move == 0) loop = loop[-which(loop$ages == 1),] # remove age 1, if recruits don't move

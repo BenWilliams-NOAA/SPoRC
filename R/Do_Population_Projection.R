@@ -35,6 +35,7 @@
 #' \item{natmort}{A natural mortality at age array dimensioned by n_regions, n_ages, and n_sexes, where the reference year should utilize values from the first year}
 #' \item{SSB}{All SSB values estimated from a given model, dimensioned by n_regions and n_yrs}
 #' }
+#' @param init_F Scalar of initial F value to apply for deriving beverton holt recruitment; default is set at 0.
 #'
 #' @returns A list containing projected F, catch, SSB (and dynamic unfished), and Numbers at Age (and dynamic unfished). (Objects are generally dimensioned in the following order: n_regions, n_yrs, n_ages, n_sexes, n_fleets)
 #' @export Do_Population_Projection
@@ -62,7 +63,8 @@ Do_Population_Projection <- function(n_proj_yrs = 2,
                                      recruitment_opt = "inv_gauss",
                                      fmort_opt = 'HCR',
                                      t_spawn,
-                                     bh_rec_opt = NULL
+                                     bh_rec_opt = NULL,
+                                     init_F = 0
                                      ) {
 
 
@@ -148,7 +150,9 @@ Do_Population_Projection <- function(n_proj_yrs = 2,
                                               Movement = bh_rec_opt$Movement,
                                               do_recruits_move = bh_rec_opt$do_recruits_move,
                                               t_spawn = bh_rec_opt$t_spawn,
-                                              sex_ratio_f = bh_rec_opt$sex_ratio_f
+                                              sex_ratio_f = bh_rec_opt$sex_ratio_f,
+                                              init_F = init_F,
+                                              fish_sel = array(fish_sel[,1,,1,1], dim = c(n_regions, n_ages))
                                               )
                         }
                         )

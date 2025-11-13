@@ -328,8 +328,11 @@ run_annual_cycle <- function(y,
                                              sex_ratio_f = sexratio[,1,1,sim],
                                              SSB_vals = array(SSB[,,sim], dim = c(n_regions, n_yrs)),
                                              t_spawn = t_spawn,
-                                             do_recruits_move = do_recruits_move
+                                             do_recruits_move = do_recruits_move,
+                                             init_F = init_F, # initial F applied
+                                             fish_sel = array(fish_sel[,1,,1,1,sim], dim = c(n_regions, n_ages)) # fishery selectivity in first year
           )
+
           # input deviates
           for(s in 1:n_sexes) NAA[r,1,1,s,sim] <- tmp_det_rec[r] * exp(ln_RecDevs[r,y,sim] - exp(ln_sigmaR[2])^2/2) * sexratio[r,y,s,sim]
         }
@@ -711,7 +714,9 @@ run_annual_cycle <- function(y,
                                                   sex_ratio_f = sexratio[,1,1,sim],
                                                   SSB_vals = array(SSB[,,sim], dim = c(n_regions, n_yrs)),
                                                   t_spawn = t_spawn,
-                                                  do_recruits_move = do_recruits_move
+                                                  do_recruits_move = do_recruits_move,
+                                                  init_F = init_F, # initial F applied
+                                                  fish_sel = array(fish_sel[,1,,1,1,sim], dim = c(n_regions, n_ages)) # fishery selectivity in first year
           )
 
           # Store next year's recruitment

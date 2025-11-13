@@ -404,7 +404,9 @@ SPoRC_rtmb = function(pars, data) {
                                       t_spawn = t_spawn,
                                       SSB_vals = SSB,
                                       y = y,
-                                      rec_lag = rec_lag
+                                      rec_lag = rec_lag,
+                                      init_F = init_F, # initF for dominant fleet
+                                      fish_sel = array(fish_sel[,1,,1,1], dim = c(n_regions, n_ages)) # uses dominant fleet
     )
 
     for(r in 1:n_regions) {
