@@ -252,12 +252,12 @@ where the reference region $k = 1$ is set as $\omega_{r,k=1,y,a,s} = 0$. Under t
 Alternatively, movement can be specified as a continuous-time Markov chain (CTMC) process, which decomposes into diffusive and taxis components. Diffusive processes represent undirected movement of individuals, while taxis processes represent directed movement toward more preferred habitat. This CTMC movement parameterization is governed by an adjacency matrix ($A_{r,k}$), which defines neighboring regions that can receive individuals within a given time step. Diffusive processes are given by:
 
 $$
-\dot{D}_{r,k,y,a,s} =
-\begin{cases} 
-\dfrac{e^{2\theta}}{V_r}, & \text{if } A_{r,k} = 1 \text{ and } r \neq k, \\[0.5em]
-- \sum_{j \neq r} \dot{D}_{r,j,y,a,s}, & \text{if } r = k, \\[0.5em]
-0, & \text{otherwise.}
-\end{cases}
+  \dot{D}_{r,k,y,a,s} =
+  \begin{cases} 
+  \dfrac{e^{2\theta}}{V_r}, & \text{if } A_{r,k} = 1 \text{ and } r \neq k, \\[0.5em]
+  - \sum_{j \neq r} \dot{D}_{r,j,y,a,s}, & \text{if } r = k, \\[0.5em]
+  0, & \text{otherwise.}
+  \end{cases}
 $$
 
 where $\dot{D}_{r,k,y,a,s}$ represents diffusion, $\theta$ is the log diffusion rate, $V_r$ scales the log diffusion rate, such that smaller regions have higher diffusion rates, and $j$ in the second equation indexes all destinations except the source to ensure that the rows of the matrix sum to 0, thereby conserving abundance. Taxis processes (preference) can then be written as:
@@ -274,11 +274,11 @@ Here, $\dot{P}_{r,k,y,a,s}$ represents the taxis (preference) component of movem
 
 Habitat preference can be defined flexibly as a combination of linear effects and basis splines:
 
-$$
-h_{y,a,s} = \mathbf{x}_{y,a,s}^\mathsf{T} \mathbf{\beta} + \mathbf{P}_{y,a,s} \, \mathbf{\gamma}
-$$
+$$h_{r,y,a,s} = \sum_{k=1}^{n_k} \beta_{r,k} W_{r,k,y,a,s}$$
 
-where $\mathbf{x}_{y,a,s}$ represents covariates associated with linear coefficients $\mathbf{\beta}$, and $\mathbf{P}_{y,a,s}$ are spline basis covariates weighted by spline coefficients $\mathbf{\gamma}$. 
+
+where $\beta_{r,k}$ are the estimated effects (incorporating linear or spline effects), and $W_{r,k,y,a,s}$ is the design matrix. 
+
 
 Diffusive and taxis processes can then be combined to construct a generator matrix:
 
