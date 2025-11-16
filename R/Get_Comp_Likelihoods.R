@@ -99,8 +99,8 @@ Get_Comp_Likelihoods = function(Exp,
       tmp_Obs = Obs[1,,1] / sum(Obs[1,,1])
       zeros = which(tmp_Obs == 0)
 
-      # Construct Q matrix
-      Q = as(diag(rep(1/exp(ln_theta_agg)^2, length(tmp_Obs))), "sparseMatrix")
+      # Construct Sigma
+      Sigma = diag(rep(1/exp(ln_theta_agg)^2, length(tmp_Obs)))
 
       if(length(zeros) > 0) {
         # Remove zeros and renormalize
@@ -108,12 +108,12 @@ Get_Comp_Likelihoods = function(Exp,
         tmp_Exp = tmp_Exp[-zeros]
         tmp_Obs = tmp_Obs / sum(tmp_Obs)
         tmp_Exp = tmp_Exp / sum(tmp_Exp)
-        # Adjust Q matrix
-        Q = Q[-zeros, -zeros]
+        # Adjust Sigma
+        Sigma = Sigma[-zeros, -zeros]
       }
 
-      Q = Q[-nrow(Q), -ncol(Q)] # remove last row and column
-      comp_nLL[1,1] = -1 * dlogistnormal(obs = tmp_Obs, pred = tmp_Exp, Sigma_or_Q = Q, type = 'dgmrf', TRUE) # Logistic Normal likelihood (iid)
+      Sigma = Sigma[-nrow(Sigma), -ncol(Sigma)] # remove last row and column
+      comp_nLL[1,1] = -1 * dlogistnormal(obs = tmp_Obs, pred = tmp_Exp, Sigma_or_Q = Sigma, type = 'dmvnorm', TRUE) # Logistic Normal likelihood (iid)
     } # end if logistic normal (iid)
 
     if(Likelihood_Type == 3) {
@@ -121,10 +121,10 @@ Get_Comp_Likelihoods = function(Exp,
       tmp_Obs = Obs[1,,1] / sum(Obs[1,,1])
       zeros = which(tmp_Obs == 0)
 
-      # Construct Q matrix
+      # Construct Sigma
       LN_corr_b = rho_trans(LN_corr_pars_agg) # correlation by age / length
-      Q = get_AR1_PrecisionMat(n_obs_bins, LN_corr_b)
-      Q = Q / exp(ln_theta_agg)^2
+      Sigma =  get_AR1_CorrMat(n_obs_bins, LN_corr_b)
+      Sigma = Sigma * exp(ln_theta_agg)^2
 
       if(length(zeros) > 0) {
         # Remove zeros and renormalize
@@ -132,12 +132,12 @@ Get_Comp_Likelihoods = function(Exp,
         tmp_Exp = tmp_Exp[-zeros]
         tmp_Obs = tmp_Obs / sum(tmp_Obs)
         tmp_Exp = tmp_Exp / sum(tmp_Exp)
-        # Adjust Q matrix
-        Q = Q[-zeros, -zeros]
+        # Adjust Sigma
+        Sigma = Sigma[-zeros, -zeros]
       }
 
-      Q = Q[-nrow(Q), -ncol(Q)] # remove last row and column
-      comp_nLL[1,1] = -1 * dlogistnormal(obs = tmp_Obs, pred = tmp_Exp, Sigma_or_Q = Q, type = 'dgmrf', TRUE) # Logistic Normal likelihood (1dar1)
+      Sigma = Sigma[-nrow(Sigma), -ncol(Sigma)] # remove last row and column
+      comp_nLL[1,1] = -1 * dlogistnormal(obs = tmp_Obs, pred = tmp_Exp, Sigma_or_Q = Sigma, type = 'dmvnorm', TRUE) # Logistic Normal likelihood (1dar1)
     } # end if logistic normal (1dar1)
 
   } # end if aggregated comps across sexes and regions
@@ -173,8 +173,8 @@ Get_Comp_Likelihoods = function(Exp,
           tmp_Obs = Obs[r,,s] / sum(Obs[r,,s])
           zeros = which(tmp_Obs == 0)
 
-          # Construct Q matrix
-          Q = as(diag(rep(exp(ln_theta[r,s])^2, length(tmp_Obs))), "sparseMatrix")
+          # Construct Sigma
+          Sigma = diag(rep(exp(ln_theta[r,s])^2, length(tmp_Obs)))
 
           if(length(zeros) > 0) {
             # Remove zeros and renormalize
@@ -182,12 +182,12 @@ Get_Comp_Likelihoods = function(Exp,
             tmp_Exp = tmp_Exp[-zeros]
             tmp_Obs = tmp_Obs / sum(tmp_Obs)
             tmp_Exp = tmp_Exp / sum(tmp_Exp)
-            # Adjust Q matrix
-            Q = Q[-zeros, -zeros]
+            # Adjust Sigma
+            Sigma = Sigma[-zeros, -zeros]
           }
 
-          Q = Q[-nrow(Q), -ncol(Q)] # remove last row and column
-          comp_nLL[r,s] = -1 * dlogistnormal(obs = tmp_Obs, pred = tmp_Exp, Sigma_or_Q = Q, type = 'dgmrf', TRUE) # Logistic Normal likelihood (iid)
+          Sigma = Sigma[-nrow(Sigma), -ncol(Sigma)] # remove last row and column
+          comp_nLL[r,s] = -1 * dlogistnormal(obs = tmp_Obs, pred = tmp_Exp, Sigma_or_Q = Sigma, type = 'dmvnorm', TRUE) # Logistic Normal likelihood (iid)
         } # end if logistic normal
 
         if(Likelihood_Type == 3) {
@@ -195,10 +195,10 @@ Get_Comp_Likelihoods = function(Exp,
           tmp_Obs = Obs[r,,s] / sum(Obs[r,,s])
           zeros = which(tmp_Obs == 0)
 
-          # Construct Q matrix
+          # Construct Sigma
           LN_corr_b = rho_trans(LN_corr_pars[r,s,1]) # correlation by age / length
-          Q = get_AR1_PrecisionMat(n_obs_bins, LN_corr_b)
-          Q = Q / exp(ln_theta[r,s])^2
+          Sigma =  get_AR1_CorrMat(n_obs_bins, LN_corr_b)
+          Sigma = Sigma * exp(ln_theta[r,s])^2
 
           if(length(zeros) > 0) {
             # Remove zeros and renormalize
@@ -206,12 +206,12 @@ Get_Comp_Likelihoods = function(Exp,
             tmp_Exp = tmp_Exp[-zeros]
             tmp_Obs = tmp_Obs / sum(tmp_Obs)
             tmp_Exp = tmp_Exp / sum(tmp_Exp)
-            # Adjust Q matrix
-            Q = Q[-zeros, -zeros]
+            # Adjust Sigma
+            Sigma = Sigma[-zeros, -zeros]
           }
 
-          Q = Q[-nrow(Q), -ncol(Q)] # remove last row and column
-          comp_nLL[r,s] = -1 * dlogistnormal(obs = tmp_Obs, pred = tmp_Exp, Sigma_or_Q = Q, type = 'dgmrf', TRUE) # Logistic Normal likelihood (1dar1)
+          Sigma = Sigma[-nrow(Sigma), -ncol(Sigma)] # remove last row and column
+          comp_nLL[r,s] = -1 * dlogistnormal(obs = tmp_Obs, pred = tmp_Exp, Sigma_or_Q = Sigma, type = 'dmvnorm', TRUE) # Logistic Normal likelihood (1dar1)
         } # end if logistic normal (1dar1)
 
       } # end r loop
@@ -248,8 +248,8 @@ Get_Comp_Likelihoods = function(Exp,
         tmp_Obs = Obs[r,,] / sum(Obs[r,,])
         zeros = which(tmp_Obs == 0)
 
-        # Construct Q matrix
-        Q = as(diag(rep(exp(ln_theta[r,1])^2, length(tmp_Obs))), "sparseMatrix")
+        # Construct Sigma
+        Sigma = diag(rep(exp(ln_theta[r,1])^2, length(tmp_Obs)))
 
         if(length(zeros) > 0) {
           # Remove zeros and renormalize
@@ -257,13 +257,13 @@ Get_Comp_Likelihoods = function(Exp,
           tmp_Exp = tmp_Exp[-zeros]
           tmp_Obs = tmp_Obs / sum(tmp_Obs)
           tmp_Exp = tmp_Exp / sum(tmp_Exp)
-          # Adjust Q matrix
-          Q = Q[-zeros, -zeros]
+          # Adjust Sigma
+          Sigma = Sigma[-zeros, -zeros]
         }
 
-        Q = Q[-nrow(Q), -ncol(Q)] # remove last row and column
+        Sigma = Sigma[-nrow(Sigma), -ncol(Sigma)] # remove last row and column
 
-        comp_nLL[r,1] = -1 * dlogistnormal(obs = tmp_Obs, pred = tmp_Exp, Sigma_or_Q = Q, type = 'dgmrf', TRUE) # Logistic Normal likelihood (iid)
+        comp_nLL[r,1] = -1 * dlogistnormal(obs = tmp_Obs, pred = tmp_Exp, Sigma_or_Q = Sigma, type = 'dmvnorm', TRUE) # Logistic Normal likelihood (iid)
       } # end if logistic normal (iid)
 
       if(Likelihood_Type == 3) {
@@ -272,10 +272,10 @@ Get_Comp_Likelihoods = function(Exp,
         tmp_Obs = Obs[r,,] / sum(Obs[r,,])
         zeros = which(tmp_Obs == 0)
 
-        # Construct Q matrix
+        # Construct Sigma
         LN_corr_b = rho_trans(LN_corr_pars[r,1,1]) # correlation by age / length
-        Q = get_AR1_PrecisionMat(n_obs_bins * n_sexes, LN_corr_b)
-        Q = Q / exp(ln_theta[r,1])^2
+        Sigma =  get_AR1_CorrMat(n_obs_bins * n_sexes, LN_corr_b)
+        Sigma = Sigma * exp(ln_theta[r,1])^2
 
         if(length(zeros) > 0) {
           # Remove zeros and renormalize
@@ -283,13 +283,13 @@ Get_Comp_Likelihoods = function(Exp,
           tmp_Exp = tmp_Exp[-zeros]
           tmp_Obs = tmp_Obs / sum(tmp_Obs)
           tmp_Exp = tmp_Exp / sum(tmp_Exp)
-          # Adjust Q matrix
-          Q = Q[-zeros, -zeros]
+          # Adjust Sigma
+          Sigma = Sigma[-zeros, -zeros]
         }
 
-        Q = Q[-nrow(Q), -ncol(Q)] # remove last row and column
+        Sigma = Sigma[-nrow(Sigma), -ncol(Sigma)] # remove last row and column
 
-        comp_nLL[r,1] = -1 * dlogistnormal(obs = tmp_Obs, pred = tmp_Exp, Sigma_or_Q = Q, type = 'dgmrf', TRUE) # Logistic Normal likelihood (1dar1)
+        comp_nLL[r,1] = -1 * dlogistnormal(obs = tmp_Obs, pred = tmp_Exp, Sigma_or_Q = Sigma, type = 'dmvnorm', TRUE) # Logistic Normal likelihood (1dar1)
       } # end if logistic normal (1dar1)
 
       if(Likelihood_Type == 4) {
@@ -298,12 +298,12 @@ Get_Comp_Likelihoods = function(Exp,
         tmp_Obs = Obs[r,,] / sum(Obs[r,,])
         zeros = which(tmp_Obs == 0)
 
-        # Construct Q matrix
+        # Construct Sigma
         LN_corr_b = rho_trans(LN_corr_pars[r,1,1])
         LN_corr_s = rho_trans(LN_corr_pars[r,1,2])
-        mat1 = get_Constant_PrecisionMat(n_sexes, LN_corr_s)
-        mat2 = get_AR1_PrecisionMat(n_obs_bins, LN_corr_b)
-        Q = Matrix::kronecker(mat1, mat2)  / exp(ln_theta[r,1])^2
+        mat1 = get_Constant_CorrMat(n_sexes, LN_corr_s)
+        mat2 = get_AR1_CorrMat(n_obs_bins, LN_corr_b)
+        Sigma =  Matrix::kronecker(mat1, mat2)  * exp(ln_theta[r,1])^2
 
         if(length(zeros) > 0) {
           # Remove zeros and renormalize
@@ -311,14 +311,14 @@ Get_Comp_Likelihoods = function(Exp,
           tmp_Exp = tmp_Exp[-zeros]
           tmp_Obs = tmp_Obs / sum(tmp_Obs)
           tmp_Exp = tmp_Exp / sum(tmp_Exp)
-          # Adjust Q matrix
-          Q = Q[-zeros, -zeros]
+          # Adjust Sigma
+          Sigma = Sigma[-zeros, -zeros]
         }
 
-        Q = Q[-nrow(Q), -ncol(Q)] # remove last bins
+        Sigma = Sigma[-nrow(Sigma), -ncol(Sigma)] # remove last bins
 
         # likelihood
-        comp_nLL[r,1] = -1 * dlogistnormal(obs = tmp_Obs, pred = tmp_Exp, Sigma_or_Q = Q, type = 'dgmrf', TRUE) # Logistic Normal likelihood (1dar1 by age, constant corr by sex)
+        comp_nLL[r,1] = -1 * dlogistnormal(obs = tmp_Obs, pred = tmp_Exp, Sigma_or_Q = Sigma, type = 'dmvnorm', TRUE) # Logistic Normal likelihood (1dar1 by age, constant corr by sex)
       }
 
     } # end r loop

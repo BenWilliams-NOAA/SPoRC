@@ -39,41 +39,6 @@ get_AR1_CorrMat <- function(n, rho) {
   return(corrMatrix)
 }
 
-#' Create sparse precision matrix for AR(1) process
-#'
-#' @param n Number of bins
-#' @param rho Correlation parameter (|rho| < 1)
-#'
-#' @return Sparse precision matrix (dgCMatrix) for an AR(1) process
-#' @keywords internal
-#'
-#' @examples
-#' \dontrun{
-#' Q = get_AR1_PrecisionMat(10, 0.5)
-#' }
-get_AR1_PrecisionMat = function(n, rho) {
-  # init empty matrix
-  Q = matrix(0, nrow = n, ncol = n)
-  # fill in the tridiagonal structure
-  for (i in 1:n) {
-    # main diagonal
-    if (i == 1 || i == n) {
-      Q[i, i] = 1 / (1 - rho^2)
-    } else {
-      Q[i, i] = (1 + rho^2) / (1 - rho^2)
-    }
-    # off-diagonals
-    if (i < n) {
-      Q[i, i + 1] = -rho / (1 - rho^2)
-      Q[i + 1, i] = -rho / (1 - rho^2)
-    }
-  }
-  # convert to sparse matrix
-  Q = as(Q, "sparseMatrix")
-
-  return(Q)
-}
-
 #' Constant correlation matrix
 #'
 #' @param n Number of bins
@@ -95,45 +60,6 @@ get_Constant_CorrMat <- function(n, rho) {
     } # end i
   } # end j
   return(corrMatrix)
-}
-
-#' Precision matrix for constant correlation structure
-#'
-#' @param n Number of bins
-#' @param rho Correlation parameter (|rho| < 1)
-#'
-#' @return Sparse precision matrix (dgCMatrix) for constant correlation
-#' @keywords internal
-#'
-#' @examples
-#' \dontrun{
-#' Q = get_Constant_PrecisionMat(10, 0.5)
-#' }
-get_Constant_PrecisionMat = function(n, rho) {
-
-  # For constant correlation, the precision matrix has a specific structure:
-  # Diagonal: (1 + (n-2)*rho) / ((1-rho)*(1+(n-1)*rho))
-  # Off-diagonal: -rho / ((1-rho)*(1+(n-1)*rho))
-
-  denom = (1 - rho) * (1 + (n - 1) * rho)
-  diag_val = (1 + (n - 2) * rho) / denom
-  off_diag_val = -rho / denom
-  # init matrix
-  Q = matrix(0, nrow = n, ncol = n)
-  for (i in 1:n) {
-    for (j in 1:n) {
-      if (i == j) {
-        Q[i, j] = diag_val
-      } else {
-        Q[i, j] = off_diag_val
-      }
-    }
-  }
-
-  # convert to sparse matrix
-  Q = as(Q, "sparseMatrix")
-
-  return(Q)
 }
 
 #' For combining a parameter and data list in RTMB so a data object can be explicitly defined
