@@ -48,7 +48,7 @@ SPoRC_rtmb = function(pars, data) {
   "c" <- RTMB::ADoverload("c")
   "[<-" <- RTMB::ADoverload("[<-")
 
-  RTMB::getAll(pars, data) # load in starting values and data
+RTMB::getAll(pars, data) # load in starting values and data
 
   # Model Set Up (Containers) -----------------------------------------------
   n_ages = length(ages) # number of ages

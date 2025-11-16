@@ -94,7 +94,7 @@ dlogistnormal = function(obs, pred, Sigma_or_Q, type = 'dgmrf', give_log = TRUE)
     res = RTMB::dgmrf(x = as.vector(tmp_Obs), mu = as.vector(mu), Q = Sigma_or_Q, log = give_log)
   }
   if(type == 'dmvnorm') {
-    res = RTMB::dmvnorm(x = as.vector(tmp_Obs), mean = as.vector(mu), Sigma = Sigma_or_Q, log = give_log)
+    res = RTMB::dmvnorm(x = as.vector(tmp_Obs), mu = as.vector(mu), Sigma = Sigma_or_Q, log = give_log)
   }
   return(res)
 }
