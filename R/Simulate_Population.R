@@ -16,6 +16,7 @@ Setup_sim_env <- function(sim_list) {
 
   # Get SPoRC functions in simulation environment
   sim_env$Get_Det_Recruitment <- Get_Det_Recruitment
+  sim_env$Get_Init_NAA <- Get_Init_NAA
   sim_env$Get_Tagging_Mortality <- Get_Tagging_Mortality
   sim_env$predict_sim_fish_iss_fmort <- predict_sim_fish_iss_fmort
   sim_env$rho_trans <- rho_trans

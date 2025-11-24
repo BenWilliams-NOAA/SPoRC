@@ -4,3 +4,4 @@
 ^Meta$
 ^doc$
 ^dev$
+^_pkgdown\.yml$
