@@ -363,7 +363,7 @@ for (sim in 1:sim_env$n_sims) {
        ### Run Projections to Determine Catch Advice ---------------------------------------------------
        # Get inputs for projection
        tmp_terminal_NAA <- array(obj$rep$NAA[,y,,], dim = c(asmt_data$n_regions, length(asmt_data$ages), asmt_data$n_sexes)) # terminal numbers at age
-       tmp_terminal_NAA0 <- array(obj$rep$NAA[,y,,], dim = c(asmt_data$n_regions, length(asmt_data$ages), asmt_data$n_sexes)) # terminal unfished numbers at age
+       tmp_terminal_NAA0 <- array(obj$rep$NAA0[,y,,], dim = c(asmt_data$n_regions, length(asmt_data$ages), asmt_data$n_sexes)) # terminal unfished numbers at age
 
        tmp_WAA <- array(rep(asmt_data$WAA[,y,,], each = proj_opt$n_proj_yrs), dim = c(asmt_data$n_regions, proj_opt$n_proj_yrs, length(asmt_data$ages), asmt_data$n_sexes)) # weight at age
        tmp_WAA_fish <- array(rep(asmt_data$WAA_fish[,y,,,], each = proj_opt$n_proj_yrs), dim = c(asmt_data$n_regions, proj_opt$n_proj_yrs, length(asmt_data$ages), asmt_data$n_sexes, asmt_data$n_fish_fleets)) # weight at age fishery
@@ -387,7 +387,7 @@ for (sim in 1:sim_env$n_sims) {
          do_recruits_move = sim_env$do_recruits_move,
          recruitment = tmp_recruitment,
          terminal_NAA = tmp_terminal_NAA,
-         tmp_terminal_NAA0 = tmp_terminal_NAA0,
+         terminal_NAA0 = tmp_terminal_NAA0,
          terminal_F = tmp_terminal_F,
          natmort = tmp_natmort,
          WAA = tmp_WAA,

@@ -631,7 +631,9 @@ caps).</li>
 <p>Users have flexibility to modify and extend this structure to fit
 their specific modeling objectives.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">mp_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<code class="sourceCode R"><span><span class="va">assess_freq</span> <span class="op">&lt;-</span> <span class="fl">2</span>           <span class="co"># Assessment frequency (every 2 years)</span></span>
+<span></span>
+<span><span class="va">mp_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span></span>
 <span>  <span class="co"># 1. No fishing</span></span>
 <span>  <span class="co"># Serves as a baseline scenario. No assessment, projection, or catch is applied.</span></span>
@@ -1050,7 +1052,7 @@ years),</p>
 <span><span class="va">n_years</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">years</span><span class="op">)</span>  <span class="co"># number of years</span></span>
 <span><span class="va">burnin_years</span> <span class="op">&lt;-</span> <span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">years</span><span class="op">)</span>  <span class="co"># Historical conditioning period</span></span>
 <span><span class="va">n_sims</span> <span class="op">&lt;-</span> <span class="fl">200</span>              <span class="co"># Number of replicate simulations</span></span>
-<span><span class="va">assess_freq</span> <span class="op">&lt;-</span> <span class="fl">2</span>           <span class="co"># Assessment frequency (every 3 years)</span></span>
+<span><span class="va">assess_freq</span> <span class="op">&lt;-</span> <span class="fl">2</span>           <span class="co"># Assessment frequency (every 2 years)</span></span>
 <span><span class="va">data_yr_freq</span> <span class="op">&lt;-</span> <span class="fl">2</span>          <span class="co"># Data collection frequency</span></span>
 <span><span class="va">n_regions</span> <span class="op">&lt;-</span> <span class="fl">1</span>            <span class="co"># number of regions</span></span>
 <span></span>

@@ -183,6 +183,7 @@ input_list <- Setup_Mod_FishIdx_and_Comps(
     ObsFishAgeComps = sgl_rg_ebswp_data$ObsFishAgeComps,
     UseFishAgeComps = sgl_rg_ebswp_data$UseFishAgeComps,
     ISS_FishAgeComps = sgl_rg_ebswp_data$ISS_FishAgeComps,
+    ISS_FishLenComps = NULL,
     ObsFishLenComps = array(NA_real_, dim = c(1, length(input_list$data$years), length(input_list$data$lens), 1, 1)),
     UseFishLenComps = array(0, dim = c(1, length(input_list$data$years), 1)),
 
@@ -367,12 +368,12 @@ Next, we can extract out parameter estimates of recruitment and spawning biomass
 ```{r Compare Models, eval = F}
 # Get recruitment
 rec_series <- reshape2::melt((ebswp_rtmb_model$rep$Rec)) %>%
-  mutate(se = ebswp_rtmb_model$sdrep$sd[names(ebswp_rtmb_model$sdrep$value) == 'log(Rec)'] * t(ebswp_rtmb_model$rep$Rec))
+  mutate(se = ebswp_rtmb_model$sd_rep$sd[names(ebswp_rtmb_model$sd_rep$value) == 'log(Rec)'] * t(ebswp_rtmb_model$rep$Rec))
 rec_series$Par <- "Recruitment"
 
 # Get SSB time-series
 ssb_series <- reshape2::melt((ebswp_rtmb_model$rep$SSB)) %>%
-  mutate(se = ebswp_rtmb_model$sdrep$sd[names(ebswp_rtmb_model$sdrep$value) == 'log(SSB)'] * t(ebswp_rtmb_model$rep$SSB))
+  mutate(se = ebswp_rtmb_model$sd_rep$sd[names(ebswp_rtmb_model$sd_rep$value) == 'log(SSB)'] * t(ebswp_rtmb_model$rep$SSB))
 ssb_series$Par <- "Spawning Biomass"
 
 # bind together

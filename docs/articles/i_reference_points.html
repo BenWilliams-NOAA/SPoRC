@@ -1062,16 +1062,16 @@ are region-specific and can be applied accordingly.</p>
 <span>                                          rep <span class="op">=</span> <span class="va">mlt_rg_sable_rep</span>, <span class="co"># report file</span></span>
 <span>                                          SPR_x <span class="op">=</span> <span class="fl">0.4</span>, <span class="co"># spr rate</span></span>
 <span>                                          type <span class="op">=</span> <span class="st">'multi_region'</span>, <span class="co"># multi region reference point</span></span>
-<span>                                          what <span class="op">=</span> <span class="st">'local_BH_MSY'</span>, <span class="co"># SPR reference point</span></span>
+<span>                                          what <span class="op">=</span> <span class="st">'independent_SPR'</span>, <span class="co"># SPR reference point</span></span>
 <span>                                          calc_rec_st_yr <span class="op">=</span> <span class="fl">20</span>, <span class="co"># first year to calculate mean recruitment</span></span>
 <span>                                          rec_age <span class="op">=</span> <span class="fl">2</span>,  <span class="co"># exclues the last rec_age years when computing mean recruitment</span></span>
 <span>                                          t_spwn <span class="op">=</span> <span class="fl">0</span>,  <span class="co"># spawn timing</span></span>
 <span>                                          sex_ratio_f <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="va">mlt_rg_sable_data</span><span class="op">$</span><span class="va">n_regions</span><span class="op">)</span> <span class="co"># recruitment sex-ratio for females</span></span>
 <span>                                          <span class="op">)</span></span>
 <span><span class="va">mlt_ref_pt_indp</span><span class="op">$</span><span class="va">f_ref_pt</span> <span class="co"># F40</span></span>
-<span><span class="co">#&gt; [1] 1.868139e-11 2.913135e-11 1.757183e-10 4.829113e-02 5.021245e-01</span></span>
+<span><span class="co">#&gt; [1] 0.08702899 0.08571633 0.08056453 0.08181050 0.07977200</span></span>
 <span><span class="va">mlt_ref_pt_indp</span><span class="op">$</span><span class="va">b_ref_pt</span> <span class="co"># B40</span></span>
-<span><span class="co">#&gt; [1]  7.067837 11.328148  7.138283 32.894687 15.427392</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 31.93313 26.89321 20.22807 30.01715 14.03777</span></span></code></pre></div>
 <p>By contrast, users can also specify global SPR rates. This involves
 simply changing the <code>what</code> argument to
 <code>global_SPR</code>, which results in a single
@@ -1356,13 +1356,13 @@ value. For example, in the first projection year:</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># F40</span></span>
 <span><span class="va">f_ref_pt_indp</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span> <span class="co"># independent SPR</span></span>
-<span><span class="co">#&gt; [1] 1.868139e-11 2.913135e-11 1.757183e-10 4.829113e-02 5.021245e-01</span></span>
+<span><span class="co">#&gt; [1] 0.08702899 0.08571633 0.08056453 0.08181050 0.07977200</span></span>
 <span><span class="va">f_ref_pt_global</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span> <span class="co"># global SPR</span></span>
 <span><span class="co">#&gt; [1] 0.08099479 0.08099479 0.08099479 0.08099479 0.08099479</span></span>
 <span></span>
 <span><span class="co"># b40</span></span>
 <span><span class="va">b_ref_pt_indp</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span> <span class="co"># independent SPR</span></span>
-<span><span class="co">#&gt; [1]  7.067837 11.328148  7.138283 32.894687 15.427392</span></span>
+<span><span class="co">#&gt; [1] 31.93313 26.89321 20.22807 30.01715 14.03777</span></span>
 <span><span class="va">b_ref_pt_global</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span> <span class="co"># global SPR</span></span>
 <span><span class="co">#&gt; [1] 31.93313 26.89321 20.22807 30.01715 14.03777</span></span></code></pre></div>
 <p>For the projections that follow, we use independent SPR rates to
