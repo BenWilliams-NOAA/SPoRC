@@ -708,7 +708,6 @@ Get_Reference_Points <- function(data,
       f_ref_pt[1] <- obj$rep$Fmsy
       b_ref_pt[1] <- obj$rep$Bmsy
       virgin_b_ref_pt[1] <- obj$rep$B0
-      print(obj$rep$Req)
     }
   }
 

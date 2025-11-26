@@ -422,6 +422,7 @@ for(i in 1:length(models)) {
   # Get fishery selectivity estimates
   fishsel_df <- reshape2::melt(models[[i]]$rep$fish_sel) %>%
     rename(Region = Var1, Year = Var2, Age = Var3, Sex = Var4, Fleet = Var5) %>%
+    group_by(Year, Region, Sex, Fleet) %>% 
     mutate(value = value/max(value),
            Year = Year + 1963)
   fishsel_df$Model <- model_names[i]

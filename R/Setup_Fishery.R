@@ -136,7 +136,7 @@ Setup_Sim_Fishing <- function(sim_list,
                        n_fish_fleets = sim_list$n_fish_fleets, n_sims = sim_list$n_sims, what = "fish_q_input")
   check_sim_dimensions(ObsFishIdx_SE, n_regions = sim_list$n_regions, n_years = sim_list$n_yrs,
                        n_fish_fleets = sim_list$n_fish_fleets, what = "ObsFishIdx_SE")
-  check_sim_dimensions(fish_idx_type, n_fish_fleets = sim_list$n_fish_fleets, what = "fish_idx_type")
+  check_sim_dimensions(fish_idx_type, n_regions = sim_list$n_regions, n_fish_fleets = sim_list$n_fish_fleets, what = "fish_idx_type")
 
   # Validate fishery age composition parameters
   check_sim_dimensions(comp_fishage_like, n_fish_fleets = sim_list$n_fish_fleets, what = "comp_fishage_like")
