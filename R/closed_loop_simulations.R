@@ -100,9 +100,9 @@ condition_closed_loop_simulations <- function(closed_loop_yrs,
     tmp <- array(NA, dim = c(sim_list$n_regions, sim_list$n_yrs, sim_list$n_fish_fleets))
     for(r in 1:sim_list$n_regions) for(f in 1:sim_list$n_fish_fleets) {
       if(!is.vector(data$Wt_Catch)) {
-        for(y in 1:length(data$years)) tmp[r,,f] <- log(exp(optim_parameters_list$ln_sigmaC[r,y,f]) / sqrt(data$Wt_Catch[r,y,f]))
+        tmp[r,,f] <- mean(log(exp(optim_parameters_list$ln_sigmaC[r,,f]) / sqrt(data$Wt_Catch[r,,f])))
       } else {
-        tmp[r,,f] <- log(exp(optim_parameters_list$ln_sigmaC[r,,f]) / sqrt(data$Wt_Catch))
+        tmp[r,,f] <- mean(log(exp(optim_parameters_list$ln_sigmaC[r,,f]) / sqrt(data$Wt_Catch)))
       }
     }
     tmp
