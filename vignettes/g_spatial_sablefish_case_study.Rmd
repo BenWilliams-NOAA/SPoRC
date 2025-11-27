@@ -114,10 +114,25 @@ input_list <- Setup_Mod_Biologicals(input_list = input_list,
 
 ## Setup Movement and Tagging Dynamics
 
-Various options are available for parameterizing movement dynamics. In particular, users can specify any number of age, year, and sex blocks for movement. If users wish to specify blocks for the aforementioned partitions, a list needs to be supplied detailing the blocking structure, where the number of elements in the list represents the number of blocks to estiamte, and the elements within the list should specify the range of the block. For instance, the spatial model for sablefish estimates 3 age blocks, (`Movement_ageblk_spec = list(c(1:6), c(7:15), c(16:30))`), where the first element specifies the first age block, which ranges from ages 1 - 6, the second element specifies the second age block, which ranges from ages 7 - 15, and the third element specifies the third age block, which ranges from ages 16 - 30. No year and sex blocks are specified for this application. Thus, both `Movement_yearblk_spec` and `Movement_sexblk_spec` are set at `"constant"`. Additionally, recruits are not allowed to move, given the potential for severe confounding between recruitment and movement if this is allowed (`do_recruits_move = 0`). Fixed movement is not used in this case (`use_fixed_movement = 0`) and a vague Dirichlet prior for movement (`Use_Movement_Prior = 1` and `Movement_prior = 2.5`) is used to penalize movement away from the extremes (i.e, away from 0s and 1s).
+Various options are available for parameterizing movement dynamics. In particular, users can specify any number of age, year, and sex blocks for movement. If users wish to specify blocks for the aforementioned partitions, a list needs to be supplied detailing the blocking structure, where the number of elements in the list represents the number of blocks to estimate, and the elements within the list should specify the range of the block. For instance, the spatial model for sablefish estimates 3 age blocks, (`Movement_ageblk_spec = list(c(1:6), c(7:15), c(16:30))`), where the first element specifies the first age block, which ranges from ages 1–6, the second element specifies the second age block, which ranges from ages 7–15, and the third element specifies the third age block, which ranges from ages 16–30. No year and sex blocks are specified for this application. Thus, both `Movement_yearblk_spec` and `Movement_sexblk_spec` are set at `"constant"`. Additionally, recruits are not allowed to move, given the potential for severe confounding between recruitment and movement if this is allowed (`do_recruits_move = 0`). Fixed movement is not used in this case (`use_fixed_movement = 0`) and a vague Dirichlet prior for movement (`Use_Movement_Prior = 1` and `Movement_prior = 2.5`) is used to penalize movement away from the extremes (i.e., away from 0s and 1s).
+
+The Dirichlet prior defines the relative probability of individuals moving among spatial regions and ensures that all probabilities from a given region sum to one. The hyperparameter value (`alpha`) determines the prior shape and concentration:
+
+- When `alpha < 1`, the prior favors extreme values (movement concentrated in a single destination).
+- When `alpha > 1`, the prior favors more uniform movement among destinations.
+- Setting `alpha = 2.5` provides a weakly informative prior that discourages both complete isolation and unrestricted mixing, allowing the data to inform movement rates while maintaining numerical stability during estimation.
+
+In this implementation, the movement prior is constructed by expanding over all combinations of regions, representative ages (corresponding to the defined age blocks), and sexes, assigning the same Dirichlet hyperparameter to each combination. The use of `list(rep(2.5, 5))` creates a list of three `alpha` values (one for each potential destination region). Wrapping this expression with `I()` ensures that `expand.grid()` treats the list as a single element rather than expanding it into separate rows. This approach preserves the intended structure of the Dirichlet hyperparameters for each movement row.
 
 ```{r Setup Movement, message = FALSE,  eval = FALSE}
 # setting up movement parameterization
+Movement_prior <- expand.grid(
+  region_from = 1:5, # regions
+  age = c(6,7,16), # age blocks
+  sex = 1, # sex
+  alpha = I(list(rep(2.5, 5))) # prior alpha to each row
+)
+
 input_list <- Setup_Mod_Movement(input_list = input_list,
                                  # Model options
                                  Movement_ageblk_spec = list(c(1:6), c(7:15), c(16:30)),
@@ -128,8 +143,7 @@ input_list <- Setup_Mod_Movement(input_list = input_list,
                                  do_recruits_move = 0, # recruits do not move
                                  use_fixed_movement = 0, # estimating movement
                                  Use_Movement_Prior = 1, # priors used for movement
-                                 Movement_prior = 2.5
-                                 # vague prior to penalize movement away from the extremes
+                                 Movement_prior = Movement_prior
                                  )
 ```
 

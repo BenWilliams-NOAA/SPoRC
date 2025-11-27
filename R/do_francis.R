@@ -13,12 +13,6 @@
 #'
 #' @returns List of values for calculated francis weight, and a dataframe of observed and expected means
 #' @keywords internal
-#'
-#' @examples
-#' \dontrun{
-#' # Function is used within do_francis_reweighting
-#' get_francis_weights(n_regions, n_sexes, n_fleets, Use, ISS, Pred_arry, Obs_array, weights, bins, comp_type)
-#' }
 get_francis_weights <- function(n_regions,
                                 n_sexes,
                                 n_fleets,

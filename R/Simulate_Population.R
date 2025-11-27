@@ -329,8 +329,11 @@ run_annual_cycle <- function(y,
                                              sex_ratio_f = sexratio[,1,1,sim],
                                              SSB_vals = array(SSB[,,sim], dim = c(n_regions, n_yrs)),
                                              t_spawn = t_spawn,
-                                             do_recruits_move = do_recruits_move
+                                             do_recruits_move = do_recruits_move,
+                                             init_F = init_F, # initial F applied
+                                             fish_sel = array(fish_sel[,1,,1,1,sim], dim = c(n_regions, n_ages)) # fishery selectivity in first year
           )
+
           # input deviates
           for(s in 1:n_sexes) NAA[r,1,1,s,sim] <- tmp_det_rec[r] * exp(ln_RecDevs[r,y,sim] - exp(ln_sigmaR[2])^2/2) * sexratio[r,y,s,sim]
         }
@@ -594,11 +597,8 @@ run_annual_cycle <- function(y,
           # Move tagged fish around
           if(t_tagging != 1 && recap_yr == 1) { # Movement does not occur if tagging does not happen at start of year
           } else{
-            for(a in 1:n_ages) {
-              for(s in 1:n_sexes) {
-                Tag_Avail[recap_yr,tag_rel,,a,s,sim] <- Tag_Avail[recap_yr,tag_rel,,a,s,sim] %*% Movement[,,y,a,s,sim]
-              } # end s loop
-            } # end a loop
+            if(do_recruits_move == 0) for(a in 2:n_ages) for(s in 1:n_sexes) Tag_Avail[recap_yr,tag_rel,,a,s,sim] <- Tag_Avail[recap_yr,tag_rel,,a,s,sim] %*% Movement[,,y,a,s,sim]
+            if(do_recruits_move == 1) for(a in 1:n_ages) for(s in 1:n_sexes) Tag_Avail[recap_yr,tag_rel,,a,s,sim] <- Tag_Avail[recap_yr,tag_rel,,a,s,sim] %*% Movement[,,y,a,s,sim]
           }
 
           # Apply mortality and ageing to tagged fish
@@ -715,7 +715,9 @@ run_annual_cycle <- function(y,
                                                   sex_ratio_f = sexratio[,1,1,sim],
                                                   SSB_vals = array(SSB[,,sim], dim = c(n_regions, n_yrs)),
                                                   t_spawn = t_spawn,
-                                                  do_recruits_move = do_recruits_move
+                                                  do_recruits_move = do_recruits_move,
+                                                  init_F = init_F, # initial F applied
+                                                  fish_sel = array(fish_sel[,1,,1,1,sim], dim = c(n_regions, n_ages)) # fishery selectivity in first year
           )
 
           # Store next year's recruitment
@@ -1277,8 +1279,8 @@ simulation_data_to_SPoRC <- function(sim_env,
 
     # Biologicals
     WAA <- array(sim_env$WAA[,1:y,,,sim, drop = FALSE], dim = c(sim_env$n_regions, length(1:y), sim_env$n_ages, sim_env$n_sexes))
-    WAA_fish <- array(sim_env$WAA_fish[,1:y,,,,sim, drop = FALSE], dim = c(sim_env$n_regions, length(1:y), sim_env$n_ages, sim_env$n_sexes, sim_list$n_fish_fleets))
-    WAA_srv <- array(sim_env$WAA_srv[,1:y,,,,sim, drop = FALSE], dim = c(sim_env$n_regions, length(1:y), sim_env$n_ages, sim_env$n_sexes, sim_list$n_srv_fleets))
+    WAA_fish <- array(sim_env$WAA_fish[,1:y,,,,sim, drop = FALSE], dim = c(sim_env$n_regions, length(1:y), sim_env$n_ages, sim_env$n_sexes, sim_env$n_fish_fleets))
+    WAA_srv <- array(sim_env$WAA_srv[,1:y,,,,sim, drop = FALSE], dim = c(sim_env$n_regions, length(1:y), sim_env$n_ages, sim_env$n_sexes, sim_env$n_srv_fleets))
     MatAA <- array(sim_env$MatAA[,1:y,,,sim, drop = FALSE], dim = c(sim_env$n_regions, length(1:y), sim_env$n_ages, sim_env$n_sexes))
     SizeAgeTrans <- if(!is.null(sim_env$SizeAgeTrans)) {
       array(sim_env$SizeAgeTrans[,1:y,,,,sim, drop = FALSE], dim = c(sim_env$n_regions, length(1:y), sim_env$n_lens, sim_env$n_ages, sim_env$n_sexes))
@@ -1289,8 +1291,8 @@ simulation_data_to_SPoRC <- function(sim_env,
     if(sim_env$UseTagging == 1) {
       keep_tag_cohorts <- which(sim_env$tag_release_indicator[,2] %in% 1:y)
       tag_release_indicator <- sim_env$tag_release_indicator[keep_tag_cohorts,,drop = FALSE]
-      Obs_Tag_Recap <- sim_env$Obs_Tag_Recap[,keep_tag_cohorts,,,sim, drop = FALSE]
-      Tagged_Fish <- sim_env$Tagged_Fish[,keep_tag_cohorts,sim, drop = FALSE]
+      Obs_Tag_Recap <- array(sim_env$Obs_Tag_Recap[,keep_tag_cohorts,,,,sim], dim = dim(sim_env$Obs_Tag_Recap)[-length(dim(sim_env$Obs_Tag_Recap))])
+      Tagged_Fish <- array(sim_env$Tagged_Fish[keep_tag_cohorts,,,sim], dim = c(dim(sim_env$Tagged_Fish)[-length(dim(sim_env$Tagged_Fish))]))
       n_tag_cohorts <- nrow(tag_release_indicator)
     } else {
       tag_release_indicator = Obs_Tag_Recap = Tagged_Fish = n_tag_cohorts = NULL

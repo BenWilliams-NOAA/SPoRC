@@ -20,7 +20,6 @@
 #' @param n_model_bins Number of bins used in the model
 #' @param n_obs_bins Number of observed composition bins
 #' @param addtocomp Small constant to add to composition data
-#' @param sim Boolean on whether or not to simualte values from a given specification of the likelihood
 #'
 #' @return Returns negative log likelihood for composition data (age and/or length)
 #' @keywords internal
@@ -43,8 +42,8 @@ Get_Comp_Likelihoods = function(Exp,
                                 AgeingError,
                                 use,
                                 comp_agg_type,
-                                addtocomp,
-                                sim = FALSE) {
+                                addtocomp
+                                ) {
 
   "c" <- RTMB::ADoverload("c")
   "[<-" <- RTMB::ADoverload("[<-")

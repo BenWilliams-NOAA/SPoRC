@@ -11,21 +11,29 @@
 #' @importFrom tidyr drop_na
 #' @examples
 #' \dontrun{
-#' idx_fits <- get_idx_fits(data = data, rep = rep, year_labs = seq(1960, 2024, 1))
+#' idx_fits <- get_idx_fits(data = data, rep = rep,
+#'  year_labs = seq(1960, 2024, 1))
 #'
 #' idx_fits <- idx_fits %>%
 #'   mutate(
 #'     Idx = case_when(
-#'       Type == "Fishery" & Year < 1995 ~ "Japanese Fishery CPUE Index",
-#'       Type == "Fishery" & Year >= 1995 ~ "Domestic Fishery CPUE Index",
-#'       Type == 'Survey' & Fleet == 1 ~ "Domestic LL Survey Relative Population Numbers",
-#'       Type == 'Survey' & Fleet == 2 ~ "GOA Trawl Survey Biomass (kt)",
-#'       Type == 'Survey' & Fleet == 3 ~ 'Japanese LL Survey Relative Population Numbers'
+#'       Type == "Fishery" & Year < 1995 ~
+#'       "Japanese Fishery CPUE Index",
+#'       Type == "Fishery" & Year >= 1995 ~
+#'       "Domestic Fishery CPUE Index",
+#'       Type == 'Survey' & Fleet == 1 ~
+#'       "Domestic LL Survey Relative Population Numbers",
+#'       Type == 'Survey' & Fleet == 2 ~
+#'       "GOA Trawl Survey Biomass (kt)",
+#'       Type == 'Survey' & Fleet == 3 ~
+#'        'Japanese LL Survey Relative Population Numbers'
 #'     )
 #'   )
 #' ggplot() +
-#'   geom_line(idx_fits, mapping = aes(x = Year, y = value), lwd = 1.3, col = 'red') +
-#'   geom_pointrange(idx_fits, mapping = aes(x = Year, y = obs, ymin = lci, ymax = uci), color = 'blue', pch = 1) +
+#'   geom_line(idx_fits, mapping =
+#'   aes(x = Year, y = value), lwd = 1.3, col = 'red') +
+#'   geom_pointrange(idx_fits, mapping =
+#'   aes(x = Year, y = obs, ymin = lci, ymax = uci), color = 'blue', pch = 1) +
 #'   labs(x = "Year", y = 'Index') +
 #'   theme_bw(base_size = 20) +
 #'   facet_wrap(~Idx, scales = 'free', ncol = 2)
@@ -220,7 +228,8 @@ Restrc_Comps <- function(Exp,
 #' @family Model Diagnostics
 #' @examples
 #' \dontrun{
-#' comp_props <- get_comp_prop(data = data, rep = rep, age_labels = 2:31, len_labels = seq(41, 99, 2), year_labels = 1960:2024)
+#' comp_props <- get_comp_prop(data = data, rep = rep,
+#' age_labels = 2:31, len_labels = seq(41, 99, 2), year_labels = 1960:2024)
 #' comp_props$Fishery_Ages %>%
 #'   filter(Fleet == 1, Sex == 1) %>%
 #'   ggplot() +
@@ -237,10 +246,14 @@ Restrc_Comps <- function(Exp,
 #'               obs = mean(obs),
 #'               pred = mean(pred)) %>%
 #'     ggplot() +
-#'     geom_line(mapping = aes(x = Age, y = obs, color = 'Obs', lty = 'Obs'), lwd = 1.3) +
-#'     geom_ribbon(mapping = aes(x = Age, y = obs, ymin = lwr_obs, ymax = upr_obs, fill = 'Obs'), alpha = 0.3) +
-#'     geom_line(mapping = aes(x = Age, y = pred, color = 'Pred', lty = 'Pred'), lwd = 1.3) +
-#'     geom_ribbon(mapping = aes(x = Age, y = pred, ymin = lwr_pred, ymax = upr_pred, fill = 'Pred'), alpha = 0.3) +
+#'     geom_line(mapping = aes(x = Age, y = obs,
+#'     color = 'Obs', lty = 'Obs'), lwd = 1.3) +
+#'     geom_ribbon(mapping = aes(x = Age, y = obs,
+#'     ymin = lwr_obs, ymax = upr_obs, fill = 'Obs'), alpha = 0.3) +
+#'     geom_line(mapping = aes(x = Age, y = pred,
+#'      color = 'Pred', lty = 'Pred'), lwd = 1.3) +
+#'     geom_ribbon(mapping = aes(x = Age, y = pred,
+#'      ymin = lwr_pred, ymax = upr_pred, fill = 'Pred'), alpha = 0.3) +
 #'     facet_grid(Region~Fleet, labeller = labeller(
 #'       Region = c('1' = "Region 1"),
 #'       Fleet = c('1' = 'Domestic LL Survey', '3' = 'JP LL Survey')
@@ -792,7 +805,8 @@ get_osa <- function(obs_mat,
 #'
 #' @examples
 #' \dontrun{
-#' comp_props <- get_comp_prop(data = data, rep = sabie_rtmb_model$rep, age_labels = 2:31, len_labels = seq(41, 99, 2), year_labels = 1960:2024)
+#' comp_props <- get_comp_prop(data = data, rep = sabie_rtmb_model$rep,
+#'  age_labels = 2:31, len_labels = seq(41, 99, 2), year_labels = 1960:2024)
 #' plot_resids(get_osa(obs_mat = comp_props$Obs_FishAge_mat,
 #'                     exp_mat = comp_props$Pred_FishAge_mat,
 #'                     N = rep(16.52215, length(1999:2023)),

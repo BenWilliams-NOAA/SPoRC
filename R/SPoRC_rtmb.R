@@ -32,6 +32,10 @@
 # Added equilibrium plus group calculations to initial abundance when movement occurs
 # Refactored Initial Numbers at Age module
 
+# version 5 - (M.LH Cheng)
+# Refactored movement priors and movement setup
+# Added in CTMC movement
+
 
 #' Generalized RTMB model
 #'
@@ -44,7 +48,7 @@ SPoRC_rtmb = function(pars, data) {
   "c" <- RTMB::ADoverload("c")
   "[<-" <- RTMB::ADoverload("[<-")
 
-  RTMB::getAll(pars, data) # load in starting values and data
+RTMB::getAll(pars, data) # load in starting values and data
 
   # Model Set Up (Containers) -----------------------------------------------
   n_ages = length(ages) # number of ages
@@ -124,32 +128,38 @@ SPoRC_rtmb = function(pars, data) {
 
   # Model Process Equations -------------------------------------------------
   ## Movement Parameters (Set up) --------------------------------------------
-  ref_region = 1 # Set up reference region (always set at 0)
-  for(r in 1:n_regions) {
-    for(y in 1:(n_yrs + n_proj_yrs_devs)) {
-      for(a in 1:n_ages) {
-        for(s in 1:n_sexes) {
+  out_move = Get_Movement(
+    move_type = move_type, # movement type (unstructured markov, or continuous time markov chain)
+    do_recruits_move = do_recruits_move,
 
-          move_tmp = rep(0, n_regions) # temporary movement vector to store values
-          counter = 1  # counter
+    # Dimensions
+    n_regions = n_regions,
+    n_yrs = n_yrs,
+    n_proj_yrs_devs = n_proj_yrs_devs,
+    n_ages = n_ages,
+    n_sexes = n_sexes,
 
-          for(rr in 1:n_regions) {
-            if(rr != ref_region) {
-              # extract movement parameters
-              if(y <= n_yrs) tmp_move_pars = move_pars[r,counter,y,a,s]
-              else tmp_move_pars = move_pars[r,counter,n_yrs,a,s]
-              move_tmp[rr] = tmp_move_pars + logit_move_devs[r,counter,y,a,s]
-              counter = counter + 1
-            } # end if not reference region
-          } # end rr loop
+    # If move_type == 0
+    move_pars = move_pars, # movement parameters for unstructred markov
+    move_devs = move_devs, # logit movement deviations
+    use_fixed_movement = use_fixed_movement, # indicator for fixed movement
+    Fixed_Movement = Fixed_Movement, # fixed movement matrix
 
-          if(use_fixed_movement == 0) Movement[r,,y,a,s] = exp(move_tmp) / sum(exp(move_tmp)) # multinomial logit transform estimated movement
-          if(use_fixed_movement == 1 && y <= n_yrs) Movement[r,,y,a,s] = Fixed_Movement[r,,y,a,s] # fixed movement matrix
+    # If move_type == 1
+    ctmc_move_dat = ctmc_move_dat,
+    preference_formula = preference_formula,
+    diffusion_formula = diffusion_formula,
+    log_move_diffusion_pars = log_move_diffusion_pars,
+    move_preference_pars = move_preference_pars,
+    area_r = area_r,
+    adjacency_mat = adjacency_mat,
+    ctmc_diffusion_bounds = ctmc_diffusion_bounds
+  )
 
-        } # end s loop
-      } # end a loop
-    } # end y loop
-  } # end r loop
+  # output movement stuff into model
+  Mrate = out_move$Mrate
+  Movement = out_move$Movement
+  Movement_nLL = Movement_nLL + out_move$move_pen
 
   ## Natural Mortality Parameters (Set up) -----------------------------------
   if(use_fixed_natmort == 0) {
@@ -394,7 +404,9 @@ SPoRC_rtmb = function(pars, data) {
                                       t_spawn = t_spawn,
                                       SSB_vals = SSB,
                                       y = y,
-                                      rec_lag = rec_lag
+                                      rec_lag = rec_lag,
+                                      init_F = init_F, # initF for dominant fleet
+                                      fish_sel = array(fish_sel[,1,,1,1], dim = c(n_regions, n_ages)) # uses dominant fleet
     )
 
     for(r in 1:n_regions) {
@@ -556,8 +568,14 @@ SPoRC_rtmb = function(pars, data) {
           # Initialize tagging dynamics for first recapture year
           tmp_Z = tmp_Z * t_tagging # discounting mortality if t_tagging != 1
           Tags_Avail[ry,tc,tr,,] = Tagged_Fish[tc,,] * exp(-Init_Tag_Mort) # Input tag releases to the first year
-          if(t_tagging == 1) for(a in 1:n_ages) for(s in 1:n_sexes) Tags_Avail[ry,tc,,a,s] = t(Tags_Avail[ry,tc,,a,s]) %*% Movement[,,y,a,s] # Only apply movement if t_tagging == 1 in first recapture year
-        } else for(a in 1:n_ages) for(s in 1:n_sexes) Tags_Avail[ry,tc,,a,s] = t(Tags_Avail[ry,tc,,a,s]) %*% Movement[,,y,a,s] # Movement always occurs after first release year
+          if(t_tagging == 1) {
+            if(do_recruits_move == 0) for(a in 2:n_ages) for(s in 1:n_sexes) Tags_Avail[ry,tc,,a,s] = t(Tags_Avail[ry,tc,,a,s]) %*% Movement[,,y,a,s] # Only apply movement if t_tagging == 1 in first recapture year
+            if(do_recruits_move == 1) for(a in 1:n_ages) for(s in 1:n_sexes) Tags_Avail[ry,tc,,a,s] = t(Tags_Avail[ry,tc,,a,s]) %*% Movement[,,y,a,s] # Only apply movement if t_tagging == 1 in first recapture year
+          }
+        } else {
+          if(do_recruits_move == 0) for(a in 2:n_ages) for(s in 1:n_sexes) Tags_Avail[ry,tc,,a,s] = t(Tags_Avail[ry,tc,,a,s]) %*% Movement[,,y,a,s] # Movement always occurs after first release year
+          if(do_recruits_move == 1) for(a in 1:n_ages) for(s in 1:n_sexes) Tags_Avail[ry,tc,,a,s] = t(Tags_Avail[ry,tc,,a,s]) %*% Movement[,,y,a,s] # Movement always occurs after first release year
+        }
 
         # Mortality and ageing of tagged fish
         Tags_Avail[ry+1,tc,,2:n_ages,] = Tags_Avail[ry,tc,,1:(n_ages-1),] * exp(-tmp_Z[,1,1:(n_ages-1),]) # not in plus group
@@ -1046,27 +1064,25 @@ SPoRC_rtmb = function(pars, data) {
   if(cont_vary_movement > 0) {
     Movement_nLL = Movement_nLL + - Get_move_PE_loglik(PE_model = cont_vary_movement,
                                                        PE_pars = move_pe_pars,
-                                                       logit_devs = logit_move_devs,
-                                                       map_move_devs = map_logit_move_devs,
-                                                       do_recruits_move = do_recruits_move
+                                                       move_devs = move_devs,
+                                                       map_move_devs = map_move_devs,
+                                                       do_recruits_move = do_recruits_move,
+                                                       adjacency_collapsed = adjacency_collapsed,
+                                                       move_type = move_type
     )
   }
 
   ### Movement Rates (Prior) ------------------------------------------------
-  # NOTE: If continuous varying movement is estimated, there should only be one set of movement parameters
-  # estimated (i.e., the base, mean movement parameters), such that the prior is applied onto the base parameters
   if(Use_Movement_Prior == 1) {
-    unique_movement_pars = sort(unique(as.vector(map_Movement_Pars))) # Figure out unique movement parameters estimated
-    for(i in 1:length(unique_movement_pars)) {
-      par_idx = which(map_Movement_Pars == unique_movement_pars[i], arr.ind = TRUE)[1,] # figure out where unique movement parameter first occurs
-      r_from = par_idx[1] # from region
-      y = par_idx[3] # year index
-      a = par_idx[4] # age index
-      s = par_idx[5] # sex index
-      Movement_nLL = Movement_nLL - ddirichlet(x = Movement[r_from,,y,a,s], alpha = Movement_prior[r_from,,y,a,s], log = TRUE) # dirichlet prior
+    for(i in 1:nrow(Movement_prior)) {
+      region_from = Movement_prior$region_from[i] # region from
+      y = Movement_prior$year[i] # year
+      a = Movement_prior$age[i] # age
+      s = Movement_prior$sex[i] # sex
+      alpha = Movement_prior$alpha[[i]] # get prior values
+      Movement_nLL = Movement_nLL - ddirichlet(x = Movement[region_from,,y,a,s], alpha = alpha, log = TRUE) # dirichlet prior
     } # end i loop
-  } # end if using movement prior
-
+  }
 
   ### Recruitment Proportions (Prior) -----------------------------------------
   if(Use_Rec_prop_Prior == 1) {
@@ -1127,6 +1143,7 @@ SPoRC_rtmb = function(pars, data) {
   RTMB::REPORT(natmort)
   RTMB::REPORT(bias_ramp)
   RTMB::REPORT(Movement)
+  RTMB::REPORT(Mrate)
 
   # Fishery Processes
   RTMB::REPORT(init_F)
@@ -1163,7 +1180,7 @@ SPoRC_rtmb = function(pars, data) {
 
   # Parameter Deviations
   RTMB::REPORT(ln_RecDevs)
-  RTMB::REPORT(logit_move_devs)
+  RTMB::REPORT(move_devs)
   RTMB::REPORT(ln_fishsel_devs)
   RTMB::REPORT(ln_srvsel_devs)
 
