@@ -116,7 +116,7 @@ Setup_Sim_Survey <- function(ObsSrvIdx_SE = array(0.2, dim = c(sim_list$n_region
                        n_srv_fleets = sim_list$n_srv_fleets, n_sims = sim_list$n_sims, what = "srv_q_input")
   check_sim_dimensions(ObsSrvIdx_SE, n_regions = sim_list$n_regions, n_years = sim_list$n_yrs,
                        n_srv_fleets = sim_list$n_srv_fleets, what = "ObsSrvIdx_SE")
-  check_sim_dimensions(srv_idx_type, n_regions, sim_list$n_regions, n_srv_fleets = sim_list$n_srv_fleets, what = "srv_idx_type")
+  check_sim_dimensions(srv_idx_type, n_regions = sim_list$n_regions, n_srv_fleets = sim_list$n_srv_fleets, what = "srv_idx_type")
   check_sim_dimensions(t_srv, n_regions = sim_list$n_regions, n_srv_fleets = sim_list$n_srv_fleets, what = "t_srv")
 
   # Validate survey age composition parameters
