@@ -268,7 +268,7 @@ run_annual_cycle <- function(y,
         sexratio = array(sexratio[,1,,sim], dim = c(n_regions, n_sexes)), # sex ratio in first year
         Movement = array(Movement[,,1,,,sim], dim = c(n_regions, n_regions, n_ages, n_sexes)), # movement in first year
         do_recruits_move = do_recruits_move, # whether recruits move
-        ln_InitDevs = array(ln_InitDevs[,,sim], dim = c(n_regions, n_ages - 2)) # initial deviations
+        ln_InitDevs = array(ln_InitDevs[,,sim], dim = c(n_regions, n_ages - 1)) # initial deviations
       )
 
 
@@ -286,7 +286,7 @@ run_annual_cycle <- function(y,
         sexratio = array(sexratio[,1,,sim], dim = c(n_regions, n_sexes)), # sex ratio in first year
         Movement = array(Movement[,,1,,,sim], dim = c(n_regions, n_regions, n_ages, n_sexes)), # movement in first year
         do_recruits_move = do_recruits_move, # whether recruits move
-        ln_InitDevs = array(ln_InitDevs[,,sim], dim = c(n_regions, n_ages - 2)) # initial deviations
+        ln_InitDevs = array(ln_InitDevs[,,sim], dim = c(n_regions, n_ages - 1)) # initial deviations
       )
 
       # Input into model arrays
