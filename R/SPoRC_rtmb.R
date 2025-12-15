@@ -184,19 +184,18 @@ RTMB::getAll(pars, data) # load in starting values and data
   for(r in 1:n_regions) {
     for(y in 1:(n_yrs + n_proj_yrs_devs)) {
       for(f in 1:n_fish_fleets) {
-
-        # Extract variables
-        if(y <= n_yrs) { # non-projection years
-          fish_sel_blk_idx = fish_sel_blocks[r,y,f] # selectivity block indices
-          tmp_fish_sel_model = fish_sel_model[r,y,f] # fishery selectivity model
-          if(Selex_Type == 1) tmp_sizeage = SizeAgeTrans[r,y,,,s] # size age transition matrix to use
-        } else {
-          fish_sel_blk_idx = fish_sel_blocks[r,n_yrs,f] # selectivity block indices
-          tmp_fish_sel_model = fish_sel_model[r,n_yrs,f] # fishery selectivity model
-          if(Selex_Type == 1) tmp_sizeage = SizeAgeTrans[r,n_yrs,,,s] # size age transition matrix to use
-        }
-
         for(s in 1:n_sexes) {
+
+          # Extract variables
+          if(y <= n_yrs) { # non-projection years
+            fish_sel_blk_idx = fish_sel_blocks[r,y,f] # selectivity block indices
+            tmp_fish_sel_model = fish_sel_model[r,y,f] # fishery selectivity model
+            if(Selex_Type == 1) tmp_sizeage = SizeAgeTrans[r,y,,,s] # size age transition matrix to use
+          } else {
+            fish_sel_blk_idx = fish_sel_blocks[r,n_yrs,f] # selectivity block indices
+            tmp_fish_sel_model = fish_sel_model[r,n_yrs,f] # fishery selectivity model
+            if(Selex_Type == 1) tmp_sizeage = SizeAgeTrans[r,n_yrs,,,s] # size age transition matrix to use
+          }
 
           # Extract out fixed-effect selectivity parameters for a given block
           tmp_fish_sel_vec = ln_fish_fixed_sel_pars[r,,fish_sel_blk_idx,s,f]
@@ -229,19 +228,18 @@ RTMB::getAll(pars, data) # load in starting values and data
   for(r in 1:n_regions) {
     for(y in 1:(n_yrs + n_proj_yrs_devs)) {
       for(sf in 1:n_srv_fleets) {
-
-        # Extract variables
-        if(y <= n_yrs) { # non-projection years
-          srv_sel_blk_idx = srv_sel_blocks[r,y,sf] # selectivity block indices
-          tmp_srv_sel_model = srv_sel_model[r,y,sf] # survey selectivity model
-          if(Selex_Type == 1) tmp_sizeage = SizeAgeTrans[r,y,,,s] # size age transition matrix to use
-        } else {
-          srv_sel_blk_idx = srv_sel_blocks[r,n_yrs,sf] # selectivity block indices
-          tmp_srv_sel_model = srv_sel_model[r,n_yrs,sf] # survey selectivity model
-          if(Selex_Type == 1) tmp_sizeage = SizeAgeTrans[r,n_yrs,,,s] # size age transition matrix to use
-        }
-
         for(s in 1:n_sexes) {
+
+          # Extract variables
+          if(y <= n_yrs) { # non-projection years
+            srv_sel_blk_idx = srv_sel_blocks[r,y,sf] # selectivity block indices
+            tmp_srv_sel_model = srv_sel_model[r,y,sf] # survey selectivity model
+            if(Selex_Type == 1) tmp_sizeage = SizeAgeTrans[r,y,,,s] # size age transition matrix to use
+          } else {
+            srv_sel_blk_idx = srv_sel_blocks[r,n_yrs,sf] # selectivity block indices
+            tmp_srv_sel_model = srv_sel_model[r,n_yrs,sf] # survey selectivity model
+            if(Selex_Type == 1) tmp_sizeage = SizeAgeTrans[r,n_yrs,,,s] # size age transition matrix to use
+          }
 
           # Extract out fixed-effect selectivity parameters for a given block
           tmp_srv_sel_vec = ln_srv_fixed_sel_pars[r,,srv_sel_blk_idx,s,sf]

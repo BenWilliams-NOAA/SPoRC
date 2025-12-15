@@ -75,6 +75,32 @@ condition_closed_loop_simulations <- function(closed_loop_yrs,
   # Additional user inputs as desired
   args <- list(...)
 
+  # Detect partial matching: if *_fill received an array, it was meant as data
+  if(is.array(ISS_FishAgeComps_fill)) {
+    args$ISS_FishAgeComps <- ISS_FishAgeComps_fill
+    ISS_FishAgeComps_fill <- "placeholder"
+  }
+  if(is.array(ISS_FishLenComps_fill)) {
+    args$ISS_FishLenComps <- ISS_FishLenComps_fill
+    ISS_FishLenComps_fill <- "placeholder"
+  }
+  if(is.array(ISS_SrvAgeComps_fill)) {
+    args$ISS_SrvAgeComps <- ISS_SrvAgeComps_fill
+    ISS_SrvAgeComps_fill <- "placeholder"
+  }
+  if(is.array(ISS_SrvLenComps_fill)) {
+    args$ISS_SrvLenComps <- ISS_SrvLenComps_fill
+    ISS_SrvLenComps_fill <- "placeholder"
+  }
+  if(is.array(FishIdx_SE_fill)) {
+    args$ObsFishIdx_SE <- FishIdx_SE_fill
+    FishIdx_SE_fill <- "placeholder"
+  }
+  if(is.array(SrvIdx_SE_fill)) {
+    args$ObsSrvIdx_SE <- SrvIdx_SE_fill
+    SrvIdx_SE_fill <- "placeholder"
+  }
+
   optim_parameters_list <- get_optim_param_list(parameters, mapping, sd_rep, random) # get optimized parameters in original list format
 
   # Setup Model Dimensions --------------------------------------------------
@@ -442,7 +468,7 @@ get_closed_loop_reference_points <- function(use_true_values,
   } else {
     data_obj <- asmt_data
     rep_obj <- asmt_rep
-    tmp_sex_ratio_f <- if(data_obj$n_sexes == 1) 0.5 else rep$sexratio[,y,1]
+    tmp_sex_ratio_f <- if(data_obj$n_sexes == 1) 0.5 else rep_obj$sexratio[,y,1]
   }
 
   # get reference points based on true values
@@ -459,9 +485,9 @@ get_closed_loop_reference_points <- function(use_true_values,
   )
 
   # extract fishery and biological reference points
-  f_ref_pt <- array(reference_points$f_ref_pt, dim = c(sim_env$n_regions, n_proj_yrs)) # fishery reference points
-  b_ref_pt <- array(reference_points$b_ref_pt, dim = c(sim_env$n_regions, n_proj_yrs)) # biological reference points
-  virgin_b_ref_pt <- array(reference_points$virgin_b_ref_pt, dim = c(sim_env$n_regions, n_proj_yrs)) # biological reference points
+  f_ref_pt <- array(reference_points$f_ref_pt, dim = c(data_obj$n_regions, n_proj_yrs)) # fishery reference points
+  b_ref_pt <- array(reference_points$b_ref_pt, dim = c(data_obj$n_regions, n_proj_yrs)) # biological reference points
+  virgin_b_ref_pt <- array(reference_points$virgin_b_ref_pt, dim = c(data_obj$n_regions, n_proj_yrs)) # biological reference points
 
   return(list(f_ref_pt = f_ref_pt, b_ref_pt = b_ref_pt, virgin_b_ref_pt = virgin_b_ref_pt))
 }

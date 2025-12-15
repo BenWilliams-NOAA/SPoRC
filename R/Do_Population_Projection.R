@@ -21,7 +21,17 @@
 #' @param b_ref_pt Biological reference point dimensioned by n_regions and n_proj_yrs
 #' @param HCR_function Function describing a harvest control rule. The function should always have the following arguments: x, which represents SSB, frp, which takes inputs of fishery reference points, and brp, which takes inputs of biological reference points. Any additional arguments should be specified with defaults or hard coded / fixed within the function.
 #' @param recruitment_opt Recruitment simulation option, where options are "inv_gauss", which simulates future recruitment based on the the recruitment values supplied using an inverse gaussian distribution, "mean_rec", which takes the mean of the recruitment values supplied for a given region, and "zero", which assumes that future recruitment does not occur
-#' @param fmort_opt Fishing Mortality option, which includes "HCR", which modifies the F reference point using a user supplied HCR_function, or "Input", which uses projected F values supplied by the user.
+#' @param fmort_opt Fishing mortality option. Choices are:
+#'
+#' * **"HCR"** – Applies the user-supplied `HCR_function` using region-specific
+#'   SSB, F reference point, and biomass reference point.
+#'
+#' * **"HCR_global"** – Applies the `HCR_function` using global SSB (summed
+#'   across regions) and a global biomass reference point (sum of the
+#'   region-specific biomass reference points). Each region's biomass reference
+#'   point should be defined individually; the function performs the summation.
+#'
+#' * **"Input"** – Uses user-supplied projected fishing mortality values directly.
 #' @param t_spawn Fraction time of spawning used to compute projected SSB
 #' @param bh_rec_opt A list object containing the following arguments:
 #' \describe{
@@ -71,7 +81,7 @@ Do_Population_Projection <- function(n_proj_yrs = 2,
 # Error Checking ----------------------------------------------------------
 
   if(!recruitment_opt %in% c("inv_gauss", "mean_rec", "zero", "bh_rec")) stop("Recruitment options are not specified correctly! Should be inv_gauss, mean_rec, zero, or bh_rec")
-  if(!fmort_opt %in% c("HCR", "Input")) stop("Fishing Mortality options are not specified correctly! Should be HCR or Input")
+  if(!fmort_opt %in% c("HCR", "Input", "HCR_global")) stop("Fishing Mortality options are not specified correctly! Should be HCR, Input, HCR_global")
   if(recruitment_opt == "bh_rec") {
     required_fields <- c("recruitment_dd", "rec_lag", "R0", "h", "Rec_Prop", "WAA", "MatAA", "natmort", "SSB")
     diff <- setdiff(required_fields, names(bh_rec_opt)) # find difference
@@ -214,6 +224,12 @@ Do_Population_Projection <- function(n_proj_yrs = 2,
           proj_F[r,y+1] <- HCR_function(x = proj_SSB[r,y],
                                         frp = f_ref_pt[r,y],
                                         brp = b_ref_pt[r,y])
+        }
+
+        if(fmort_opt == 'HCR_global') {
+          proj_F[r,y+1] <- HCR_function(x = sum(proj_SSB[,y]),
+                                        frp = f_ref_pt[r,y],
+                                        brp = sum(b_ref_pt[,y]))
         }
 
 # Project F using User Inputs ---------------------------------------------
