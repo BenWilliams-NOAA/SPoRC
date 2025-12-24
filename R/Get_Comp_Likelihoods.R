@@ -303,7 +303,6 @@ Get_Comp_Likelihoods = function(Exp,
         mat1 = get_Constant_CorrMat(n_sexes, LN_corr_s)
         mat2 = get_AR1_CorrMat(n_obs_bins, LN_corr_b)
         Sigma =  Matrix::kronecker(mat1, mat2)  * (exp(ln_theta[r,1])^2 / (1 - LN_corr_s^2) / (1 - LN_corr_b^2))
-        RTMB::REPORT(Sigma)
 
         if(length(zeros) > 0) {
           # Remove zeros and renormalize

@@ -3,12 +3,14 @@
 #' @param exp Expected values
 #' @param pars Parameters for a logistic normal (iid == 1 parameter, AR1 == 2 parameters, 2D, by age and sex == 3 parameters, 3D, by age, sex, and region == 4 parameters)
 #' @param comp_like Likelihood structure (iid == 2, ar1 == 3, 2d == 4, 3d == 5)
+#' @param n_sexes Number of sexes
 #'
 #' @importFrom MASS mvrnorm
 #' @keywords internal
 rlogistnormal <- function(exp,
                           pars,
-                          comp_like
+                          comp_like,
+                          n_sexes
                           ) {
   # set up expected value vector
   mu <- log(exp[-length(exp)]) # remove last bin since it's known
@@ -22,13 +24,13 @@ rlogistnormal <- function(exp,
 
   # if logistic normal, AR1 by bin
   if(comp_like == 3) {
-    Sigma <- get_AR1_CorrMat(length(exp), pars[2]) * pars[1]^2
+    Sigma <- get_AR1_CorrMat(length(exp), pars[2]) * (pars[1]^2 / (1 - pars[2]^2))
     Sigma <- Sigma[-nrow(Sigma), -ncol(Sigma)] # remove last row and column
   } # end if iid logistic normal
 
   # if logistic normal, AR1 by bin, constant correlation by sex
   if(comp_like == 4) {
-    Sigma <- kronecker(get_AR1_CorrMat(length(exp) / n_sexes, pars[2]), get_Constant_CorrMat(n_sexes, pars[3])) * pars[1]^2
+    Sigma <- kronecker(get_Constant_CorrMat(n_sexes, pars[3]), get_AR1_CorrMat(length(exp) / n_sexes, pars[2])) * (pars[1]^2 / (1 - pars[2]^2) / (1 - pars[3]^2))
     Sigma <- Sigma[-nrow(Sigma), -ncol(Sigma)] # remove last row and column
   }
 

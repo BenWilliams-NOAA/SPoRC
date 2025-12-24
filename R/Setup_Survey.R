@@ -13,7 +13,7 @@
 #' @param t_srv Survey timing fraction
 #'   [n_regions × n_srv_fleets]
 #'   (default: `0`)
-#' @param srv_idx_type Vector of index types [n_srv_fleets]
+#' @param srv_idx_type Array of index types [n_regions x n_srv_fleets]
 #'   (default: all `1` = biomass index)
 #'   \itemize{
 #'     \item \code{0}: Abundance index
@@ -91,7 +91,7 @@ Setup_Sim_Survey <- function(ObsSrvIdx_SE = array(0.2, dim = c(sim_list$n_region
                              srv_sel_input,
                              srv_q_input = array(1, dim = c(sim_list$n_regions, sim_list$n_yrs, sim_list$n_srv_fleets, sim_list$n_sims)),
                              t_srv = array(0, dim = c(sim_list$n_regions, sim_list$n_srv_fleets)),
-                             srv_idx_type = rep(1, sim_list$n_srv_fleets),
+                             srv_idx_type = array(1, dim = c(sim_list$n_regions, sim_list$n_srv_fleets)),
                              comp_srvage_like = rep(0, sim_list$n_srv_fleets),
                              ISS_SrvAgeComps = array(100, dim = c(sim_list$n_regions, sim_list$n_yrs, sim_list$n_sexes, sim_list$n_srv_fleets, sim_list$n_sims)),
                              ln_SrvAge_theta = array(log(1), dim = c(sim_list$n_regions, sim_list$n_sexes, sim_list$n_srv_fleets)),

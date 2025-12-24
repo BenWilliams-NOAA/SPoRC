@@ -125,7 +125,8 @@ simulate_comps <- function(r, y, f, sim,
             rlogistnormal(
               exp = get_expected(tmp_prob),
               pars = c(exp(ln_theta[r,s,f]), rho_trans(corr_pars[r,s,f,])),
-              comp_like = comp_like[f]
+              comp_like = comp_like[f],
+              n_sexes = n_sexes
             )
           ), age_or_len, age_error_mat),
           dim = dim(Obs[r,y,,s,f,sim, drop = FALSE])
@@ -167,7 +168,8 @@ simulate_comps <- function(r, y, f, sim,
           rlogistnormal(
             exp = get_expected(tmp_prob),
             pars = c(exp(ln_theta[r,1,f]), rho_trans(corr_pars[r,1,f,])),
-            comp_like = comp_like[f]
+            comp_like = comp_like[f],
+            n_sexes = n_sexes
           )
         ), age_or_len, age_error_mat),
         dim = dim(Obs[r,y,,,f,sim, drop = FALSE])
@@ -211,7 +213,8 @@ simulate_comps <- function(r, y, f, sim,
           rlogistnormal(
             exp = get_expected(tmp_prob),
             pars = c(exp(ln_theta_agg[f]), rho_trans(corr_pars_agg[f])),
-            comp_like = comp_like[f]
+            comp_like = comp_like[f],
+            n_sexes = n_sexes
           )
         )),
         dim = dim(Obs[1,y,,1,f,sim, drop = FALSE])
@@ -452,6 +455,7 @@ run_annual_cycle <- function(y,
                                               n_cat = n_lens,
                                               Obs = ObsFishLenComps,
                                               age_or_len = 1)
+
           } # end if size age transition if availiable
         } # end if Fmort > 0
 
@@ -819,7 +823,7 @@ Simulate_Pop_Static <- function(sim_list,
                   n_years = sim_env$n_yrs,
                   n_ages = sim_env$n_ages,
                   n_lens = if(!is.null(sim_env$n_lens)) sim_env$n_lens else NULL,
-                  n_sexes = 1:sim_env$n_sexes,
+                  n_sexes = sim_env$n_sexes,
                   n_fish_fleets = sim_env$n_fish_fleets,
                   n_srv_fleets = sim_env$n_srv_fleets
                   )
