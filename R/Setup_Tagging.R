@@ -63,6 +63,7 @@ Setup_Sim_Tagging <- function(n_tags = NULL,
   if(!is.null(Tag_Reporting_input)) check_sim_dimensions(Tag_Reporting_input, n_regions = sim_list$n_regions, n_years = sim_list$n_yrs, n_sims = sim_list$n_sims, what = "Tag_Reporting_input")
 
   # Output variables into list
+  if(!is.null(n_tags) && !is.null(n_tags_rel_input)) stop("n_tags and n_tags_rel_input cannot be specified simultaneously. n_tags is a scalar, while n_tags_rel_input specifies cohort-specific tags!")
   if(!is.null(n_tags)) sim_list$n_tags <- n_tags
   if(!is.null(n_tags_rel_input)) sim_list$n_tags_rel_input <- n_tags_rel_input
   sim_list$max_liberty <- max_liberty

@@ -741,7 +741,7 @@ variance. The simple iid case can be further extended to incorporate a
 one-dimensional lag-1 autoregressive structure:
 
 $$\begin{matrix}
-\mathbf{\Sigma =}\left( \mathbf{R}_{B} \cdot \theta^{2} \right)_{- B} \\
+\mathbf{\Sigma =}\left( \mathbf{R}_{B} \cdot \frac{\theta^{2}}{1-\rho^2_B} \right)_{- B} \\
 \left( \mathbf{R}_{B} \right)_{i,j}\mathbf{=}\rho_{B}^{|i - j|},\ \ i,j = \ 1,\ \cdots,\ B \\
 \end{matrix}$$
 
@@ -752,7 +752,7 @@ sex-structured and sex-composition data are utilized, a two-dimensional
 autoregressive structure can be specified:
 
 $$\begin{matrix}
-\mathbf{\Sigma =}\left( {\mathbf{R}_{S}\mathbf{\ \bigotimes\ R}}_{C} \cdot \theta^{2} \right)_{- B} \\
+\mathbf{\Sigma =}\left( {\mathbf{R}_{S}\mathbf{\ \bigotimes\ R}}_{C} \cdot \frac{\theta^{2}}{(1-\rho^2_S)(1-\rho^2_C)} \right)_{- B} \\
 \end{matrix}$$
 
 $$\left( \mathbf{R}_{C} \right)_{i,j}\mathbf{=}\rho_{C}^{|i - j|},\ \ i,j = \ 1,\ \cdots,\ C$$

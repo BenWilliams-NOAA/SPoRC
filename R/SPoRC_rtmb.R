@@ -350,7 +350,7 @@ RTMB::getAll(pars, data) # load in starting values and data
     n_sexes = n_sexes, # sexes
     n_ages = n_ages, # ages
     natmort = array(natmort[,1,,], dim = c(n_regions, n_ages, n_sexes)), # natural mortality in first year
-    init_F = init_F, # initial F applied (0 for unfished)
+    init_F = init_F, # initial F applied
     fish_sel = array(fish_sel[,1,,,], dim = c(n_regions, n_ages, n_sexes, n_fish_fleets)), # fishery selectivity in first year
     R0_r = R0 * Rec_trans_prop, # regional mean or virgin recruitment
     sexratio = array(sexratio[,1,], dim = c(n_regions, n_sexes)), # sex ratio in first year

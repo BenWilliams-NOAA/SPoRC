@@ -26,7 +26,7 @@
 #'           - If shorter than the number of projection years, new recruitment deviates will be simulated
 #'             based on `recruitment_opt`, `R0_input`, and `h_input` (supports changing regimes across years).
 #'           - If you want fixed recruitment for all projection years, provide a `Rec_input` array that spans all years.
-#'   - **Tagging**: `Tag_Reporting_input`, `ln_Init_Tag_Mort`, `ln_Tag_Shed`, `tag_selex`, `tag_natmort`
+#'   - **Tagging**: `Tag_Reporting_input`, `ln_Init_Tag_Mort`, `ln_Tag_Shed`, `tag_selex`, `tag_natmort`, `n_tags`, `n_tags_rel_input`
 #'   - **Movement**: `Movement` (must match the expected dimensions and be named exactly `Movement`)
 #'
 #'   The values must have the correct dimensions expected by each component.
@@ -364,6 +364,7 @@ condition_closed_loop_simulations <- function(closed_loop_yrs,
   ln_tag_theta <- if(!"ln_tag_theta" %in% names(args)) parameters$ln_tag_theta else args$ln_tag_theta
 
   # setup tagging simulation
+  if(!is.null(n_tags)) sim_list$n_tags_rel_input <- NULL # set release input to NULL if n_tags is specified.
   sim_list <- Setup_Sim_Tagging(
     sim_list = sim_list,
     max_liberty = data$max_tag_liberty,
