@@ -130,23 +130,25 @@ test_that("Three-region Sablefish RTMB model produces expected results", {
 
 
   # setting up catch data
-  input_list <- Setup_Mod_Catch_and_F(input_list = input_list,
-                                      # Data inputs
-                                      ObsCatch = three_rg_sable_data$ObsCatch,
-                                      Catch_Type = three_rg_sable_data$Catch_Type,
-                                      UseCatch = three_rg_sable_data$UseCatch,
-                                      # Model options
-                                      Use_F_pen = 1,
-                                      # whether to use f penalty, == 0 don't use, == 1 use
-                                      sigmaC_spec = 'fix',
-                                      ln_sigmaC =
-                                        array(log(0.05), dim = c(input_list$data$n_regions,
-                                                                 length(input_list$data$years),
-                                                                 input_list$data$n_fish_fleets)),
-                                      # fixing catch sd at small value
-                                      ln_F_mean = array(-2, dim = c(input_list$data$n_regions,
-                                                                    input_list$data$n_fish_fleets))
-                                      # some starting values for fishing mortality
+  input_list <- suppressWarnings(
+    Setup_Mod_Catch_and_F(input_list = input_list,
+                          # Data inputs
+                          ObsCatch = three_rg_sable_data$ObsCatch,
+                          Catch_Type = three_rg_sable_data$Catch_Type,
+                          UseCatch = three_rg_sable_data$UseCatch,
+                          # Model options
+                          Use_F_pen = 1,
+                          # whether to use f penalty, == 0 don't use, == 1 use
+                          sigmaC_spec = 'fix',
+                          ln_sigmaC =
+                            array(log(0.05), dim = c(input_list$data$n_regions,
+                                                     length(input_list$data$years),
+                                                     input_list$data$n_fish_fleets)),
+                          # fixing catch sd at small value
+                          ln_F_mean = array(-2, dim = c(input_list$data$n_regions,
+                                                        input_list$data$n_fish_fleets))
+                          # some starting values for fishing mortality
+    )
   )
 
   # Fishery Indices and Compositions
@@ -483,12 +485,14 @@ test_that("Three-region Sablefish RTMB model produces expected results", {
     2.1099395, 6.2957189, 3.8180067, 0.6894480,
     32.4643659, 22.1930391, 1.6658426, 6.3974593,
     5.1580625, 2.6236741, 78.3922492, 54.7443987,
-    4.7630196, 15.6643769, 22.3552314, 0.786718
-
+    4.7630196, 15.6643769, 22.3552314, 0.7867188,
+    25.0060657, 13.5420664, 0.5998973, 10.8377116,
+    5.2553253, 2.8740964
   )
 
-  expect_equal(as.vector(sabie_rtmb_model$rep$SSB), ssb_expected_vec, tolerance = 1e-2)
-  expect_equal(as.vector(sabie_rtmb_model$rep$Rec), rec_expected_vec, tolerance = 1e-2)
+
+  expect_equal(as.vector(sabie_rtmb_model$rep$SSB), ssb_expected_vec, tolerance = 1e-3)
+  expect_equal(as.vector(sabie_rtmb_model$rep$Rec), rec_expected_vec, tolerance = 1e-3)
   expect_true(sabie_rtmb_model$sd_rep$pdHess)
 
 })
