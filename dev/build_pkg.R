@@ -19,6 +19,7 @@ use_build_ignore("dev") # ignore dev folder
 usethis::use_build_ignore("_pkgdown.yml") # ignore pkgdown.yml
 check() # check package stuff
 # devtools::test()
+# usethis::edit_git_ignore()
 # unignore dev folder
 # rbuildignore <- readLines(".Rbuildignore")
 # rbuildignore <- rbuildignore[!grepl("^\\^dev\\$", rbuildignore)]

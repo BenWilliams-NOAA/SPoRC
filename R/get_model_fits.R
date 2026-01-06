@@ -292,8 +292,8 @@ get_comp_prop <- function(data,
   # Get quantities
   # setup ageing error if user-supplied is not year specific
   if(length(dim(data$AgeingError)) == 2) {
-    AgeingError_t <- array(0, dim = c(length(input_list$data$years), dim(data$AgeingError)))
-    for(i in 1:length(input_list$data$years)) AgeingError_t[i,,] <-  data$AgeingError
+    AgeingError_t <- array(0, dim = c(length(data$years), dim(data$AgeingError)))
+    for(i in 1:length(data$years)) AgeingError_t[i,,] <-  data$AgeingError
   }
   # ageing error if it is year specific (just reassigning)
   if(length(dim(data$AgeingError)) == 3) AgeingError_t <-  data$AgeingError
@@ -636,8 +636,8 @@ run_osa <- function(obs,
 #'     \item \code{comp_type = 2} (split by region, joint by sex): matrix
 #'       \code{[n_regions, n_years]}.
 #'   }
-#' @param years Vector of years to filter to. Must match dimensions of
-#'   \code{obs_mat} and \code{exp_mat}.
+#'   For years without data, users can simply input an NA or any abritary number (it gets filtered out within the function).
+#' @param years Vector of years to filter to if composition type is aggregated (0). Otherwise, this expects a list where each list element is a vector of years for each region where compositions are available for use (split by region and sex, or split by region, joint by sex).
 #' @param fleet Fleet identifier (character or numeric) to filter to.
 #' @param bins Vector of age or length bin labels corresponding to the
 #'   composition categories.
@@ -697,15 +697,18 @@ get_osa <- function(obs_mat,
   if (!requireNamespace("compResidual", quietly = TRUE)) {
     stop("Package 'compResidual' is required for get_osa(). Please follow installation instructions from https://github.com/fishfollower/compResidual/compResidual")
   } else{
-    obs <- obs_mat[,years,,,fleet, drop = FALSE] # get filtered observed matrix
-    exp <- exp_mat[,years,,,fleet, drop = FALSE] # get filtered expected matrix
-    n_regions <- dim(obs)[1]
-    n_sexes <- dim(obs)[4]
+
+    # get dimensions
+    n_regions <- dim(obs_mat)[1]
+    n_sexes <- dim(obs_mat)[4]
 
     # if comps are aggregated
     if(comp_type == 0) {
-      tmp_obs <- obs[1,,,1,1] # only get a single sex out
-      tmp_exp <- exp[1,,,1,1] # only get a single sex out
+
+      obs <- obs_mat[,years,,,fleet, drop = FALSE] # get filtered observed matrix
+      exp <- exp_mat[,years,,,fleet, drop = FALSE] # get filtered expected matrix
+      tmp_obs <- obs[1,,,1,1] # only get a single sex and single region out since aggregated
+      tmp_exp <- exp[1,,,1,1] # only get a single sex and single region out since aggregated
 
       # compute OSA
       tmp_osa <- run_osa(obs = tmp_obs, exp = tmp_exp, N = N, DM_theta = DM_theta,
@@ -728,12 +731,15 @@ get_osa <- function(obs_mat,
 
       for(r in 1:n_regions) {
         for(s in 1:n_sexes) {
+
+          obs <- obs_mat[,years[[r]],,,fleet, drop = FALSE] # get filtered observed matrix
+          exp <- exp_mat[,years[[r]],,,fleet, drop = FALSE] # get filtered expected matrix
           tmp_obs <- obs[r,,,s,1] # get observations
           tmp_exp <- exp[r,,,s,1] # get expected
 
           # compute OSA
-          tmp_osa <- run_osa(obs = tmp_obs, exp = tmp_exp, N = N[r,,s], DM_theta = DM_theta[r,s],
-                             years = years, comp_like = comp_like, LN_Sigma = LN_Sigma[r,,,s],
+          tmp_osa <- run_osa(obs = tmp_obs, exp = tmp_exp, N = N[r,years[[r]],s], DM_theta = DM_theta[r,s],
+                             years = years[[r]], comp_like = comp_like, LN_Sigma = LN_Sigma[r,,,s],
                              index = bins, fleet = as.character(fleet), index_label = bin_label)
 
           # Doing some naming stuff
@@ -759,6 +765,9 @@ get_osa <- function(obs_mat,
 
       for(r in 1:n_regions) {
 
+        obs <- obs_mat[,years[[r]],,,fleet, drop = FALSE] # get filtered observed matrix
+        exp <- exp_mat[,years[[r]],,,fleet, drop = FALSE] # get filtered expected matrix
+
         # initialize to cbind
         tmp_obs <- NULL
         tmp_exp <- NULL
@@ -769,7 +778,8 @@ get_osa <- function(obs_mat,
         } # end s loop
 
         # compute OSA
-        tmp_osa <- run_osa(obs = tmp_obs, exp = tmp_exp, N = N[r,], DM_theta = DM_theta[r], years = years, comp_like = comp_like, LN_Sigma = LN_Sigma[r,,],
+        tmp_osa <- run_osa(obs = tmp_obs, exp = tmp_exp, N = N[r,years[[r]]],
+                           DM_theta = DM_theta[r], years = years[[r]], comp_like = comp_like, LN_Sigma = LN_Sigma[r,,],
                            index = paste(rep(1:n_sexes, each = length(bins)), "_", rep(bins, times = n_sexes), sep = ""),
                            fleet = as.character(fleet), index_label = bin_label)
 
