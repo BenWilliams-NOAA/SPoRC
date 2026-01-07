@@ -670,6 +670,7 @@ run_osa <- function(obs,
 #'     \item joint by sex: array \code{[n_regions, n_bins, n_bins]}
 #'   }
 #'   Use [get_logistN_Sigma()] to help construct this input.
+#' @param addtocomp Constant that is added to compositions
 #'
 #' @return A list with one element:
 #' \describe{
@@ -691,7 +692,8 @@ get_osa <- function(obs_mat,
                     bins,
                     comp_type,
                     bin_label,
-                    comp_like = 0
+                    comp_like = 0,
+                    addtocomp = 0
                     ) {
 
   if (!requireNamespace("compResidual", quietly = TRUE)) {
@@ -709,6 +711,10 @@ get_osa <- function(obs_mat,
       exp <- exp_mat[,years,,,fleet, drop = FALSE] # get filtered expected matrix
       tmp_obs <- obs[1,,,1,1] # only get a single sex and single region out since aggregated
       tmp_exp <- exp[1,,,1,1] # only get a single sex and single region out since aggregated
+
+      # normalize
+      tmp_obs <- (tmp_obs + addtocomp) / rowSums(tmp_obs + addtocomp)
+      tmp_exp <- (tmp_exp + addtocomp) / rowSums(tmp_exp + addtocomp)
 
       # compute OSA
       tmp_osa <- run_osa(obs = tmp_obs, exp = tmp_exp, N = N, DM_theta = DM_theta,
@@ -734,8 +740,13 @@ get_osa <- function(obs_mat,
 
           obs <- obs_mat[,years[[r]],,,fleet, drop = FALSE] # get filtered observed matrix
           exp <- exp_mat[,years[[r]],,,fleet, drop = FALSE] # get filtered expected matrix
+
           tmp_obs <- obs[r,,,s,1] # get observations
           tmp_exp <- exp[r,,,s,1] # get expected
+
+          # normalize
+          tmp_obs <- (tmp_obs + addtocomp) / rowSums(tmp_obs + addtocomp)
+          tmp_exp <- (tmp_exp + addtocomp) / rowSums(tmp_exp + addtocomp)
 
           # compute OSA
           tmp_osa <- run_osa(obs = tmp_obs, exp = tmp_exp, N = N[r,years[[r]],s], DM_theta = DM_theta[r,s],
@@ -776,6 +787,10 @@ get_osa <- function(obs_mat,
           tmp_obs <- cbind(tmp_obs, obs[r,,,s,1]) # get observations
           tmp_exp <- cbind(tmp_exp, exp[r,,,s,1]) # get expected
         } # end s loop
+
+        # normalize
+        tmp_obs <- (tmp_obs + addtocomp) / rowSums(tmp_obs + addtocomp)
+        tmp_exp <- (tmp_exp + addtocomp) / rowSums(tmp_exp + addtocomp)
 
         # compute OSA
         tmp_osa <- run_osa(obs = tmp_obs, exp = tmp_exp, N = N[r,years[[r]]],
