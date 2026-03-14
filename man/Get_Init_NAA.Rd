@@ -24,8 +24,9 @@ Get_Init_NAA(
 \arguments{
 \item{init_age_strc}{Integer specifying the initialization method for the age structure:
 - 0: Iterative solution to equilibrium
-- 1: Scalar geometric series solution (no movement in plus group)
-- 2: Matrix geometric series solution (generalizes scalar solution with movement)}
+- 1: Scalar geometric series solution w/o movement in any groups (no movement in all groups)
+- 2: Matrix geometric series solution (generalizes scalar solution with movement)
+- 3: Scalar geometric series solution w/o movement only in plus group (no movement in plus groups)}
 
 \item{init_iter}{Integer; number of iterations to run when `init_age_strc = 0`.}
 

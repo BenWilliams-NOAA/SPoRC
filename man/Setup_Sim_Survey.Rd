@@ -12,7 +12,7 @@ Setup_Sim_Survey(
   srv_q_input = array(1, dim = c(sim_list$n_regions, sim_list$n_yrs,
     sim_list$n_srv_fleets, sim_list$n_sims)),
   t_srv = array(0, dim = c(sim_list$n_regions, sim_list$n_srv_fleets)),
-  srv_idx_type = rep(1, sim_list$n_srv_fleets),
+  srv_idx_type = array(1, dim = c(sim_list$n_regions, sim_list$n_srv_fleets)),
   comp_srvage_like = rep(0, sim_list$n_srv_fleets),
   ISS_SrvAgeComps = array(100, dim = c(sim_list$n_regions, sim_list$n_yrs,
     sim_list$n_sexes, sim_list$n_srv_fleets, sim_list$n_sims)),
@@ -54,7 +54,7 @@ Setup_Sim_Survey(
 [n_regions × n_srv_fleets]
 (default: `0`)}
 
-\item{srv_idx_type}{Vector of index types [n_srv_fleets]
+\item{srv_idx_type}{Array of index types [n_regions x n_srv_fleets]
 (default: all `1` = biomass index)
 \itemize{
   \item \code{0}: Abundance index

@@ -23,6 +23,7 @@ Setup_Mod_Srvsel_and_Q(
   srv_selex_prior = NULL,
   t_srv = array(0.5, dim = c(input_list$data$n_regions, input_list$data$n_srv_fleets)),
   cont_tv_srv_sel_penalty = TRUE,
+  srvsel_devs_shared_ages = NULL,
   ...
 )
 }
@@ -72,7 +73,7 @@ The default for each fleet is \code{"none_Fleet_x"} (i.e., no selectivity blocks
 Each element must follow one of the following structures:
 \itemize{
   \item \code{"<selectivity model>_Fleet_<fleet number>"}
-  \item \code{"<selectivity model>_Block_<block number>_Fleet_<fleet number>"}
+  \item \code{"<selectivity model>_Fleet_<fleet number>_Block_<block number>"}
 }
 
 The first form applies a single selectivity model across all years for the specified fleet.
@@ -260,6 +261,8 @@ This avoids issues with list structure but does not affect the design matrix or 
 \item{t_srv}{Survey timing in fractions (n_regions * n_srv_fleets; default is 0.5)}
 
 \item{cont_tv_srv_sel_penalty}{Whether or not to apply continuous time-varying selectivity penalties (if cont_tv_srv_sel > 0)}
+
+\item{srvsel_devs_shared_ages}{List object for specifying which ages are shared when selectivity deviations are semi-parametric (e.g., list(1:5, 6:10, 11:30) specifies that ages 1-5, 6-10, and 11-30 have the same deviations.)}
 
 \item{...}{Additional arguments specifying starting values for survey selectivity and catchability parameters (srvsel_pe_pars, ln_srvsel_devs, ln_srv_fixed_sel_pars, ln_srv_q, srv_q_coeff)}
 }

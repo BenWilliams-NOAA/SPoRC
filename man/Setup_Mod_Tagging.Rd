@@ -18,8 +18,8 @@ Setup_Mod_Tagging(
   tag_natmort = NA,
   Use_TagRep_Prior = 0,
   TagRep_Prior = NULL,
-  move_age_tag_pool = NA,
-  move_sex_tag_pool = NA,
+  move_age_tag_pool = as.list(1:length(input_list$data$ages)),
+  move_sex_tag_pool = as.list(1:input_list$data$n_sexes),
   Init_Tag_Mort_spec = NULL,
   Tag_Shed_spec = NULL,
   TagRep_spec = "fix",
@@ -84,14 +84,14 @@ Must include columns: \code{region} (region index), \code{block} (time block ind
 Each row specifies a beta prior for one tag reporting parameter.
 Only parameters with rows in this data frame will have priors applied.}
 
-\item{move_age_tag_pool}{List or character specifying pooling of tagging data by age groups. Examples:
+\item{move_age_tag_pool}{List or character specifying pooling of tagging data by age groups. Default does not pool ages. Examples:
 \itemize{
   \item \code{list(1:5, 6:11, 12:20)} pools these age groups together
   \item \code{"all"} pools all ages together (internally converted to \code{list(1:n_ages)})
   \item \code{as.list(1:n_ages)} fits each sex separately
 }}
 
-\item{move_sex_tag_pool}{List or character specifying pooling of tagging data by sex groups. Examples:
+\item{move_sex_tag_pool}{List or character specifying pooling of tagging data by sex groups. Default do not pool sexes. Examples:
 \itemize{
   \item \code{list(1:2)} pools sexes together
   \item \code{"all"} pools all sexes together (internally converted to \code{list(1:n_sexes)})
@@ -109,7 +109,7 @@ Only parameters with rows in this data frame will have priors applied.}
   \item \code{"fix"} fixes all reporting rates (no estimation)
 }}
 
-\item{Tag_Reporting_blocks}{Character vector specifying blocks of years and regions for tag reporting rates. Format examples:
+\item{Tag_Reporting_blocks}{Character vector specifying blocks of years and regions for tag reporting rates. Default is a single block for all regions. Format examples:
 \itemize{
   \item \code{"Block_1_Year_1-15_Region_1"}
   \item \code{"Block_2_Year_16-terminal_Region_2"}

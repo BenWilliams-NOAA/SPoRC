@@ -86,8 +86,9 @@ For example, with 65 years total, \code{c(21, 31, 60, 64)} means:
 \item{init_age_strc}{Integer flag specifying initialization of initial age structure:
 \itemize{
   \item \code{0}: Initialize by iteration.
-  \item \code{1}: Initialize using a scalar geometric series (does not account for movement).
+  \item \code{1}: Initialize using a scalar geometric series w/o any movement in all groups (does not account for movement in all group).
   \item \code{2}: Initialize using a matrix geometric series (accounts for movement; default).
+  \item \code{3}: Initialize using a scalar geometric series w/o any movement in only plus groups (does not account for movement in plus group).
 }}
 
 \item{equil_init_age_strc}{Integer flag specifying how initial age structure deviations should be initialized. Default is stochastic for all ages except the recruitment age and the plus group.

@@ -30,6 +30,7 @@ Imports:
     MASS,
     Matrix,
     methods,
+    nleqslv,
     parallel,
     progressr,
     randtests,
@@ -40,14 +41,16 @@ Imports:
     TMB
 Suggests: 
     compResidual,
+    igraph,
     knitr,
     purrr,
     rmarkdown,
+    splines2,
     testthat (>= 3.0.0)
 VignetteBuilder: 
     knitr
+Config/testthat/edition: 3
 Encoding: UTF-8
 LazyData: true
 LazyDataCompression: xz
-RoxygenNote: 7.3.2
-Config/testthat/edition: 3
+RoxygenNote: 7.3.3

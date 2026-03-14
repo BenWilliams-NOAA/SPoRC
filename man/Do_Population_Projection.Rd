@@ -28,7 +28,8 @@ Do_Population_Projection(
   recruitment_opt = "inv_gauss",
   fmort_opt = "HCR",
   t_spawn,
-  bh_rec_opt = NULL
+  bh_rec_opt = NULL,
+  init_F = 0
 )
 }
 \arguments{
@@ -74,7 +75,17 @@ Do_Population_Projection(
 
 \item{recruitment_opt}{Recruitment simulation option, where options are "inv_gauss", which simulates future recruitment based on the the recruitment values supplied using an inverse gaussian distribution, "mean_rec", which takes the mean of the recruitment values supplied for a given region, and "zero", which assumes that future recruitment does not occur}
 
-\item{fmort_opt}{Fishing Mortality option, which includes "HCR", which modifies the F reference point using a user supplied HCR_function, or "Input", which uses projected F values supplied by the user.}
+\item{fmort_opt}{Fishing mortality option. Choices are:
+
+* **"HCR"** – Applies the user-supplied `HCR_function` using region-specific
+  SSB, F reference point, and biomass reference point.
+
+* **"HCR_global"** – Applies the `HCR_function` using global SSB (summed
+  across regions) and a global biomass reference point (sum of the
+  region-specific biomass reference points). Each region's biomass reference
+  point should be defined individually; the function performs the summation.
+
+* **"Input"** – Uses user-supplied projected fishing mortality values directly.}
 
 \item{t_spawn}{Fraction time of spawning used to compute projected SSB}
 
@@ -90,6 +101,8 @@ Do_Population_Projection(
 \item{natmort}{A natural mortality at age array dimensioned by n_regions, n_ages, and n_sexes, where the reference year should utilize values from the first year}
 \item{SSB}{All SSB values estimated from a given model, dimensioned by n_regions and n_yrs}
 }}
+
+\item{init_F}{Scalar of initial F value to apply for deriving beverton holt recruitment; default is set at 0.}
 }
 \value{
 A list containing projected F, catch, SSB (and dynamic unfished), and Numbers at Age (and dynamic unfished). (Objects are generally dimensioned in the following order: n_regions, n_yrs, n_ages, n_sexes, n_fleets)

@@ -126,7 +126,7 @@ global_SPR <- function(pars,
   # compute survival
   s_penult_unfished = exp(-natmort[, n_ages - 1])  # survival of age n_ages-1 (unfished)
   s_plus_unfished = exp(-natmort[, n_ages])  # survival in plus group (unfished)
-  s_penult_fished = exp(-tmp_Z_plus)  # survival of age n_ages-1 (fished)
+  s_penult_fished = exp(-tmp_Z_penult)  # survival of age n_ages-1 (fished)
   s_plus_fished = exp(-tmp_Z_plus)  # survival in plus group (fished)
   I_mat = diag(n_regions) # identity matrix to solve
 
@@ -148,11 +148,14 @@ global_SPR <- function(pars,
   N_plus_equil_fished = solve(I_mat - T_mat_fished, source_fished)
   Nspr[2,, n_ages] = N_plus_equil_fished
 
+  N_plus_post_unfished_spwn = as.numeric(t(N_plus_equil_unfished) %*% M_plus)
+  N_plus_post_fished_spwn   = as.numeric(t(N_plus_equil_fished)   %*% M_plus)
+
   # Calculate spawning biomass and catch for plus group
   for(d in 1:n_regions) {
-    SB_age[1,d, n_ages] = N_plus_equil_unfished[d] * WAA[d, n_ages] *
+    SB_age[1,d, n_ages] = N_plus_post_unfished_spwn[d] * WAA[d, n_ages] *
       MatAA[d, n_ages] * exp(-t_spwn * natmort[d, n_ages])
-    SB_age[2, d, n_ages] = N_plus_equil_fished[d] * WAA[d, n_ages] *
+    SB_age[2, d, n_ages] = N_plus_post_fished_spwn[d] * WAA[d, n_ages] *
       MatAA[d, n_ages] * exp(-t_spwn * tmp_Z_plus[d])
   }
 
@@ -319,10 +322,11 @@ global_BH_Fmsy <- function(pars,
   tmp_Z_penult = tmp_F_penult + natmort[, n_ages - 1]
   tmp_F_plus = apply(F_fract_flt * Fmsy * fish_sel[, n_ages, , drop = FALSE], 1, sum)
   tmp_Z_plus = tmp_F_plus + natmort[, n_ages]
+
   # compute survival
   s_penult_unfished = exp(-natmort[, n_ages - 1])  # survival of age n_ages-1 (unfished)
   s_plus_unfished = exp(-natmort[, n_ages])  # survival in plus group (unfished)
-  s_penult_fished = exp(-tmp_Z_plus)  # survival of age n_ages-1 (fished)
+  s_penult_fished = exp(-tmp_Z_penult)  # survival of age n_ages-1 (fished)
   s_plus_fished = exp(-tmp_Z_plus)  # survival in plus group (fished)
   I_mat = diag(n_regions) # identity matrix to solve
 
@@ -344,13 +348,17 @@ global_BH_Fmsy <- function(pars,
   N_plus_equil_fished = solve(I_mat - T_mat_fished, source_fished)
   Nspr[2,, n_ages] = N_plus_equil_fished
 
+  N_plus_post_unfished_spwn = as.numeric(t(N_plus_equil_unfished) %*% M_plus)
+  N_plus_post_fished_spwn   = as.numeric(t(N_plus_equil_fished)   %*% M_plus)
+
   # Calculate spawning biomass and catch for plus group
   for(d in 1:n_regions) {
-    SB_age[1,d, n_ages] = N_plus_equil_unfished[d] * WAA[d, n_ages] *
+    SB_age[1,d, n_ages] = N_plus_post_unfished_spwn[d] * WAA[d, n_ages] *
       MatAA[d, n_ages] * exp(-t_spwn * natmort[d, n_ages])
-    SB_age[2, d, n_ages] = N_plus_equil_fished[d] * WAA[d, n_ages] *
+    SB_age[2, d, n_ages] = N_plus_post_fished_spwn[d] * WAA[d, n_ages] *
       MatAA[d, n_ages] * exp(-t_spwn * tmp_Z_plus[d])
-    CAA[d, n_ages] = N_plus_equil_fished[d] * (tmp_F_plus[d] / tmp_Z_plus[d]) * (1 - exp(-tmp_Z_plus[d]))
+    CAA[d, n_ages] = N_plus_post_fished_spwn[d] * (tmp_F_plus[d] / tmp_Z_plus[d]) *   # get CAA for plus group here
+      (1 - exp(-tmp_Z_plus[d]))
   }
 
   # Get spawning biomass per recruit to get spawning potential ratio
@@ -365,10 +373,6 @@ global_BH_Fmsy <- function(pars,
   Yield = sum(CAA * WAA) * Req
   Yield_r = rowSums(CAA * WAA) * Req
 
-  # Get Bmsy
-  Bmsy = SBPR_F * Req
-  B0 = SBPR_0 * R0
-
   # compute objective function to get Fmsy
   obj_fun = -Yield
 
@@ -379,8 +383,6 @@ global_BH_Fmsy <- function(pars,
   RTMB::REPORT(Fmsy)
   RTMB::REPORT(Yield)
   RTMB::REPORT(Yield_r)
-  RTMB::REPORT(Bmsy)
-  RTMB::REPORT(B0)
   RTMB::REPORT(Req)
   RTMB::REPORT(SPR)
 
@@ -840,7 +842,7 @@ Get_Reference_Points <- function(data,
 
       # Recruitment options
       data_list$do_recruits_move <- data$do_recruits_move # whether recruits move
-      data_list$Rec_Prop <- rep$Rec_trans_prop # recruitment proportions
+      data_list$Rec_Prop <- rowMeans(rep$Rec[,calc_rec_st_yr:(n_years - rec_age)]) / sum(rowMeans(rep$Rec[,calc_rec_st_yr:(n_years - rec_age)]))  # recruitment proportions
       data_list$sex_ratio_f <- sex_ratio_f # recritment sex ratio
 
       data_list$SPR_x <- SPR_x # SPR fraction
@@ -855,8 +857,8 @@ Get_Reference_Points <- function(data,
 
       # output reference points
       f_ref_pt <- rep(obj$rep$F_x, n_regions)
-      b_ref_pt <- obj$rep$SB_F_x * rowMeans(rep$Rec[,calc_rec_st_yr:(n_years - rec_age)])
-      virgin_b_ref_pt <- obj$rep$SB0 * rowMeans(rep$Rec[,calc_rec_st_yr:(n_years - rec_age)])
+      b_ref_pt <- apply(obj$rep$SB_age[2,,,drop = FALSE], 2, sum)  * sum(rowMeans(rep$Rec[,calc_rec_st_yr:(n_years - rec_age)]))
+      virgin_b_ref_pt <- apply(obj$rep$SB_age[1,,,drop = FALSE], 2, sum) * sum(rowMeans(rep$Rec[,calc_rec_st_yr:(n_years - rec_age)]))
 
     } # end global SPR
 
@@ -908,8 +910,8 @@ Get_Reference_Points <- function(data,
 
       # Output reference points
       f_ref_pt <- rep(obj$rep$Fmsy, n_regions)
-      b_ref_pt <- obj$rep$Bmsy * rep$Rec_trans_prop
-      virgin_b_ref_pt <- obj$rep$B0 * rep$Rec_trans_prop
+      b_ref_pt <- apply(obj$rep$SB_age[2,,,drop = FALSE], 2, sum) * sum(obj$rep$Req)
+      virgin_b_ref_pt <- apply(obj$rep$SB_age[1,,,drop = FALSE], 2, sum) * data_list$R0
     }
 
     if(what == 'local_BH_MSY') {
