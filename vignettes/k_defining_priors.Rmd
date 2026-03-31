@@ -218,9 +218,16 @@ input_list <- Setup_Mod_Dim(years = 1:length(mlt_rg_sable_data$years),
 )
 ```
 
-Because movement parameters are correlated and must sum to 1, `SPoRC` uses a Dirichlet prior to model movement probabilities. To illustrate, we set up the movement specification using the `Setup_Mod_Movement` function. Movement priors are enabled by setting `Use_Movement_Prior = 1`. The `Movement_prior` argument can be provided as a scalar (as in the example below), a vector, or a fully specified array. A scalar value, such as 1.5, implies a vague, symmetric Dirichlet prior that mildly penalizes values near the extremes (i.e., near 0 or 1).
+Because movement parameters are correlated and must sum to 1, `SPoRC` uses a Dirichlet prior to model movement probabilities. To illustrate, we set up the movement specification using the `Setup_Mod_Movement` function. Movement priors are enabled by setting `Use_Movement_Prior = 1`. The `Movement_prior` argument must be provided as a dataframe where each row corresponds to an origin region (and age or sex index) and includes a list-column alpha specifying the Dirichlet shape parameters that define the prior over movement probabilities to all destination regions.
 
 ```{r}
+prior <- expand.grid(
+    region_from = 1:input_list$data$n_regions, # regions
+    age = 1, # age blocks
+    sex = 1, # sex
+    alpha = I(list(rep(2, input_list$data$n_regions))) # prior alpha to each row
+  )
+
 # setting up movement parameterization
 input_list <- Setup_Mod_Movement(input_list = input_list,
                                  # Model options
@@ -230,20 +237,9 @@ input_list <- Setup_Mod_Movement(input_list = input_list,
                                  Movement_yearblk_spec = "constant", # time-invariant movement
                                  Movement_sexblk_spec = "constant", # sex-invariant movement
                                  Use_Movement_Prior = 1, # priors used for movement
-                                 Movement_prior = 1.5  # vague prior to penalize movement away from the extremes
+                                 Movement_prior = prior  # vague prior to penalize movement away from the extremes
                                  )
 ```
-
-If a vector or array is supplied to `Movement_prior`, it will be reshaped to match the full set of movement dimensions:
-
-```{r}
-# array(Movement_prior, dim = c(input_list$data$n_regions, input_list$data$n_regions,
-#                               length(input_list$data$years), 
-#                               length(input_list$data$ages), 
-#                               input_list$data$n_sexes))
-```
-
-It is important to ensure that the shape and values of the prior align with the structure of the movement parameters being estimated. Note that priors are only applied to the unique movement parameters. Thus, if movement is specified as constant across time, age, and sex, only one prior will be applied, regardless of the dimensionality of the array provided.
 
 # Tag Reporting Rates
 Defining priors for tag reporting rates is done by constructing a dataframe and passing it to the `Setup_Mod_Tagging` function. The dataframe must contain the following columns: `region`, `block`, `mu`, `sd`, and `type.` These columns define the region and time block the prior applies to, the mean and standard deviation of the prior distribution, and the type of beta prior to use. Two prior types are supported: a symmetric beta prior (`type = 0`), which penalizes extreme values near 0 and 1, and a standard beta prior (`type = 1`), which allows users to specify both the mean and standard deviation directly.

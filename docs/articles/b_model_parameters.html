@@ -537,20 +537,34 @@ specified as random effects)</td>
 <tr class="odd">
 <td><code>move_pars</code></td>
 <td><code>n_regions, n_regions - 1, n_years, n_ages, n_sexes</code></td>
-<td>Logit-scale movement probabilities</td>
+<td>Logit-scale movement probabilities (unstructured Markov; move_type =
+0)</td>
 <td>0</td>
 </tr>
 <tr class="even">
-<td><code>logit_move_devs</code></td>
+<td><code>log_move_diffusion_pars</code></td>
+<td>(Vector; Depends on formula)</td>
+<td>Log-scale diffusion parameters for CTMC movement (move_type =
+1)</td>
+<td>log(0.1)</td>
+</tr>
+<tr class="odd">
+<td><code>move_preference_pars</code></td>
+<td>(Vector; Depends on formula)</td>
+<td>Preference parameters for CTMC movement (move_type = 1)</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<td><code>move_devs</code></td>
 <td><code>n_regions, n_regions - 1, n_years + n_proj_yrs_devs, n_ages, n_sexes</code></td>
-<td>Logit-scale movement deviations w/ projection years (can be
-specified as random effects)</td>
+<td>Log Movement deviations w/ projection years (can be specified as
+random effects)</td>
 <td>0</td>
 </tr>
 <tr class="odd">
 <td><code>move_pe_pars</code></td>
-<td><code>n_regions, n_ages, n_sexes</code></td>
-<td>Process error parameters for movement</td>
+<td><code>n_regions, max(4, n_ages), n_sexes</code></td>
+<td>Process error parameters for continuously varying movement</td>
 <td>0</td>
 </tr>
 </tbody>
@@ -611,7 +625,7 @@ specified as random effects)</td>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.2.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer>

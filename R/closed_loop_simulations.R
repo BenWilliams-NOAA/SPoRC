@@ -26,7 +26,7 @@
 #'           - If shorter than the number of projection years, new recruitment deviates will be simulated
 #'             based on `recruitment_opt`, `R0_input`, and `h_input` (supports changing regimes across years).
 #'           - If you want fixed recruitment for all projection years, provide a `Rec_input` array that spans all years.
-#'   - **Tagging**: `Tag_Reporting_input`, `ln_Init_Tag_Mort`, `ln_Tag_Shed`, `tag_selex`, `tag_natmort`
+#'   - **Tagging**: `Tag_Reporting_input`, `ln_Init_Tag_Mort`, `ln_Tag_Shed`, `tag_selex`, `tag_natmort`, `n_tags`, `n_tags_rel_input`
 #'   - **Movement**: `Movement` (must match the expected dimensions and be named exactly `Movement`)
 #'
 #'   The values must have the correct dimensions expected by each component.
@@ -74,6 +74,32 @@ condition_closed_loop_simulations <- function(closed_loop_yrs,
 
   # Additional user inputs as desired
   args <- list(...)
+
+  # Detect partial matching: if *_fill received an array, it was meant as data
+  if(is.array(ISS_FishAgeComps_fill)) {
+    args$ISS_FishAgeComps <- ISS_FishAgeComps_fill
+    ISS_FishAgeComps_fill <- "placeholder"
+  }
+  if(is.array(ISS_FishLenComps_fill)) {
+    args$ISS_FishLenComps <- ISS_FishLenComps_fill
+    ISS_FishLenComps_fill <- "placeholder"
+  }
+  if(is.array(ISS_SrvAgeComps_fill)) {
+    args$ISS_SrvAgeComps <- ISS_SrvAgeComps_fill
+    ISS_SrvAgeComps_fill <- "placeholder"
+  }
+  if(is.array(ISS_SrvLenComps_fill)) {
+    args$ISS_SrvLenComps <- ISS_SrvLenComps_fill
+    ISS_SrvLenComps_fill <- "placeholder"
+  }
+  if(is.array(FishIdx_SE_fill)) {
+    args$ObsFishIdx_SE <- FishIdx_SE_fill
+    FishIdx_SE_fill <- "placeholder"
+  }
+  if(is.array(SrvIdx_SE_fill)) {
+    args$ObsSrvIdx_SE <- SrvIdx_SE_fill
+    SrvIdx_SE_fill <- "placeholder"
+  }
 
   optim_parameters_list <- get_optim_param_list(parameters, mapping, sd_rep, random) # get optimized parameters in original list format
 
@@ -338,6 +364,7 @@ condition_closed_loop_simulations <- function(closed_loop_yrs,
   ln_tag_theta <- if(!"ln_tag_theta" %in% names(args)) parameters$ln_tag_theta else args$ln_tag_theta
 
   # setup tagging simulation
+  if(!is.null(n_tags)) sim_list$n_tags_rel_input <- NULL # set release input to NULL if n_tags is specified.
   sim_list <- Setup_Sim_Tagging(
     sim_list = sim_list,
     max_liberty = data$max_tag_liberty,
@@ -442,7 +469,7 @@ get_closed_loop_reference_points <- function(use_true_values,
   } else {
     data_obj <- asmt_data
     rep_obj <- asmt_rep
-    tmp_sex_ratio_f <- if(data_obj$n_sexes == 1) 0.5 else rep$sexratio[,y,1]
+    tmp_sex_ratio_f <- if(data_obj$n_sexes == 1) 0.5 else rep_obj$sexratio[,y,1]
   }
 
   # get reference points based on true values
@@ -459,9 +486,9 @@ get_closed_loop_reference_points <- function(use_true_values,
   )
 
   # extract fishery and biological reference points
-  f_ref_pt <- array(reference_points$f_ref_pt, dim = c(sim_env$n_regions, n_proj_yrs)) # fishery reference points
-  b_ref_pt <- array(reference_points$b_ref_pt, dim = c(sim_env$n_regions, n_proj_yrs)) # biological reference points
-  virgin_b_ref_pt <- array(reference_points$virgin_b_ref_pt, dim = c(sim_env$n_regions, n_proj_yrs)) # biological reference points
+  f_ref_pt <- array(reference_points$f_ref_pt, dim = c(data_obj$n_regions, n_proj_yrs)) # fishery reference points
+  b_ref_pt <- array(reference_points$b_ref_pt, dim = c(data_obj$n_regions, n_proj_yrs)) # biological reference points
+  virgin_b_ref_pt <- array(reference_points$virgin_b_ref_pt, dim = c(data_obj$n_regions, n_proj_yrs)) # biological reference points
 
   return(list(f_ref_pt = f_ref_pt, b_ref_pt = b_ref_pt, virgin_b_ref_pt = virgin_b_ref_pt))
 }

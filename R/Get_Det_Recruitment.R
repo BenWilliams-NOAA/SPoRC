@@ -28,6 +28,8 @@
 #' @param do_recruits_move Logical or integer flag (0/1) indicating whether recruits move during their first year
 #' @param t_spawn Fraction of the year at which spawning occurs (used for survival to spawning)
 #' @param sex_ratio_f Vector of female proportions by region (used to scale initial recruits)
+#' @param init_F Scalar for initial F value to apply
+#' @param fish_sel Array of fishery selectivity of dominant fleet (fleet 1) dimensioned by n_regions x n_ages
 #'
 #' @details
 #' The function returns region-specific deterministic recruitment estimates
@@ -59,7 +61,9 @@ Get_Det_Recruitment <- function(recruitment_model,
                                 Movement,
                                 do_recruits_move,
                                 t_spawn,
-                                sex_ratio_f
+                                sex_ratio_f,
+                                init_F,
+                                fish_sel
                                 ) {
 
   "c" <- RTMB::ADoverload("c")
@@ -70,24 +74,20 @@ Get_Det_Recruitment <- function(recruitment_model,
   # Beverton-Holt
   if(recruitment_model == 1) {
 
-    # Storage for recruitment and S0
-    rec = S0 = rep(0, n_regions)
-    # Restructure some stuff
-    tmp_natmort <- array(natmort, dim = c(n_regions, n_ages))
-    tmp_WAA <- array(WAA, dim = c(n_regions, n_ages))
-    tmp_MatAA <- array(MatAA, dim = c(n_regions, n_ages))
+    # Storage for recruitment, S0, and SF (equilibrium fished)
+    rec = S0 = SF = rep(0, n_regions)
 
     # local density dependence
     if(recruitment_dd == 0) {
       # Calculate unexploited naa per recruit by origin area and destination area
-      SB_age = Nspr = array(0, dim = c(n_regions, n_regions, n_ages))
-      SB_unfished_mat = array(0, c(n_regions, n_regions))
+      SB_fished_age = Nspr_fished = SB_age = Nspr = array(0, dim = c(n_regions, n_regions, n_ages))
+      SB_fished_mat = SB_unfished_mat = array(0, c(n_regions, n_regions))
 
       # Set up the initial recruits (1 recruit per area)
       for(o in 1:n_regions) {
         for(d in 1:n_regions) {
-          if(o == d) Nspr[o,d,1] = 1 * sex_ratio_f[o]
-          else Nspr[o,d,1] = 0
+          if(o == d) Nspr_fished[o,d,1] = Nspr[o,d,1] = 1 * sex_ratio_f[o]
+          else Nspr_fished[o,d,1] = Nspr[o,d,1] = 0
         } # end d loop
       } # end o loop
 
@@ -95,16 +95,27 @@ Get_Det_Recruitment <- function(recruitment_model,
       for(j in 2:n_ages) {
         # move individuals from origin region and move them around
         for(o in 1:n_regions) {
+
           # Get temporary values from origin region
           tmp_unfished = Nspr[o,,j-1]
+          tmp_fished = Nspr_fished[o,,j-1]
+
           # Apply movement
           if(do_recruits_move == 1 || (do_recruits_move == 0 && j > 2)) {
             tmp_unfished = t(tmp_unfished) %*% Movement[,,j - 1]
+            tmp_fished = t(tmp_fished) %*% Movement[,,j - 1]
           }
+
           # compute pr quantities here (before mortality)
-          for(d in 1:n_regions) SB_age[o,d,j-1] = tmp_unfished[d] * tmp_WAA[d,j - 1] * tmp_MatAA[d,j - 1] * exp(-t_spawn * tmp_natmort[d,j - 1])
+          for(d in 1:n_regions) {
+            SB_age[o,d,j-1] = tmp_unfished[d] * WAA[d,j - 1] * MatAA[d,j - 1] * exp(-t_spawn * natmort[d,j - 1])
+            SB_fished_age[o,d,j-1] = tmp_fished[d] * WAA[d,j - 1] * MatAA[d,j - 1] * exp(-t_spawn * (natmort[d,j - 1] + init_F * fish_sel[d, j-1]))
+          } # end d loop
+
           # decrement fish and project forward
-          Nspr[o,,j] = tmp_unfished * exp(-1 * tmp_natmort[, j - 1])
+          Nspr[o,,j] = tmp_unfished * exp(-1 * natmort[, j - 1])
+          Nspr_fished[o,,j] = tmp_fished * exp(-1 * (natmort[, j - 1] + init_F * fish_sel[, j-1]))
+
         } # end o loop
       } # end j loop
 
@@ -113,85 +124,133 @@ Get_Det_Recruitment <- function(recruitment_model,
       M_plus = Movement[,, n_ages]  # movement for plus group
 
       # compute survival
-      s_penult_unfished = exp(-tmp_natmort[, n_ages - 1])  # survival of age n_ages-1 (unfished)
-      s_plus_unfished = exp(-tmp_natmort[, n_ages])  # survival in plus group (unfished)
+      s_penult_unfished = exp(-natmort[, n_ages - 1])  # survival of age n_ages-1 (unfished)
+      s_plus_unfished = exp(-natmort[, n_ages])  # survival in plus group (unfished)
+      s_penult_fished = exp(-(natmort[, n_ages - 1] + init_F * fish_sel[, n_ages-1]))  # survival of age n_ages-1 (fished)
+      s_plus_fished = exp(-(natmort[, n_ages] + init_F * fish_sel[, n_ages]))  # survival in plus group (fished)
       I_mat = diag(n_regions) # identity matrix to solve
 
       # Loop over origin regions
       for(o in 1:n_regions) {
-        # unfished pr
+
+        # pre recruit
         N_penult_unfished = Nspr[ o, , n_ages - 1] # get penultimate unfished
+        N_penult_fished = Nspr_fished[ o, , n_ages - 1] # get penultimate fished
+
         # Apply movement to penultimate age, then survival
         source_unfished = as.numeric(t(M_penult) %*% N_penult_unfished) * s_penult_unfished
         T_mat_unfished = diag(s_plus_unfished, n_regions) %*% t(M_plus) # unfished transition matrix
+        source_fished = as.numeric(t(M_penult) %*% N_penult_fished) * s_penult_fished
+        T_mat_fished = diag(s_plus_fished, n_regions) %*% t(M_plus) # fished transition matrix
+
         # Solve for equilibrium plus group abundance
         N_plus_equil_unfished = solve(I_mat - T_mat_unfished, source_unfished) # (I-T)^-1 %*% source_unfished
         Nspr[o,,n_ages] = N_plus_equil_unfished
+        N_plus_equil_fished = solve(I_mat - T_mat_fished, source_fished) # (I-T)^-1 %*% source_fished
+        Nspr_fished[o,,n_ages] = N_plus_equil_fished
 
         # Calculate spawning biomass and catch for plus group
         for(d in 1:n_regions) {
-          SB_age[ o, d, n_ages] = N_plus_equil_unfished[d] * tmp_WAA[d, n_ages] *
-            tmp_MatAA[d, n_ages] * exp(-t_spawn * tmp_natmort[d, n_ages])
-        }
+          # unfished
+          SB_age[ o, d, n_ages] = N_plus_equil_unfished[d] * WAA[d, n_ages] *
+            MatAA[d, n_ages] * exp(-t_spawn * natmort[d, n_ages])
+          # fished
+          SB_fished_age[ o, d, n_ages] = N_plus_equil_fished[d] * WAA[d, n_ages] *
+            MatAA[d, n_ages] * exp(-t_spawn * (natmort[d, n_ages] + init_F * fish_sel[d, n_ages]))
+        } # end d loop
       } # end o loop
 
       # Remove the old spawning biomass calculation loop entirely
       # parse out and compute unfished spawning biomass per recruit
-      for(o in 1:n_regions) for(d in 1:n_regions) SB_unfished_mat[o, d] = sum(SB_age[o, d, ])
-      for(d in 1:n_regions) S0[d] = sum(SB_unfished_mat[,d] * Rec_Prop * R0)
-    }
+      for(o in 1:n_regions) {
+        for(d in 1:n_regions) {
+          # unfished
+          SB_unfished_mat[o, d] = sum(SB_age[o, d, ])
+          # fished
+          SB_fished_mat[o, d] = sum(SB_fished_age[o, d, ])
+        } # end d
+      } # end o
+
+      for(d in 1:n_regions) {
+        S0[d] = sum(SB_unfished_mat[,d] * Rec_Prop * R0) # unfished
+        SF[d] = sum(SB_fished_mat[,d] * Rec_Prop * R0) # fished
+      } # end d
+
+    } # end if recruitment_dd == 0
 
     # global density dependence
     if(recruitment_dd == 1) {
-      n_ages <- n_ages
-      SB_age = Nspr = array(0, dim = c(n_regions, n_ages))
+
+      SB_fished_age = Nspr_fished = SB_age = Nspr = array(0, dim = c(n_regions, n_ages))
 
       # Set up the initial recruits
-      Nspr[,1] = Rec_Prop * sex_ratio_f
+      Nspr_fished[,1] = Nspr[,1] = Rec_Prop * sex_ratio_f
 
       # Loop through, apply movement first, then decrement recruit
       for(j in 2:n_ages) {
+
         # Get temporary values
         tmp_unfished = Nspr[,j-1]
+        tmp_fished = Nspr_fished[,j-1]
+
         # Apply movement
         if(do_recruits_move == 1 || (do_recruits_move == 0 && j > 2)) {
           tmp_unfished = t(tmp_unfished) %*% Movement[,,j - 1]
+          tmp_fished = t(tmp_fished) %*% Movement[,,j - 1]
         }
+
         # compute pr quantities here (before mortality)
         for(d in 1:n_regions) {
           SB_age[d,j-1] = tmp_unfished[d] * WAA[d,j - 1] * MatAA[d,j - 1] * exp(-t_spawn * natmort[d,j - 1])
+          SB_fished_age[d,j-1] = tmp_fished[d] * WAA[d,j - 1] * MatAA[d,j - 1] * exp(-t_spawn * (natmort[d,j - 1] + init_F * fish_sel[d, j - 1]))
         }
+
         # decrement fish and project forward
         Nspr[,j] = tmp_unfished * exp(-1 * natmort[, j- 1])
+        Nspr_fished[,j] = tmp_fished * exp(-1 * (natmort[, j- 1] + init_F * fish_sel[, j-1]))
+
       } # end j loop
 
       # Get movement for penultimate and plus group
       M_penult = Movement[,, n_ages - 1]  # movement for age n_ages-1
       M_plus = Movement[,, n_ages]  # movement for plus group
+
       # compute survival
       s_penult_unfished = exp(-natmort[, n_ages - 1])  # survival of age n_ages-1 (unfished)
       s_plus_unfished = exp(-natmort[, n_ages])  # survival in plus group (unfished)
+      s_penult_fished = exp(-(natmort[, n_ages - 1] + init_F * fish_sel[, n_ages - 1]))  # survival of age n_ages-1 (fished)
+      s_plus_fished = exp(-(natmort[, n_ages] + init_F * fish_sel[, n_ages]))  # survival in plus group (fished)
       I_mat = diag(n_regions) # identity matrix to solve
 
       # Loop over origin regions
-      # unfished pr
+      # per recruit
       N_penult_unfished = Nspr[, n_ages - 1] # get penultimate unfished
+      N_penult_fished = Nspr_fished[, n_ages - 1] # get penultimate fished
+
       # Apply movement to penultimate age, then survival
       source_unfished = as.numeric(t(M_penult) %*% N_penult_unfished) * s_penult_unfished
       T_mat_unfished = diag(s_plus_unfished, n_regions) %*% t(M_plus) # unfished transition matrix
+      source_fished = as.numeric(t(M_penult) %*% N_penult_fished) * s_penult_fished
+      T_mat_fished = diag(s_plus_fished, n_regions) %*% t(M_plus) # fished transition matrix
+
       # Solve for equilibrium plus group abundance
       N_plus_equil_unfished = solve(I_mat - T_mat_unfished, source_unfished) # (I-T)^-1 %*% source_unfished
       Nspr[,n_ages] = N_plus_equil_unfished
+      N_plus_equil_fished = solve(I_mat - T_mat_fished, source_fished) # (I-T)^-1 %*% source_fished
+      Nspr_fished[,n_ages] = N_plus_equil_fished
 
       # Calculate spawning biomass and catch for plus group
       for(d in 1:n_regions) {
         SB_age[d, n_ages] = N_plus_equil_unfished[d] * WAA[d, n_ages] * MatAA[d, n_ages] * exp(-t_spawn * natmort[d, n_ages])
+        SB_fished_age[d, n_ages] = N_plus_equil_fished[d] * WAA[d, n_ages] * MatAA[d, n_ages] * exp(-t_spawn * (natmort[d, n_ages] + init_F * fish_sel[d, n_ages]))
       }
+
       S0[] = sum(SB_age) * R0 * Rec_Prop # get virgin biomass
+      SF[] = sum(SB_fished_age) * R0 * Rec_Prop # get fished biomass
     }
 
     # get SSB to use to predict recruitment
-    if(y <= rec_lag) SSB = S0 else SSB = SSB_vals[,y-rec_lag]
+    if(y <= rec_lag) SSB = SF else SSB = SSB_vals[,y-rec_lag]
 
     # Get recruitment based on SSB and R0
     for(r in 1:n_regions) {

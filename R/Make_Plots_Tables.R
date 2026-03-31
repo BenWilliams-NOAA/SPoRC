@@ -253,7 +253,8 @@ get_biological_plot <- function(data,
 
     # Movement
     move_plot_tmp_df <- reshape2::melt(rep[[i]]$Movement) %>%
-      dplyr::rename(Region_From = Var1, Region_To = Var2, Year = Var3, Age = Var4, Sex = Var5) %>%
+      dplyr::rename(Region_From = from, Region_To = to, Year = years, Age = ages, Sex = sexes) %>%
+      {if (data[[i]]$do_recruits_move == 0) filter(., Age != min(data[[i]]$ages)) else .} %>%
       dplyr::mutate(Region_From = paste("From Region", Region_From),
                     Region_To = paste("To Region", Region_To),
                     Sex = paste("Sex", Sex),

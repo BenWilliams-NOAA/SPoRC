@@ -21,7 +21,9 @@ Get_Det_Recruitment(
   Movement,
   do_recruits_move,
   t_spawn,
-  sex_ratio_f
+  sex_ratio_f,
+  init_F,
+  fish_sel
 )
 }
 \arguments{
@@ -66,6 +68,10 @@ Get_Det_Recruitment(
 \item{t_spawn}{Fraction of the year at which spawning occurs (used for survival to spawning)}
 
 \item{sex_ratio_f}{Vector of female proportions by region (used to scale initial recruits)}
+
+\item{init_F}{Scalar for initial F value to apply}
+
+\item{fish_sel}{Array of fishery selectivity of dominant fleet (fleet 1) dimensioned by n_regions x n_ages}
 }
 \value{
 A numeric vector of length `n_regions` containing deterministic

@@ -75,8 +75,9 @@ age deviations can also be applied.</p>
 <dl><dt id="arg-init-age-strc">init_age_strc<a class="anchor" aria-label="anchor" href="#arg-init-age-strc"></a></dt>
 <dd><p>Integer specifying the initialization method for the age structure:
 - 0: Iterative solution to equilibrium
-- 1: Scalar geometric series solution (no movement in plus group)
-- 2: Matrix geometric series solution (generalizes scalar solution with movement)</p></dd>
+- 1: Scalar geometric series solution w/o movement in any groups (no movement in all groups)
+- 2: Matrix geometric series solution (generalizes scalar solution with movement)
+- 3: Scalar geometric series solution w/o movement only in plus group (no movement in plus groups)</p></dd>
 
 
 <dt id="arg-init-iter">init_iter<a class="anchor" aria-label="anchor" href="#arg-init-iter"></a></dt>
@@ -141,7 +142,7 @@ age deviations can also be applied.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.2.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer></div>

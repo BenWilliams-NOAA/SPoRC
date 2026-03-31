@@ -13,7 +13,7 @@
 #' @param t_srv Survey timing fraction
 #'   [n_regions × n_srv_fleets]
 #'   (default: `0`)
-#' @param srv_idx_type Vector of index types [n_srv_fleets]
+#' @param srv_idx_type Array of index types [n_regions x n_srv_fleets]
 #'   (default: all `1` = biomass index)
 #'   \itemize{
 #'     \item \code{0}: Abundance index
@@ -91,7 +91,7 @@ Setup_Sim_Survey <- function(ObsSrvIdx_SE = array(0.2, dim = c(sim_list$n_region
                              srv_sel_input,
                              srv_q_input = array(1, dim = c(sim_list$n_regions, sim_list$n_yrs, sim_list$n_srv_fleets, sim_list$n_sims)),
                              t_srv = array(0, dim = c(sim_list$n_regions, sim_list$n_srv_fleets)),
-                             srv_idx_type = rep(1, sim_list$n_srv_fleets),
+                             srv_idx_type = array(1, dim = c(sim_list$n_regions, sim_list$n_srv_fleets)),
                              comp_srvage_like = rep(0, sim_list$n_srv_fleets),
                              ISS_SrvAgeComps = array(100, dim = c(sim_list$n_regions, sim_list$n_yrs, sim_list$n_sexes, sim_list$n_srv_fleets, sim_list$n_sims)),
                              ln_SrvAge_theta = array(log(1), dim = c(sim_list$n_regions, sim_list$n_sexes, sim_list$n_srv_fleets)),
@@ -1155,9 +1155,11 @@ do_srvsel_pe_pars_mapping <- function(input_list, srvsel_pe_pars_spec, corr_opt_
 #' Helper function to set up survey selectivity deviations mapping
 #'
 #' @param input_list Input list
+#' @param srvsel_devs_shared_ages List object for specifying which ages are shared when selectivity deviations are semi-parametric (e.g., list(1:5, 6:10, 11:30) specifies that ages 1-5, 6-10, and 11-30 have the same deviations.)
 #' @param srv_sel_devs_spec Character vector specifying survey selectivity deviations parameterization
+#'
 #' @keywords internal
-do_srvsel_devs_mapping <- function(input_list, srv_sel_devs_spec) {
+do_srvsel_devs_mapping <- function(input_list, srv_sel_devs_spec, srvsel_devs_shared_ages) {
 
   # Initialize counter and mapping array for survey selectivity deviations
   srvsel_devs_counter <- 1
@@ -1169,9 +1171,11 @@ do_srvsel_devs_mapping <- function(input_list, srv_sel_devs_spec) {
 
       # Validate options
       if(!is.null(srv_sel_devs_spec)) {
-        if(!srv_sel_devs_spec[f] %in% c("fix", "none", "est_all", "est_shared_r", "est_shared_s", "est_shared_r_s") &&
+        if(!srv_sel_devs_spec[f] %in% c("fix", "none", "est_all", "est_shared_r", "est_shared_s", "est_shared_r_s", "est_shared_a", "est_shared_r_a", "est_shared_r_a_s", "est_shared_a_s") &&
            !stringr::str_detect(srv_sel_devs_spec[f], "est_shared_f_\\d+"))
-          stop("srv_sel_devs_spec not correctly specfied. Should be one of these: est_all, est_shared_r, est_shared_r_s, est_shared_s, fix, or est_shared_f_# (where # is fleet number)")
+          stop("srv_sel_devs_spec not correctly specfied. Should be one of these: est_all, est_shared_r, est_shared_r_s, est_shared_s, est_shared_a, est_shared_r_a, est_shared_r_a_s, est_shared_r_s, fix, or est_shared_f_# (where # is fleet number)")
+        if(srv_sel_devs_spec[f] %in% c("est_shared_a", "est_shared_r_a", "est_shared_r_a_s", "est_shared_a_s") &&
+           !input_list$data$cont_tv_srv_sel[r,f] %in% c(3,4,5)) stop("Sharing age deviations with iid or random walk parametric forms is not supported!")
       }
 
       # Skip fleet sharing specs in first pass
@@ -1258,6 +1262,34 @@ do_srvsel_devs_mapping <- function(input_list, srv_sel_devs_spec) {
                   srvsel_devs_counter <- srvsel_devs_counter + 1
                 }
 
+                if(srv_sel_devs_spec[f] == 'est_shared_a') {
+                  for(k in 1:length(srvsel_devs_shared_ages)) {
+                    map_srvsel_devs[r,y,srvsel_devs_shared_ages[[k]],s,f] <- srvsel_devs_counter
+                    srvsel_devs_counter <- srvsel_devs_counter + 1
+                  } # end k loop
+                }
+
+                if(srv_sel_devs_spec[f] == 'est_shared_r_a' && r == 1) {
+                  for(k in 1:length(srvsel_devs_shared_ages)) {
+                    map_srvsel_devs[,y,srvsel_devs_shared_ages[[k]],s,f] <- srvsel_devs_counter
+                    srvsel_devs_counter <- srvsel_devs_counter + 1
+                  } # end k loop
+                }
+
+                if(srv_sel_devs_spec[f] == 'est_shared_a_s' && s == 1) {
+                  for(k in 1:length(srvsel_devs_shared_ages)) {
+                    map_srvsel_devs[r,y,srvsel_devs_shared_ages[[k]],,f] <- srvsel_devs_counter
+                    srvsel_devs_counter <- srvsel_devs_counter + 1
+                  } # end k loop
+                }
+
+                if(srv_sel_devs_spec[f] == 'est_shared_r_a_s' && s == 1 && r == 1) {
+                  for(k in 1:length(srvsel_devs_shared_ages)) {
+                    map_srvsel_devs[,y,srvsel_devs_shared_ages[[k]],,f] <- srvsel_devs_counter
+                    srvsel_devs_counter <- srvsel_devs_counter + 1
+                  } # end k loop
+                }
+
               } # end i loop
             } # end 3d gmrf
 
@@ -1340,7 +1372,7 @@ do_srvsel_devs_mapping <- function(input_list, srv_sel_devs_spec) {
 #' Each element must follow one of the following structures:
 #' \itemize{
 #'   \item \code{"<selectivity model>_Fleet_<fleet number>"}
-#'   \item \code{"<selectivity model>_Block_<block number>_Fleet_<fleet number>"}
+#'   \item \code{"<selectivity model>_Fleet_<fleet number>_Block_<block number>"}
 #' }
 #'
 #' The first form applies a single selectivity model across all years for the specified fleet.
@@ -1516,6 +1548,7 @@ do_srvsel_devs_mapping <- function(input_list, srv_sel_devs_spec) {
 #' }
 #' @param t_srv Survey timing in fractions (n_regions * n_srv_fleets; default is 0.5)
 #' @param cont_tv_srv_sel_penalty Whether or not to apply continuous time-varying selectivity penalties (if cont_tv_srv_sel > 0)
+#' @param srvsel_devs_shared_ages List object for specifying which ages are shared when selectivity deviations are semi-parametric (e.g., list(1:5, 6:10, 11:30) specifies that ages 1-5, 6-10, and 11-30 have the same deviations.)
 #'
 #' @export Setup_Mod_Srvsel_and_Q
 #' @importFrom stringr str_detect
@@ -1538,6 +1571,7 @@ Setup_Mod_Srvsel_and_Q <- function(input_list,
                                    srv_selex_prior = NULL,
                                    t_srv = array(0.5, dim = c(input_list$data$n_regions, input_list$data$n_srv_fleets)),
                                    cont_tv_srv_sel_penalty = TRUE,
+                                   srvsel_devs_shared_ages = NULL,
                                    ...
                                    ) {
 
@@ -1644,25 +1678,26 @@ Setup_Mod_Srvsel_and_Q <- function(input_list,
   sel_map <- data.frame(sel = c('logist1', "gamma", "exponential", "logist2", "dbnrml"), num = c(0,1,2,3,4)) # set up values we can map to
   srv_sel_model_arr <- array(NA, dim = c(input_list$data$n_regions, length(input_list$data$years), input_list$data$n_srv_fleets))
   for(i in 1:length(srv_sel_model)) {
-    # Extract out srvery selectivity components from vector
+
+    # Extract out survey selectivity components from vector
     tmp_sel_form <- srv_sel_model[i]
     tmp_sel_form_vec <- unlist(strsplit(tmp_sel_form, "_")) # split string
     sel_form <- tmp_sel_form_vec[1] # get selectivity type
 
     # get fleet index
-    fleet <- if(length(tmp_sel_form_vec) == 3) as.numeric(tmp_sel_form_vec[3]) else as.numeric(tmp_sel_form_vec[5]) # fleet index changes if block is included in character vector
+    tmp_fleet <- if(length(tmp_sel_form_vec) == 3) as.numeric(tmp_sel_form_vec[3]) else as.numeric(tmp_sel_form_vec[5]) # fleet index changes if block is included in character vector
     # get block index
-    block <- if(length(tmp_sel_form_vec) == 5) as.numeric(tmp_sel_form_vec[3]) else NULL
+    tmp_block <- if(length(tmp_sel_form_vec) == 5) as.numeric(tmp_sel_form_vec[3]) else NULL
 
     # validate options
     if(!sel_form %in% c(sel_map$sel)) stop("srv_sel_model is not correctly specified. This needs to be one of these: logist1, gamma, exponential, logist2, dbnrml (the seltypes) and specified as seltype_Fleet_x")
-    if(!fleet %in% c(1:input_list$data$n_srv_fleets)) stop("Invalid fleet specified for srv_sel_model This needs to be specified as seltype_Fleet_x or seltype_Block_x_Fleet_x (if blocks are specified to change for a fleet)")
+    if(!tmp_fleet %in% c(1:input_list$data$n_srv_fleets)) stop("Invalid fleet specified for srv_sel_model This needs to be specified as seltype_Fleet_x or seltype_Fleet_x_Block_x (if blocks are specified to change for a fleet)")
 
     # Input options
-    if(is.null(block)) srv_sel_model_arr[,,fleet] <- sel_map$num[which(sel_map$sel == sel_form)] # same selectivity form across blocks
-    else srv_sel_model_arr[,which(srv_sel_blocks_arr[,,fleet] == block),fleet] <- sel_map$num[which(sel_map$sel == sel_form)]
-    collect_message("Survey selectivity functional form specified as:", sel_form, " for srvery fleet ", fleet)
-
+    if(is.null(tmp_block)) srv_sel_model_arr[,,tmp_fleet] <- sel_map$num[which(sel_map$sel == sel_form)] # same selectivity form across blocks
+    else srv_sel_model_arr[,which(srv_sel_blocks_arr[,,tmp_fleet] == tmp_block),tmp_fleet] <- sel_map$num[which(sel_map$sel == sel_form)]
+    rm(tmp_block) # remove tmp block to start next loop
+    collect_message("Survey selectivity functional form specified as:", sel_form, " for survey fleet ", tmp_fleet)
   }
 
   # Validate that blocks and continuous time-variation aren't both specified for same fleet
@@ -1829,7 +1864,7 @@ Setup_Mod_Srvsel_and_Q <- function(input_list,
   input_list <- do_srv_fixed_sel_pars_mapping(input_list, srv_fixed_sel_pars_spec)
   input_list <- do_srv_q_mapping(input_list, srv_q_spec)
   input_list <- do_srvsel_pe_pars_mapping(input_list, srvsel_pe_pars_spec, corr_opt_semipar)
-  input_list <- do_srvsel_devs_mapping(input_list, srv_sel_devs_spec)
+  input_list <- do_srvsel_devs_mapping(input_list, srv_sel_devs_spec, srvsel_devs_shared_ages)
 
 
   # Print Messages ----------------------------------------------------------

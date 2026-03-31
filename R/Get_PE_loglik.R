@@ -155,18 +155,22 @@ Get_sel_PE_loglik <- function(PE_model,
 #'
 #' @param PE_model Process error model values
 #' @param PE_pars Process error parameters
-#' @param logit_devs Deviations
+#' @param move_devs Deviations
 #' @param map_move_devs movement deviations to share
 #' @param do_recruits_move Whether recruits move (0, don't move, 1 move)
+#' @param adjacency_collapsed Adjacency matrix collapsed w/o retention
+#' @param move_type Movement type (0 == unstructed; all regions connected, 1 == ctmc)
 #'
 #' @returns numeric value of log likelihood (in positive space)
 #' @keywords internal
 #' @import RTMB
 Get_move_PE_loglik <- function(PE_model,
                                PE_pars,
-                               logit_devs,
+                               move_devs,
                                map_move_devs,
-                               do_recruits_move
+                               do_recruits_move,
+                               adjacency_collapsed,
+                               move_type
                                ) {
 
   "c" <- RTMB::ADoverload("c")
@@ -177,7 +181,7 @@ Get_move_PE_loglik <- function(PE_model,
 
   ll = 0 # initialize likelihood
 
-  # Get dimensions for penalty penalty
+  # Get dimensions for penalty
   n_regions_from = dim(map_move_devs)[1]
   n_regions_to = dim(map_move_devs)[2]
   n_yrs = dim(map_move_devs)[3]
@@ -191,22 +195,24 @@ Get_move_PE_loglik <- function(PE_model,
   for(rr in 1:n_regions_to) {
     for(r in 1:n_regions_from) {
 
+      if(adjacency_collapsed[r,rr] == 0) next # skip
+
       if(PE_model == 1) {
         for(y in 1:n_yrs) {
-          ll = ll + RTMB::dnorm(logit_devs[r,rr,y,1,1], 0, exp(PE_pars[r,1,1]), TRUE)
+          ll = ll + RTMB::dnorm(move_devs[r,rr,y,1,1], 0, exp(PE_pars[r,1,1]), TRUE)
         } # end y loop
       } # iid_y
 
       if(PE_model == 2) {
         for(a in age_start:n_ages) {
-          ll = ll + RTMB::dnorm(logit_devs[r,rr,1,a,1], 0, exp(PE_pars[r,a,1]), TRUE)
+          ll = ll + RTMB::dnorm(move_devs[r,rr,1,a,1], 0, exp(PE_pars[r,a,1]), TRUE)
         } # end a loop
       } # iid_a
 
       if(PE_model == 3) {
         for(y in 1:n_yrs) {
           for(a in age_start:n_ages) {
-            ll = ll + RTMB::dnorm(logit_devs[r,rr,y,a,1], 0, exp(PE_pars[r,a,1]), TRUE)
+            ll = ll + RTMB::dnorm(move_devs[r,rr,y,a,1], 0, exp(PE_pars[r,a,1]), TRUE)
           } # end a loop
         } # end y loop
       } # iid_y_a
@@ -214,7 +220,7 @@ Get_move_PE_loglik <- function(PE_model,
       if(PE_model == 4) {
         for(y in 1:n_yrs) {
           for(s in 1:n_sexes) {
-            ll = ll + RTMB::dnorm(logit_devs[r,rr,y,1,s], 0, exp(PE_pars[r,1,s]), TRUE)
+            ll = ll + RTMB::dnorm(move_devs[r,rr,y,1,s], 0, exp(PE_pars[r,1,s]), TRUE)
           } # end s loop
         } # end y loop
       } # iid_y_s
@@ -222,7 +228,7 @@ Get_move_PE_loglik <- function(PE_model,
       if(PE_model == 5) {
         for(a in age_start:n_ages) {
           for(s in 1:n_sexes) {
-            ll = ll + RTMB::dnorm(logit_devs[r,rr,1,a,s], 0, exp(PE_pars[r,a,s]), TRUE)
+            ll = ll + RTMB::dnorm(move_devs[r,rr,1,a,s], 0, exp(PE_pars[r,a,s]), TRUE)
           } # end s loop
         } # end a loop
       } # iid_a_s
@@ -231,7 +237,7 @@ Get_move_PE_loglik <- function(PE_model,
         for(y in 1:n_yrs) {
           for(a in age_start:n_ages) {
             for(s in 1:n_sexes) {
-              ll = ll + RTMB::dnorm(logit_devs[r,rr,y,a,s], 0, exp(PE_pars[r,a,s]), TRUE)
+              ll = ll + RTMB::dnorm(move_devs[r,rr,y,a,s], 0, exp(PE_pars[r,a,s]), TRUE)
             } # end s loop
           } # end a loop
         } # end y loop

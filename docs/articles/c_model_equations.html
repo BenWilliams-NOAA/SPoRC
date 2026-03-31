@@ -279,7 +279,10 @@ population. Thus, if
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi><mi>S</mi><mi>B</mi><msub><mn>0</mn><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">SSB0_{r}</annotation></semantics></math>
 instead of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mrow><mi>S</mi><mi>S</mi><mi>B</mi></mrow><mrow><mi>r</mi><mo>,</mo><mi>y</mi><mo>−</mo><mi>R</mi><mi>e</mi><mi>c</mi><mi>L</mi><mi>a</mi><mi>g</mi></mrow></msub><annotation encoding="application/x-tex">{SSB}_{r,y - RecLag}</annotation></semantics></math>
-to compute deterministic recruitment.</p>
+to compute deterministic recruitment
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi><mi>S</mi><mi>B</mi><msub><mn>0</mn><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">SSB0_{r}</annotation></semantics></math>
+is further decremented if
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>μ</mi><mrow><mi>r</mi><mo>,</mo><mi>f</mi><mo>=</mo><mn>1</mn></mrow><mtext mathvariant="normal">Fsh</mtext></msubsup><msup><mtext mathvariant="normal">Fmort</mtext><mtext mathvariant="normal">InitProp</mtext></msup><mo>≠</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\mu_{r,f = 1}^{\text{Fsh}}\text{Fmort}^{\text{InitProp}} \neq 0</annotation></semantics></math>).</p>
 </div>
 <div class="section level4">
 <h4 id="population-projection">Population Projection<a class="anchor" aria-label="anchor" href="#population-projection"></a>
@@ -324,6 +327,103 @@ is parameterized based on lognormal deviations
 (<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>ϵ</mi><mrow><mi>r</mi><mo>,</mo><mi>y</mi><mo>,</mo><mi>f</mi></mrow><mtext mathvariant="normal">Fsh</mtext></msubsup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\epsilon_{r,y,f}^{\text{Fsh}})</annotation></semantics></math>
 about a mean fishing mortality parameter for a given fishery fleet
 (<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>μ</mi><mrow><mi>r</mi><mo>,</mo><mi>f</mi></mrow><mtext mathvariant="normal">Fsh</mtext></msubsup><annotation encoding="application/x-tex">\mu_{r,f}^{\text{Fsh}}</annotation></semantics></math>).</p>
+</div>
+<div class="section level4">
+<h4 id="movement-processes">Movement Processes<a class="anchor" aria-label="anchor" href="#movement-processes"></a>
+</h4>
+<p>Movement processes can be parameterized as either an unstructured
+Markov process (discrete-time Markov) or as a Continuous-time Markov
+chain (CTMC) process. Movement parameterized as an unstructured Markov
+process is estimated using a multinomial logit link function, with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>n</mi><mi>r</mi></msub><mo>×</mo><msub><mi>n</mi><mi>r</mi></msub><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">n_r \times n_r-1</annotation></semantics></math>
+free parameters:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>M</mi><mrow><mi>r</mi><mo>,</mo><mi>k</mi><mo>,</mo><mi>y</mi><mo>,</mo><mi>a</mi><mo>,</mo><mi>s</mi></mrow></msub><mo>=</mo><mfrac><mrow><mo>exp</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>ω</mi><mrow><mi>r</mi><mo>,</mo><mi>k</mi><mo>,</mo><mi>y</mi><mo>,</mo><mi>a</mi><mo>,</mo><mi>s</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mrow><munder><mo>∑</mo><mi>k</mi></munder><mo>exp</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>ω</mi><mrow><mi>r</mi><mo>,</mo><mi>k</mi><mo>,</mo><mi>y</mi><mo>,</mo><mi>a</mi><mo>,</mo><mi>s</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow></mfrac></mrow><annotation encoding="application/x-tex">
+M_{r,k,y,a,s} = \frac{\exp(\omega_{r,k,y,a,s})}{\sum_k\exp(\omega_{r,k,y,a,s})}
+</annotation></semantics></math></p>
+<p>where the reference region
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">k = 1</annotation></semantics></math>
+is set as
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ω</mi><mrow><mi>r</mi><mo>,</mo><mi>k</mi><mo>=</mo><mn>1</mn><mo>,</mo><mi>y</mi><mo>,</mo><mi>a</mi><mo>,</mo><mi>s</mi></mrow></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\omega_{r,k=1,y,a,s} = 0</annotation></semantics></math>.
+Under this parameterization, movement fractions can be estimated
+independently for each stratum
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo>,</mo><mi>a</mi><mo>,</mo><mi>s</mi><mo stretchy="true" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(y,a,s)</annotation></semantics></math>,
+or grouped into blocks to reduce the number of parameters. While
+parameter blocking can help reduce the parameter load, estimating all
+pairwise movement probabilities under the unstructured Markov approach
+can still result in a large number of parameters.</p>
+<p>Alternatively, movement can be specified as a continuous-time Markov
+chain (CTMC) process, which decomposes into diffusive and taxis
+components. Diffusive processes represent undirected movement of
+individuals, while taxis processes represent directed movement toward
+more preferred habitat. This CTMC movement parameterization is governed
+by an adjacency matrix
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>A</mi><mrow><mi>r</mi><mo>,</mo><mi>k</mi></mrow></msub><annotation encoding="application/x-tex">A_{r,k}</annotation></semantics></math>),
+which defines neighboring regions that can receive individuals within a
+given time step. Diffusive processes are given by:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>D</mi><mo accent="true">̇</mo></mover><mrow><mi>r</mi><mo>,</mo><mi>k</mi><mo>,</mo><mi>y</mi><mo>,</mo><mi>a</mi><mo>,</mo><mi>s</mi></mrow></msub><mo>=</mo><mrow><mo stretchy="true" form="prefix">{</mo><mtable><mtr><mtd columnalign="left" style="text-align: left"><mfrac displaystyle="true"><msup><mi>e</mi><mrow><mn>2</mn><mi>θ</mi></mrow></msup><msub><mi>V</mi><mi>r</mi></msub></mfrac><mo>,</mo></mtd><mtd columnalign="left" style="text-align: left"><mrow><mtext mathvariant="normal">if </mtext><mspace width="0.333em"></mspace></mrow><msub><mi>A</mi><mrow><mi>r</mi><mo>,</mo><mi>k</mi></mrow></msub><mo>=</mo><mn>1</mn><mrow><mspace width="0.333em"></mspace><mtext mathvariant="normal"> and </mtext><mspace width="0.333em"></mspace></mrow><mi>r</mi><mo>≠</mo><mi>k</mi><mo>,</mo></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mi>−</mi><munder><mo>∑</mo><mrow><mi>j</mi><mo>≠</mo><mi>r</mi></mrow></munder><msub><mover><mi>D</mi><mo accent="true">̇</mo></mover><mrow><mi>r</mi><mo>,</mo><mi>j</mi><mo>,</mo><mi>y</mi><mo>,</mo><mi>a</mi><mo>,</mo><mi>s</mi></mrow></msub><mo>,</mo></mtd><mtd columnalign="left" style="text-align: left"><mrow><mtext mathvariant="normal">if </mtext><mspace width="0.333em"></mspace></mrow><mi>r</mi><mo>=</mo><mi>k</mi><mo>,</mo></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mn>0</mn><mo>,</mo></mtd><mtd columnalign="left" style="text-align: left"><mtext mathvariant="normal">otherwise.</mtext></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">
+  \dot{D}_{r,k,y,a,s} =
+  \begin{cases} 
+  \dfrac{e^{2\theta}}{V_r}, &amp; \text{if } A_{r,k} = 1 \text{ and } r \neq k, \\[0.5em]
+  - \sum_{j \neq r} \dot{D}_{r,j,y,a,s}, &amp; \text{if } r = k, \\[0.5em]
+  0, &amp; \text{otherwise.}
+  \end{cases}
+</annotation></semantics></math></p>
+<p>where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>D</mi><mo accent="true">̇</mo></mover><mrow><mi>r</mi><mo>,</mo><mi>k</mi><mo>,</mo><mi>y</mi><mo>,</mo><mi>a</mi><mo>,</mo><mi>s</mi></mrow></msub><annotation encoding="application/x-tex">\dot{D}_{r,k,y,a,s}</annotation></semantics></math>
+represents diffusion,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>
+is the log diffusion rate,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>V</mi><mi>r</mi></msub><annotation encoding="application/x-tex">V_r</annotation></semantics></math>
+scales the log diffusion rate, such that smaller regions have higher
+diffusion rates, and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>j</mi><annotation encoding="application/x-tex">j</annotation></semantics></math>
+in the second equation indexes all destinations except the source to
+ensure that the rows of the matrix sum to 0, thereby conserving
+abundance. Taxis processes (preference) can then be written as:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>P</mi><mo accent="true">̇</mo></mover><mrow><mi>r</mi><mo>,</mo><mi>k</mi><mo>,</mo><mi>y</mi><mo>,</mo><mi>a</mi><mo>,</mo><mi>s</mi></mrow></msub><mo>=</mo><mrow><mo stretchy="true" form="prefix">{</mo><mtable><mtr><mtd columnalign="left" style="text-align: left"><msub><mi>h</mi><mrow><mi>k</mi><mo>,</mo><mi>y</mi><mo>,</mo><mi>a</mi><mo>,</mo><mi>s</mi></mrow></msub><mo>−</mo><msub><mi>h</mi><mrow><mi>r</mi><mo>,</mo><mi>y</mi><mo>,</mo><mi>a</mi><mo>,</mo><mi>s</mi></mrow></msub><mo>,</mo></mtd><mtd columnalign="left" style="text-align: left"><mrow><mtext mathvariant="normal">if </mtext><mspace width="0.333em"></mspace></mrow><msub><mi>A</mi><mrow><mi>r</mi><mo>,</mo><mi>k</mi></mrow></msub><mo>=</mo><mn>1</mn><mrow><mspace width="0.333em"></mspace><mtext mathvariant="normal"> and </mtext><mspace width="0.333em"></mspace></mrow><mi>r</mi><mo>≠</mo><mi>k</mi><mo>,</mo></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mi>−</mi><munder><mo>∑</mo><mrow><mi>j</mi><mo>≠</mo><mi>r</mi></mrow></munder><msub><mover><mi>P</mi><mo accent="true">̇</mo></mover><mrow><mi>r</mi><mo>,</mo><mi>j</mi><mo>,</mo><mi>y</mi><mo>,</mo><mi>a</mi><mo>,</mo><mi>s</mi></mrow></msub><mo>,</mo></mtd><mtd columnalign="left" style="text-align: left"><mrow><mtext mathvariant="normal">if </mtext><mspace width="0.333em"></mspace></mrow><mi>r</mi><mo>=</mo><mi>k</mi><mo>,</mo></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mn>0</mn><mo>,</mo></mtd><mtd columnalign="left" style="text-align: left"><mtext mathvariant="normal">otherwise.</mtext></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">
+\dot{P}_{r,k,y,a,s} =
+\begin{cases} 
+h_{k,y,a,s} - h_{r,y,a,s}, &amp; \text{if } A_{r,k} = 1 \text{ and } r \neq k, \\[0.5em]
+- \sum_{j \neq r} \dot{P}_{r,j,y,a,s}, &amp; \text{if } r = k, \\[0.5em]
+0, &amp; \text{otherwise.}
+\end{cases}
+</annotation></semantics></math> Here,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>P</mi><mo accent="true">̇</mo></mover><mrow><mi>r</mi><mo>,</mo><mi>k</mi><mo>,</mo><mi>y</mi><mo>,</mo><mi>a</mi><mo>,</mo><mi>s</mi></mrow></msub><annotation encoding="application/x-tex">\dot{P}_{r,k,y,a,s}</annotation></semantics></math>
+represents the taxis (preference) component of movement. Equation 1
+determines local differences in the habitat preference function,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝐡</mi><mrow><mi>y</mi><mo>,</mo><mi>a</mi><mo>,</mo><mi>s</mi></mrow></msub><annotation encoding="application/x-tex">\mathbf{h}_{y,a,s}</annotation></semantics></math>,
+while equation 2 ensures that the rows of the matrix sum to 0,
+conserving abundance.</p>
+<p>Habitat preference can be defined flexibly as a combination of linear
+effects and basis splines:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>h</mi><mrow><mi>r</mi><mo>,</mo><mi>y</mi><mo>,</mo><mi>a</mi><mo>,</mo><mi>s</mi></mrow></msub><mo>=</mo><munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>n</mi><mi>k</mi></msub></munderover><msub><mi>β</mi><mrow><mi>r</mi><mo>,</mo><mi>k</mi></mrow></msub><msub><mi>W</mi><mrow><mi>r</mi><mo>,</mo><mi>k</mi><mo>,</mo><mi>y</mi><mo>,</mo><mi>a</mi><mo>,</mo><mi>s</mi></mrow></msub></mrow><annotation encoding="application/x-tex">h_{r,y,a,s} = \sum_{k=1}^{n_k} \beta_{r,k} W_{r,k,y,a,s}</annotation></semantics></math></p>
+<p>where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>β</mi><mrow><mi>r</mi><mo>,</mo><mi>k</mi></mrow></msub><annotation encoding="application/x-tex">\beta_{r,k}</annotation></semantics></math>
+are the estimated effects (incorporating linear or spline effects), and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>W</mi><mrow><mi>r</mi><mo>,</mo><mi>k</mi><mo>,</mo><mi>y</mi><mo>,</mo><mi>a</mi><mo>,</mo><mi>s</mi></mrow></msub><annotation encoding="application/x-tex">W_{r,k,y,a,s}</annotation></semantics></math>
+is the design matrix.</p>
+<p>Diffusive and taxis processes can then be combined to construct a
+generator matrix:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>Q</mi><mo accent="true">̇</mo></mover><mrow><mi>r</mi><mo>,</mo><mi>k</mi><mo>,</mo><mi>y</mi><mo>,</mo><mi>a</mi><mo>,</mo><mi>s</mi></mrow></msub><mo>=</mo><msub><mover><mi>D</mi><mo accent="true">̇</mo></mover><mrow><mi>r</mi><mo>,</mo><mi>k</mi><mo>,</mo><mi>y</mi><mo>,</mo><mi>a</mi><mo>,</mo><mi>s</mi></mrow></msub><mo>+</mo><msub><mover><mi>P</mi><mo accent="true">̇</mo></mover><mrow><mi>r</mi><mo>,</mo><mi>k</mi><mo>,</mo><mi>y</mi><mo>,</mo><mi>a</mi><mo>,</mo><mi>s</mi></mrow></msub></mrow><annotation encoding="application/x-tex">
+\dot{Q}_{r,k,y,a,s} = \dot{D}_{r,k,y,a,s} + \dot{P}_{r,k,y,a,s}
+</annotation></semantics></math></p>
+<p>Here,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>Q</mi><mo accent="true">̇</mo></mover><mrow><mi>r</mi><mo>,</mo><mi>k</mi><mo>,</mo><mi>y</mi><mo>,</mo><mi>a</mi><mo>,</mo><mi>s</mi></mrow></msub><annotation encoding="application/x-tex">\dot{Q}_{r,k,y,a,s}</annotation></semantics></math>
+represents instantaneous movement rates. The generator matrix
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>𝐐</mi><mo accent="true">̇</mo></mover><mrow><mi>y</mi><mo>,</mo><mi>a</mi><mo>,</mo><mi>s</mi></mrow></msub><annotation encoding="application/x-tex">\dot{\mathbf{Q}}_{y,a,s}</annotation></semantics></math>
+is Metzler, such that all off-diagonal elements satisfy:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>Q</mi><mo accent="true">̇</mo></mover><mrow><mi>r</mi><mo>,</mo><mi>k</mi><mo>,</mo><mi>y</mi><mo>,</mo><mi>a</mi><mo>,</mo><mi>s</mi></mrow></msub><mo>≥</mo><mn>0</mn><mspace width="1.0em"></mspace><mrow><mtext mathvariant="normal">for </mtext><mspace width="0.333em"></mspace></mrow><mi>r</mi><mo>≠</mo><mi>k</mi><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\dot{Q}_{r,k,y,a,s} \ge 0 \quad \text{for } r \neq k.
+</annotation></semantics></math></p>
+<p>Given that movement in SPoRC is defined sequentially, the
+instantaneous movement matrix can then be converted to annual movement
+fractions using the matrix exponential:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>𝐌</mi><mrow><mi>y</mi><mo>,</mo><mi>a</mi><mo>,</mo><mi>s</mi></mrow></msub><mo>=</mo><mo>exp</mo><mo minsize="1.8" maxsize="1.8" stretchy="false" form="prefix">(</mo><msub><mover><mi>𝐐</mi><mo accent="true">̇</mo></mover><mrow><mi>y</mi><mo>,</mo><mi>a</mi><mo>,</mo><mi>s</mi></mrow></msub><mspace width="0.167em"></mspace><mi>Δ</mi><mi>t</mi><mo minsize="1.8" maxsize="1.8" stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\mathbf{M}_{y,a,s} = \exp\Big( \dot{\mathbf{Q}}_{y,a,s} \, \Delta t \Big)
+</annotation></semantics></math></p>
+<p>where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Δ</mi><mi>t</mi></mrow><annotation encoding="application/x-tex">\Delta t</annotation></semantics></math>
+is the duration of the movement interval.</p>
 </div>
 </div>
 <div class="section level3">
@@ -807,8 +907,8 @@ identity matrix and
 is an estimated overdispersion parameter representing the variance. The
 simple iid case can be further extended to incorporate a one-dimensional
 lag-1 autoregressive structure:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="center" style="text-align: center"><mrow><mi>𝚺</mi><mo mathvariant="bold">=</mo></mrow><msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>𝐑</mi><mi>B</mi></msub><mo>⋅</mo><msup><mi>θ</mi><mn>2</mn></msup><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mi>−</mi><mi>B</mi></mrow></msub></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>𝐑</mi><mi>B</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mi>i</mi><mo>,</mo><mi>j</mi></mrow></msub><mo mathvariant="bold">=</mo><msubsup><mi>ρ</mi><mi>B</mi><mrow><mo stretchy="true" form="prefix">|</mo><mi>i</mi><mo>−</mo><mi>j</mi><mo stretchy="true" form="postfix">|</mo></mrow></msubsup><mo>,</mo><mspace width="0.222em"></mspace><mspace width="0.222em"></mspace><mi>i</mi><mo>,</mo><mi>j</mi><mo>=</mo><mspace width="0.222em"></mspace><mn>1</mn><mo>,</mo><mspace width="0.222em"></mspace><mi>⋯</mi><mo>,</mo><mspace width="0.222em"></mspace><mi>B</mi></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{matrix}
-\mathbf{\Sigma =}\left( \mathbf{R}_{B} \cdot \theta^{2} \right)_{- B} \\
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="center" style="text-align: center"><mrow><mi>𝚺</mi><mo mathvariant="bold">=</mo></mrow><msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>𝐑</mi><mi>B</mi></msub><mo>⋅</mo><mfrac><msup><mi>θ</mi><mn>2</mn></msup><mrow><mn>1</mn><mo>−</mo><msubsup><mi>ρ</mi><mi>B</mi><mn>2</mn></msubsup></mrow></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mi>−</mi><mi>B</mi></mrow></msub></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>𝐑</mi><mi>B</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mi>i</mi><mo>,</mo><mi>j</mi></mrow></msub><mo mathvariant="bold">=</mo><msubsup><mi>ρ</mi><mi>B</mi><mrow><mo stretchy="true" form="prefix">|</mo><mi>i</mi><mo>−</mo><mi>j</mi><mo stretchy="true" form="postfix">|</mo></mrow></msubsup><mo>,</mo><mspace width="0.222em"></mspace><mspace width="0.222em"></mspace><mi>i</mi><mo>,</mo><mi>j</mi><mo>=</mo><mspace width="0.222em"></mspace><mn>1</mn><mo>,</mo><mspace width="0.222em"></mspace><mi>⋯</mi><mo>,</mo><mspace width="0.222em"></mspace><mi>B</mi></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{matrix}
+\mathbf{\Sigma =}\left( \mathbf{R}_{B} \cdot \frac{\theta^{2}}{1-\rho^2_B} \right)_{- B} \\
 \left( \mathbf{R}_{B} \right)_{i,j}\mathbf{=}\rho_{B}^{|i - j|},\ \ i,j = \ 1,\ \cdots,\ B \\
 \end{matrix}</annotation></semantics></math></p>
 <p>Here,
@@ -820,8 +920,8 @@ correlation matrix with a lag-1 autoregressive structure, where
 defines the correlation across bins. Lastly, if the model is specified
 to be sex-structured and sex-composition data are utilized, a
 two-dimensional autoregressive structure can be specified:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="center" style="text-align: center"><mrow><mi>𝚺</mi><mo mathvariant="bold">=</mo></mrow><msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mrow><msub><mi>𝐑</mi><mi>S</mi></msub><mrow><mspace width="0.222em"></mspace><mo mathvariant="bold">⨂</mo><mspace width="0.222em"></mspace><mi>𝐑</mi></mrow></mrow><mi>C</mi></msub><mo>⋅</mo><msup><mi>θ</mi><mn>2</mn></msup><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mi>−</mi><mi>B</mi></mrow></msub></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{matrix}
-\mathbf{\Sigma =}\left( {\mathbf{R}_{S}\mathbf{\ \bigotimes\ R}}_{C} \cdot \theta^{2} \right)_{- B} \\
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="center" style="text-align: center"><mrow><mi>𝚺</mi><mo mathvariant="bold">=</mo></mrow><msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mrow><msub><mi>𝐑</mi><mi>S</mi></msub><mrow><mspace width="0.222em"></mspace><mo mathvariant="bold">⨂</mo><mspace width="0.222em"></mspace><mi>𝐑</mi></mrow></mrow><mi>C</mi></msub><mo>⋅</mo><mfrac><msup><mi>θ</mi><mn>2</mn></msup><mrow><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><msubsup><mi>ρ</mi><mi>S</mi><mn>2</mn></msubsup><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><msubsup><mi>ρ</mi><mi>C</mi><mn>2</mn></msubsup><mo stretchy="true" form="postfix">)</mo></mrow></mrow></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mi>−</mi><mi>B</mi></mrow></msub></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{matrix}
+\mathbf{\Sigma =}\left( {\mathbf{R}_{S}\mathbf{\ \bigotimes\ R}}_{C} \cdot \frac{\theta^{2}}{(1-\rho^2_S)(1-\rho^2_C)} \right)_{- B} \\
 \end{matrix}</annotation></semantics></math></p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>𝐑</mi><mi>C</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mi>i</mi><mo>,</mo><mi>j</mi></mrow></msub><mo mathvariant="bold">=</mo><msubsup><mi>ρ</mi><mi>C</mi><mrow><mo stretchy="true" form="prefix">|</mo><mi>i</mi><mo>−</mo><mi>j</mi><mo stretchy="true" form="postfix">|</mo></mrow></msubsup><mo>,</mo><mspace width="0.222em"></mspace><mspace width="0.222em"></mspace><mi>i</mi><mo>,</mo><mi>j</mi><mo>=</mo><mspace width="0.222em"></mspace><mn>1</mn><mo>,</mo><mspace width="0.222em"></mspace><mi>⋯</mi><mo>,</mo><mspace width="0.222em"></mspace><mi>C</mi></mrow><annotation encoding="application/x-tex">\left( \mathbf{R}_{C} \right)_{i,j}\mathbf{=}\rho_{C}^{|i - j|},\ \ i,j = \ 1,\ \cdots,\ C</annotation></semantics></math></p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>𝐑</mi><mi>S</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mi>i</mi><mo>,</mo><mi>j</mi></mrow></msub><mo mathvariant="bold">=</mo><mrow><mo stretchy="true" form="prefix">{</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mn>1</mn><mo>,</mo><mspace width="0.222em"></mspace><mspace width="0.222em"></mspace><mi>i</mi><mi>f</mi><mi>i</mi><mo>=</mo><mi>j</mi></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>ρ</mi><mi>s</mi></msub><mo>,</mo><mspace width="0.222em"></mspace><mspace width="0.222em"></mspace><mi>i</mi><mi>f</mi><mi>i</mi><mo>≠</mo><mi>j</mi></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"></mtd></mtr></mtable></mrow><mspace width="0.222em"></mspace><mo>,</mo><mspace width="0.222em"></mspace><mspace width="0.222em"></mspace><mi>i</mi><mo>,</mo><mi>j</mi><mo>=</mo><mn>1</mn><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>n</mi><mi>s</mi></msub></mrow><annotation encoding="application/x-tex">\left( \mathbf{R}_{S} \right)_{i,j}\mathbf{=}\left\{ \begin{matrix}
@@ -1397,7 +1497,7 @@ models using the Dirichlet-multinomial distribution. Fisheries Research
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.2.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer>

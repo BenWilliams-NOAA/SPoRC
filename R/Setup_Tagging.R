@@ -63,6 +63,7 @@ Setup_Sim_Tagging <- function(n_tags = NULL,
   if(!is.null(Tag_Reporting_input)) check_sim_dimensions(Tag_Reporting_input, n_regions = sim_list$n_regions, n_years = sim_list$n_yrs, n_sims = sim_list$n_sims, what = "Tag_Reporting_input")
 
   # Output variables into list
+  if(!is.null(n_tags) && !is.null(n_tags_rel_input)) stop("n_tags and n_tags_rel_input cannot be specified simultaneously. n_tags is a scalar, while n_tags_rel_input specifies cohort-specific tags!")
   if(!is.null(n_tags)) sim_list$n_tags <- n_tags
   if(!is.null(n_tags_rel_input)) sim_list$n_tags_rel_input <- n_tags_rel_input
   sim_list$max_liberty <- max_liberty
@@ -243,13 +244,13 @@ do_Tag_Reporting_Pars_mapping <- function(input_list, TagRep_spec) {
 #'   }
 #'   Example: \code{tag_natmort = "AgeSp_SexSp"}
 #' @param Use_TagRep_Prior Numeric (0 or 1) whether to use tag reporting rate prior
-#' @param move_age_tag_pool List or character specifying pooling of tagging data by age groups. Examples:
+#' @param move_age_tag_pool List or character specifying pooling of tagging data by age groups. Default does not pool ages. Examples:
 #'   \itemize{
 #'     \item \code{list(1:5, 6:11, 12:20)} pools these age groups together
 #'     \item \code{"all"} pools all ages together (internally converted to \code{list(1:n_ages)})
 #'     \item \code{as.list(1:n_ages)} fits each sex separately
 #'   }
-#' @param move_sex_tag_pool List or character specifying pooling of tagging data by sex groups. Examples:
+#' @param move_sex_tag_pool List or character specifying pooling of tagging data by sex groups. Default do not pool sexes. Examples:
 #'   \itemize{
 #'     \item \code{list(1:2)} pools sexes together
 #'     \item \code{"all"} pools all sexes together (internally converted to \code{list(1:n_sexes)})
@@ -257,7 +258,7 @@ do_Tag_Reporting_Pars_mapping <- function(input_list, TagRep_spec) {
 #'   }
 #' @param Init_Tag_Mort_spec Character string \code{"fix"} or \code{"est"} specifying if initial tag mortality is fixed or estimated
 #' @param Tag_Shed_spec Character string \code{"fix"} or \code{"est"} specifying if chronic tag shedding is fixed or estimated
-#' @param Tag_Reporting_blocks Character vector specifying blocks of years and regions for tag reporting rates. Format examples:
+#' @param Tag_Reporting_blocks Character vector specifying blocks of years and regions for tag reporting rates. Default is a single block for all regions. Format examples:
 #'   \itemize{
 #'     \item \code{"Block_1_Year_1-15_Region_1"}
 #'     \item \code{"Block_2_Year_16-terminal_Region_2"}
@@ -292,8 +293,8 @@ Setup_Mod_Tagging <- function(input_list,
                               tag_natmort = NA,
                               Use_TagRep_Prior = 0,
                               TagRep_Prior = NULL,
-                              move_age_tag_pool = NA,
-                              move_sex_tag_pool = NA,
+                              move_age_tag_pool = as.list(1:length(input_list$data$ages)),
+                              move_sex_tag_pool = as.list(1:input_list$data$n_sexes),
                               Init_Tag_Mort_spec = NULL,
                               Tag_Shed_spec = NULL,
                               TagRep_spec = 'fix',
@@ -360,8 +361,8 @@ Setup_Mod_Tagging <- function(input_list,
     if(move_sex_tag_pool == "all") move_sex_tag_pool_vals = list(1:input_list$data$n_sexes)
   } else move_sex_tag_pool_vals = move_sex_tag_pool
 
-  collect_message("Tagging data are fit to by pooling across ", length(move_age_tag_pool_vals), " age groups")
-  collect_message("Tagging data are fit to by pooling across ", length(move_sex_tag_pool_vals), " sex groups")
+  collect_message("Tagging data are fit to ", length(move_age_tag_pool_vals), " age groups")
+  collect_message("Tagging data are fit to ", length(move_sex_tag_pool_vals), " sex groups")
 
   # Tag Reporting Rates Options ---------------------------------------------
   Tag_Reporting_blocks_mat <- array(NA, dim = c(input_list$data$n_regions, length(input_list$data$years)))
@@ -398,7 +399,7 @@ Setup_Mod_Tagging <- function(input_list,
       }
 
     } # end i loop
-  }
+  } else Tag_Reporting_blocks_mat[] <- 1
 
    for(r in 1:input_list$data$n_regions) collect_message("Tag Reporting estimated with ", length(unique(Tag_Reporting_blocks_mat[r,])), " block for region ", r)
 

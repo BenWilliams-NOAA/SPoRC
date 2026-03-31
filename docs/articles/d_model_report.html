@@ -128,6 +128,12 @@ specified</td>
 <td>Movement array</td>
 <td><code>n_regions × n_regions × (n_years + n_proj_yrs_devs) × n_ages × n_sexes</code></td>
 </tr>
+<tr class="odd">
+<td><code>Mrate</code></td>
+<td>Instantaneous movement rate matrix (CTMC movement only; NULL
+otherwise)</td>
+<td><code>n_regions × n_regions × (n_years + n_proj_yrs_devs) × n_ages × n_sexes</code></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -430,9 +436,8 @@ years).</td>
 <td><code>n_regions × (n_years + n_proj_yrs_devs)</code></td>
 </tr>
 <tr class="even">
-<td><code>logit_move_devs</code></td>
-<td>Logit-scale movement deviations among regions, by year, age, and
-sex.</td>
+<td><code>move_devs</code></td>
+<td>Movement deviations among regions, by year, age, and sex.</td>
 <td><code>n_regions × (n_regions - 1) × (n_years + n_proj_yrs_devs) × n_ages × n_sexes</code></td>
 </tr>
 <tr class="odd">
@@ -451,7 +456,7 @@ fleet.</td>
 </table>
 </div>
 <div class="section level2">
-<h2 id="derived-quantities">Derived Quantities<a class="anchor" aria-label="anchor" href="#derived-quantities"></a>
+<h2 id="derived-quantities-also-reported-in-adreport">Derived Quantities (also reported in ADREPORT)<a class="anchor" aria-label="anchor" href="#derived-quantities-also-reported-in-adreport"></a>
 </h2>
 <table class="table">
 <colgroup>
@@ -509,7 +514,7 @@ fleet.</td>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.2.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer>

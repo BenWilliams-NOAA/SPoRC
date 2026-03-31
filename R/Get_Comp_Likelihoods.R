@@ -20,7 +20,6 @@
 #' @param n_model_bins Number of bins used in the model
 #' @param n_obs_bins Number of observed composition bins
 #' @param addtocomp Small constant to add to composition data
-#' @param sim Boolean on whether or not to simualte values from a given specification of the likelihood
 #'
 #' @return Returns negative log likelihood for composition data (age and/or length)
 #' @keywords internal
@@ -43,8 +42,8 @@ Get_Comp_Likelihoods = function(Exp,
                                 AgeingError,
                                 use,
                                 comp_agg_type,
-                                addtocomp,
-                                sim = FALSE) {
+                                addtocomp
+                                ) {
 
   "c" <- RTMB::ADoverload("c")
   "[<-" <- RTMB::ADoverload("[<-")
@@ -124,7 +123,7 @@ Get_Comp_Likelihoods = function(Exp,
       # Construct Sigma
       LN_corr_b = rho_trans(LN_corr_pars_agg) # correlation by age / length
       Sigma =  get_AR1_CorrMat(n_obs_bins, LN_corr_b)
-      Sigma = Sigma * exp(ln_theta_agg)^2
+      Sigma = Sigma * (exp(ln_theta_agg)^2 / (1 - LN_corr_b^2))
 
       if(length(zeros) > 0) {
         # Remove zeros and renormalize
@@ -198,7 +197,7 @@ Get_Comp_Likelihoods = function(Exp,
           # Construct Sigma
           LN_corr_b = rho_trans(LN_corr_pars[r,s,1]) # correlation by age / length
           Sigma =  get_AR1_CorrMat(n_obs_bins, LN_corr_b)
-          Sigma = Sigma * exp(ln_theta[r,s])^2
+          Sigma = Sigma * (exp(ln_theta[r,s])^2 / (1 - LN_corr_b^2))
 
           if(length(zeros) > 0) {
             # Remove zeros and renormalize
@@ -275,7 +274,7 @@ Get_Comp_Likelihoods = function(Exp,
         # Construct Sigma
         LN_corr_b = rho_trans(LN_corr_pars[r,1,1]) # correlation by age / length
         Sigma =  get_AR1_CorrMat(n_obs_bins * n_sexes, LN_corr_b)
-        Sigma = Sigma * exp(ln_theta[r,1])^2
+        Sigma = Sigma * (exp(ln_theta[r,1])^2 / (1 - LN_corr_b^2))
 
         if(length(zeros) > 0) {
           # Remove zeros and renormalize
@@ -303,7 +302,7 @@ Get_Comp_Likelihoods = function(Exp,
         LN_corr_s = rho_trans(LN_corr_pars[r,1,2])
         mat1 = get_Constant_CorrMat(n_sexes, LN_corr_s)
         mat2 = get_AR1_CorrMat(n_obs_bins, LN_corr_b)
-        Sigma =  Matrix::kronecker(mat1, mat2)  * exp(ln_theta[r,1])^2
+        Sigma =  Matrix::kronecker(mat1, mat2)  * (exp(ln_theta[r,1])^2 / (1 - LN_corr_s^2) / (1 - LN_corr_b^2))
 
         if(length(zeros) > 0) {
           # Remove zeros and renormalize

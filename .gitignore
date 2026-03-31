@@ -3,7 +3,12 @@
 .RData
 .Ruserdata
 .DS_Store
-/dev
 inst/doc
 /doc/
 /Meta/
+/dev/dev_output/CTMC
+/dev/spatial_plus_group
+/dev/spatial_movement_ctmc
+/dev/old
+/dev/scratch
+/dev/sporc_manuscript_demonstrations

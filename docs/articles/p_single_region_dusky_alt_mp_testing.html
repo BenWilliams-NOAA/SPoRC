@@ -537,7 +537,7 @@ of the closed-loop cycle.</p>
 <span>  <span class="co"># Solve for F that achieves target catch for each region-fleet combination</span></span>
 <span>  <span class="va">tmp_f</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/mapply.html" class="external-link">mapply</a></span><span class="op">(</span></span>
 <span>    <span class="kw">function</span><span class="op">(</span><span class="va">r</span>, <span class="va">f</span><span class="op">)</span> <span class="op">{</span></span>
-<span>      <span class="fu">SPoRC</span><span class="fu">::</span><span class="fu"><a href="../reference/bisection_F.html">bisection_F</a></span><span class="op">(</span></span>
+<span>      <span class="fu">SPoRC</span><span class="fu">::</span><span class="fu"><a href="../reference/catch_to_F_singlefleet.html">catch_to_F_singlefleet</a></span><span class="op">(</span></span>
 <span>        f_guess <span class="op">=</span> <span class="fl">0.05</span>,</span>
 <span>        catch <span class="op">=</span> <span class="va">tmp_TAC</span><span class="op">[</span><span class="va">r</span>, <span class="va">tac_year_index</span>, <span class="va">f</span><span class="op">]</span>,</span>
 <span>        NAA <span class="op">=</span> <span class="va">sim_env</span><span class="op">$</span><span class="va">NAA</span><span class="op">[</span><span class="va">r</span>, <span class="va">y</span> <span class="op">+</span> <span class="fl">1</span>, , , <span class="va">sim</span><span class="op">]</span>,</span>
@@ -1382,7 +1382,7 @@ stock biomass, and reduced catch variability.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.2.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer>

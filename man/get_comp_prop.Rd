@@ -25,7 +25,8 @@ Gets composition data proportions normalized according to the assessment specifi
 }
 \examples{
 \dontrun{
-comp_props <- get_comp_prop(data = data, rep = rep, age_labels = 2:31, len_labels = seq(41, 99, 2), year_labels = 1960:2024)
+comp_props <- get_comp_prop(data = data, rep = rep,
+age_labels = 2:31, len_labels = seq(41, 99, 2), year_labels = 1960:2024)
 comp_props$Fishery_Ages \%>\%
   filter(Fleet == 1, Sex == 1) \%>\%
   ggplot() +
@@ -42,10 +43,14 @@ comp_props$Fishery_Ages \%>\%
               obs = mean(obs),
               pred = mean(pred)) \%>\%
     ggplot() +
-    geom_line(mapping = aes(x = Age, y = obs, color = 'Obs', lty = 'Obs'), lwd = 1.3) +
-    geom_ribbon(mapping = aes(x = Age, y = obs, ymin = lwr_obs, ymax = upr_obs, fill = 'Obs'), alpha = 0.3) +
-    geom_line(mapping = aes(x = Age, y = pred, color = 'Pred', lty = 'Pred'), lwd = 1.3) +
-    geom_ribbon(mapping = aes(x = Age, y = pred, ymin = lwr_pred, ymax = upr_pred, fill = 'Pred'), alpha = 0.3) +
+    geom_line(mapping = aes(x = Age, y = obs,
+    color = 'Obs', lty = 'Obs'), lwd = 1.3) +
+    geom_ribbon(mapping = aes(x = Age, y = obs,
+    ymin = lwr_obs, ymax = upr_obs, fill = 'Obs'), alpha = 0.3) +
+    geom_line(mapping = aes(x = Age, y = pred,
+     color = 'Pred', lty = 'Pred'), lwd = 1.3) +
+    geom_ribbon(mapping = aes(x = Age, y = pred,
+     ymin = lwr_pred, ymax = upr_pred, fill = 'Pred'), alpha = 0.3) +
     facet_grid(Region~Fleet, labeller = labeller(
       Region = c('1' = "Region 1"),
       Fleet = c('1' = 'Domestic LL Survey', '3' = 'JP LL Survey')

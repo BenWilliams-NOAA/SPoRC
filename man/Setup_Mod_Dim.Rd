@@ -31,7 +31,7 @@ Setup_Mod_Dim(
 
 \item{n_srv_fleets}{Integer specifying the number of survey fleets.}
 
-\item{n_proj_yrs_devs}{Number of projection years for deviation parameters (ln_RecDevs, logit_move_devs, ln_fishsel_devs, ln_srvsel_devs)}
+\item{n_proj_yrs_devs}{Number of projection years for deviation parameters (ln_RecDevs, move_devs, ln_fishsel_devs, ln_srvsel_devs)}
 
 \item{verbose}{Logical flag indicating whether to print progress messages (default \code{FALSE}).}
 }

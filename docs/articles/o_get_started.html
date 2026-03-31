@@ -823,7 +823,7 @@ across all their respective dimensions.</p>
 <span></span>
 <span><span class="co"># summarize profile</span></span>
 <span><span class="va">francis_mean_rec_profile</span> <span class="op">&lt;-</span> <span class="va">francis_meanrec_prof</span><span class="op">$</span><span class="va">agg_nLL</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>Summarized_Type <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/case_when.html" class="external-link">case_when</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>Summarized_Type <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/case-and-replace-when.html" class="external-link">case_when</a></span><span class="op">(</span></span>
 <span>    <span class="fu"><a href="https://stringr.tidyverse.org/reference/str_detect.html" class="external-link">str_detect</a></span><span class="op">(</span><span class="va">type</span>, <span class="st">"Pen|Prior"</span><span class="op">)</span> <span class="op">~</span> <span class="st">"Other"</span>,</span>
 <span>    <span class="fu"><a href="https://stringr.tidyverse.org/reference/str_detect.html" class="external-link">str_detect</a></span><span class="op">(</span><span class="va">type</span>, <span class="st">"Len"</span><span class="op">)</span> <span class="op">~</span> <span class="st">"Length Comps"</span>,</span>
 <span>    <span class="fu"><a href="https://stringr.tidyverse.org/reference/str_detect.html" class="external-link">str_detect</a></span><span class="op">(</span><span class="va">type</span>, <span class="st">"Age"</span><span class="op">)</span> <span class="op">~</span> <span class="st">"Age Comps"</span>,</span>
@@ -1239,7 +1239,7 @@ mortality can then be visualized as follows.</p>
 <span><span class="co"># Get all scenario projections</span></span>
 <span><span class="va">scenarios</span> <span class="op">&lt;-</span> <span class="fu">reshape2</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/reshape2/man/melt.html" class="external-link">melt</a></span><span class="op">(</span><span class="va">all_scenarios_ssb</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>Year <span class="op">=</span> <span class="va">Var2</span> <span class="op">+</span> <span class="fl">2023</span>,</span>
-<span>         Scenario <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/case_when.html" class="external-link">case_when</a></span><span class="op">(</span></span>
+<span>         Scenario <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/case-and-replace-when.html" class="external-link">case_when</a></span><span class="op">(</span></span>
 <span>           <span class="va">Var4</span> <span class="op">==</span> <span class="fl">1</span> <span class="op">~</span> <span class="st">"S1: FABC (F40)"</span>,</span>
 <span>           <span class="va">Var4</span> <span class="op">==</span> <span class="fl">2</span> <span class="op">~</span> <span class="st">"S2: FABC Ratio"</span>,</span>
 <span>           <span class="va">Var4</span> <span class="op">==</span> <span class="fl">3</span> <span class="op">~</span> <span class="st">"S3: F Last 5 Years"</span>,</span>
@@ -1304,7 +1304,7 @@ mortality can then be visualized as follows.</p>
 <span><span class="co"># Get all scenario projections</span></span>
 <span><span class="va">scenarios</span> <span class="op">&lt;-</span> <span class="fu">reshape2</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/reshape2/man/melt.html" class="external-link">melt</a></span><span class="op">(</span><span class="va">all_scenarios_catch</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>Year <span class="op">=</span> <span class="va">Var2</span> <span class="op">+</span> <span class="fl">2023</span>,</span>
-<span>         Scenario <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/case_when.html" class="external-link">case_when</a></span><span class="op">(</span></span>
+<span>         Scenario <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/case-and-replace-when.html" class="external-link">case_when</a></span><span class="op">(</span></span>
 <span>           <span class="va">Var5</span> <span class="op">==</span> <span class="fl">1</span> <span class="op">~</span> <span class="st">"S1: FABC (F40)"</span>,</span>
 <span>           <span class="va">Var5</span> <span class="op">==</span> <span class="fl">2</span> <span class="op">~</span> <span class="st">"S2: FABC Ratio"</span>,</span>
 <span>           <span class="va">Var5</span> <span class="op">==</span> <span class="fl">3</span> <span class="op">~</span> <span class="st">"S3: F Last 5 Years"</span>,</span>
@@ -1407,7 +1407,7 @@ this strategy.</p>
 <span><span class="co"># Get all scenario projections</span></span>
 <span><span class="va">scenarios</span> <span class="op">&lt;-</span> <span class="fu">reshape2</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/reshape2/man/melt.html" class="external-link">melt</a></span><span class="op">(</span><span class="va">all_scenarios_f</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>Year <span class="op">=</span> <span class="va">Var2</span> <span class="op">+</span> <span class="fl">2023</span>,</span>
-<span>         Scenario <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/case_when.html" class="external-link">case_when</a></span><span class="op">(</span></span>
+<span>         Scenario <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/case-and-replace-when.html" class="external-link">case_when</a></span><span class="op">(</span></span>
 <span>           <span class="va">Var4</span> <span class="op">==</span> <span class="fl">1</span> <span class="op">~</span> <span class="st">"S1: FABC (F40)"</span>,</span>
 <span>           <span class="va">Var4</span> <span class="op">==</span> <span class="fl">2</span> <span class="op">~</span> <span class="st">"S2: FABC Ratio"</span>,</span>
 <span>           <span class="va">Var4</span> <span class="op">==</span> <span class="fl">3</span> <span class="op">~</span> <span class="st">"S3: F Last 5 Years"</span>,</span>
@@ -1467,7 +1467,7 @@ this strategy.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.2.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer>

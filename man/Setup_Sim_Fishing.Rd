@@ -17,7 +17,7 @@ Setup_Sim_Fishing(
     sim_list$n_fish_fleets, sim_list$n_sims)),
   ObsFishIdx_SE = array(0.2, dim = c(sim_list$n_regions, sim_list$n_yrs,
     sim_list$n_fish_fleets)),
-  fish_idx_type = rep(1, sim_list$n_fish_fleets),
+  fish_idx_type = array(1, dim = c(sim_list$n_regions, sim_list$n_fish_fleets)),
   comp_fishage_like = rep(0, sim_list$n_fish_fleets),
   ISS_FishAgeComps = array(100, dim = c(sim_list$n_regions, sim_list$n_yrs,
     sim_list$n_sexes, sim_list$n_fish_fleets, sim_list$n_sims)),
@@ -72,7 +72,7 @@ Setup_Sim_Fishing(
 [n_regions × n_yrs × n_fish_fleets]
 (default: `0.2`)}
 
-\item{fish_idx_type}{Vector of index types [n_fish_fleets]
+\item{fish_idx_type}{Array of index types [n_regions x n_fish_fleets]
 (default: all `1` = biomass index)
 \itemize{
   \item \code{0}: Abundance index

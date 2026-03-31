@@ -47,6 +47,14 @@
 #' @source Cheng et al. 2025, Fish and Fisheries; Panmictic Panacea? Demonstrating Good Practices for Developing Spatial Stock Assessments through Application to Alaska Sablefish (Anoplopoma fimbria)
 "mlt_rg_sable_rep"
 
+#' Sablefish report for 3 region case study
+#'
+#' A report containing results for the spatial Alaska sablefish case study.
+#'
+#' @format Report file from the 3 region sablefish case study
+#' @source Cheng et al. 2025, Fish and Fisheries; Panmictic Panacea? Demonstrating Good Practices for Developing Spatial Stock Assessments through Application to Alaska Sablefish (Anoplopoma fimbria)
+"three_rg_sable_rep"
+
 #' Dusky data for single region assessment case study
 #'
 #' A data list containing inputs for the 2024 GOA Dusky Rockfish Assessment

@@ -9,7 +9,7 @@ articles:
   - title: "Getting Started"
     contents:
       - o_get_started
-      
+
   - title: "Model Descriptions"
     contents:
       - a_model_dimensions
@@ -36,6 +36,7 @@ articles:
       - k_defining_priors
       - n_single_region_ebs_pollock_randomeff_case_study
       - p_single_region_dusky_alt_mp_testing
+      - q_movement_param
 
 reference:
   - title: "Model Setup"
@@ -81,7 +82,8 @@ reference:
     contents:
       - condition_closed_loop_simulations
       - get_closed_loop_reference_points
-      - bisection_F
+      - catch_to_F_singlefleet
+      - catch_to_F_multifleet
 
   - title: "Francis Reweighting"
     desc: "Functions for setting up Francis Reweighting"
@@ -137,5 +139,6 @@ reference:
       - three_rg_sable_data
       - sgl_rg_sable_rep
       - mlt_rg_sable_rep
+      - three_rg_sable_rep
       - sgl_rg_dusky_data
       - dusky_rtmb_model

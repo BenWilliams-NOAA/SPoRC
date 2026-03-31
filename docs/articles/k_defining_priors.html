@@ -145,7 +145,7 @@ provide the dataframe to the <code>h_prior</code> argument:</p>
 <span><span class="co">#&gt; Steepness priors are: Used</span></span>
 <span><span class="co">#&gt; Sex Ratios estimated with 1 block for region 1</span></span>
 <span><span class="co">#&gt; Recruitment Bias Ramp is: Off</span></span>
-<span><span class="co">#&gt; Initial Age Structure is: Matrix Geometric Series</span></span>
+<span><span class="co">#&gt; Initial Age Structure is: Movement and Matrix Geometric Series</span></span>
 <span><span class="co">#&gt; Recruitment deviations for every year are estimated</span></span>
 <span><span class="co">#&gt; Recruitment Variability is estimated for both early and late periods</span></span>
 <span><span class="co">#&gt; Initial Age Deviations is stochastic for all ages, but the plus group follows equilibrium calculations.</span></span>
@@ -275,9 +275,9 @@ argument.</p>
 <span><span class="co">#&gt; Survey Selectivity Time Blocks for survey 1 is specified at: 1</span></span>
 <span><span class="co">#&gt; Survey Selectivity Time Blocks for survey 2 is specified at: 1</span></span>
 <span><span class="co">#&gt; Survey Selectivity Time Blocks for survey 3 is specified at: 1</span></span>
-<span><span class="co">#&gt; Survey selectivity functional form specified as:logist1 for srvery fleet 1</span></span>
-<span><span class="co">#&gt; Survey selectivity functional form specified as:exponential for srvery fleet 2</span></span>
-<span><span class="co">#&gt; Survey selectivity functional form specified as:logist1 for srvery fleet 3</span></span>
+<span><span class="co">#&gt; Survey selectivity functional form specified as:logist1 for survey fleet 1</span></span>
+<span><span class="co">#&gt; Survey selectivity functional form specified as:exponential for survey fleet 2</span></span>
+<span><span class="co">#&gt; Survey selectivity functional form specified as:logist1 for survey fleet 3</span></span>
 <span><span class="co">#&gt; Survey Catchability Time Blocks for survey 1 is specified at: 1</span></span>
 <span><span class="co">#&gt; Survey Catchability Time Blocks for survey 2 is specified at: 1</span></span>
 <span><span class="co">#&gt; Survey Catchability Time Blocks for survey 3 is specified at: 1</span></span>
@@ -368,9 +368,9 @@ selectivity prior dataframe to <code>srv_selex_prior</code>.</p>
 <span><span class="co">#&gt; Survey Selectivity Time Blocks for survey 1 is specified at: 1</span></span>
 <span><span class="co">#&gt; Survey Selectivity Time Blocks for survey 2 is specified at: 1</span></span>
 <span><span class="co">#&gt; Survey Selectivity Time Blocks for survey 3 is specified at: 1</span></span>
-<span><span class="co">#&gt; Survey selectivity functional form specified as:logist1 for srvery fleet 1</span></span>
-<span><span class="co">#&gt; Survey selectivity functional form specified as:exponential for srvery fleet 2</span></span>
-<span><span class="co">#&gt; Survey selectivity functional form specified as:logist1 for srvery fleet 3</span></span>
+<span><span class="co">#&gt; Survey selectivity functional form specified as:logist1 for survey fleet 1</span></span>
+<span><span class="co">#&gt; Survey selectivity functional form specified as:exponential for survey fleet 2</span></span>
+<span><span class="co">#&gt; Survey selectivity functional form specified as:logist1 for survey fleet 3</span></span>
 <span><span class="co">#&gt; Survey Catchability Time Blocks for survey 1 is specified at: 1</span></span>
 <span><span class="co">#&gt; Survey Catchability Time Blocks for survey 2 is specified at: 1</span></span>
 <span><span class="co">#&gt; Survey Catchability Time Blocks for survey 3 is specified at: 1</span></span>
@@ -422,12 +422,20 @@ processes.</p>
 probabilities. To illustrate, we set up the movement specification using
 the <code>Setup_Mod_Movement</code> function. Movement priors are
 enabled by setting <code>Use_Movement_Prior = 1</code>. The
-<code>Movement_prior</code> argument can be provided as a scalar (as in
-the example below), a vector, or a fully specified array. A scalar
-value, such as 1.5, implies a vague, symmetric Dirichlet prior that
-mildly penalizes values near the extremes (i.e., near 0 or 1).</p>
+<code>Movement_prior</code> argument must be provided as a dataframe
+where each row corresponds to an origin region (and age or sex index)
+and includes a list-column alpha specifying the Dirichlet shape
+parameters that define the prior over movement probabilities to all
+destination regions.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># setting up movement parameterization</span></span>
+<code class="sourceCode R"><span><span class="va">prior</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span></span>
+<span>    region_from <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">input_list</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">n_regions</span>, <span class="co"># regions</span></span>
+<span>    age <span class="op">=</span> <span class="fl">1</span>, <span class="co"># age blocks</span></span>
+<span>    sex <span class="op">=</span> <span class="fl">1</span>, <span class="co"># sex</span></span>
+<span>    alpha <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/AsIs.html" class="external-link">I</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">2</span>, <span class="va">input_list</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">n_regions</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="co"># prior alpha to each row</span></span>
+<span>  <span class="op">)</span></span>
+<span></span>
+<span><span class="co"># setting up movement parameterization</span></span>
 <span><span class="va">input_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/Setup_Mod_Movement.html">Setup_Mod_Movement</a></span><span class="op">(</span>input_list <span class="op">=</span> <span class="va">input_list</span>,</span>
 <span>                                 <span class="co"># Model options</span></span>
 <span>                                 Movement_ageblk_spec <span class="op">=</span> <span class="st">"constant"</span>,</span>
@@ -436,29 +444,17 @@ mildly penalizes values near the extremes (i.e., near 0 or 1).</p>
 <span>                                 Movement_yearblk_spec <span class="op">=</span> <span class="st">"constant"</span>, <span class="co"># time-invariant movement</span></span>
 <span>                                 Movement_sexblk_spec <span class="op">=</span> <span class="st">"constant"</span>, <span class="co"># sex-invariant movement</span></span>
 <span>                                 Use_Movement_Prior <span class="op">=</span> <span class="fl">1</span>, <span class="co"># priors used for movement</span></span>
-<span>                                 Movement_prior <span class="op">=</span> <span class="fl">1.5</span>  <span class="co"># vague prior to penalize movement away from the extremes</span></span>
+<span>                                 Movement_prior <span class="op">=</span> <span class="va">prior</span>  <span class="co"># vague prior to penalize movement away from the extremes</span></span>
 <span>                                 <span class="op">)</span></span>
 <span><span class="co">#&gt; Movement is: Estimated</span></span>
 <span><span class="co">#&gt; Movement priors are: Used</span></span>
 <span><span class="co">#&gt; Recruits are: Not Moving</span></span>
 <span><span class="co">#&gt; Continuous movement specification is: none</span></span>
 <span><span class="co">#&gt; Continuous movement process error specification is: none</span></span>
+<span><span class="co">#&gt; Movement type is: Unstructured Markov</span></span>
 <span><span class="co">#&gt; Movement fixed effect blocks are sex-invariant</span></span>
 <span><span class="co">#&gt; Movement fixed effect blocks are time-invariant</span></span>
 <span><span class="co">#&gt; Movement fixed effect blocks are age-invariant</span></span></code></pre></div>
-<p>If a vector or array is supplied to <code>Movement_prior</code>, it
-will be reshaped to match the full set of movement dimensions:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># array(Movement_prior, dim = c(input_list$data$n_regions, input_list$data$n_regions,</span></span>
-<span><span class="co">#                               length(input_list$data$years), </span></span>
-<span><span class="co">#                               length(input_list$data$ages), </span></span>
-<span><span class="co">#                               input_list$data$n_sexes))</span></span></code></pre></div>
-<p>It is important to ensure that the shape and values of the prior
-align with the structure of the movement parameters being estimated.
-Note that priors are only applied to the unique movement parameters.
-Thus, if movement is specified as constant across time, age, and sex,
-only one prior will be applied, regardless of the dimensionality of the
-array provided.</p>
 </div>
 <div class="section level2">
 <h2 id="tag-reporting-rates">Tag Reporting Rates<a class="anchor" aria-label="anchor" href="#tag-reporting-rates"></a>
@@ -477,7 +473,7 @@ standard deviation directly.</p>
 <p>In the example below, symmetric beta priors are applied to two time
 blocks in region 1. Because the symmetric form does not require a mean,
 the <code>mu</code> column is set to NA:</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># setup tagging priors</span></span>
 <span><span class="va">tag_prior</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  region <span class="op">=</span> <span class="fl">1</span>,         <span class="co"># apply to region 1</span></span>
@@ -499,7 +495,7 @@ If <code>type = 1</code> were used instead, the mu column would need to
 be specified with the prior mean. Tag reporting rate priors can then be
 applied by setting <code>Use_TagRep_Prior = 1</code> and inputting the
 dataframe into the <code>TagRep_Prior</code> argument.</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># setting up tagging parameterization</span></span>
 <span><span class="va">input_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/Setup_Mod_Tagging.html">Setup_Mod_Tagging</a></span><span class="op">(</span>input_list <span class="op">=</span> <span class="va">input_list</span>,</span>
 <span>                                UseTagging <span class="op">=</span> <span class="fl">1</span>, <span class="co"># using tagging data</span></span>
@@ -531,8 +527,8 @@ dataframe into the <code>TagRep_Prior</code> argument.</p>
 <span>                                ln_Tag_Shed <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">0.02</span><span class="op">)</span>  <span class="co"># fixing tag shedding</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; Tagging priors are used</span></span>
-<span><span class="co">#&gt; Tagging data are fit to by pooling across 1 age groups</span></span>
-<span><span class="co">#&gt; Tagging data are fit to by pooling across 1 sex groups</span></span>
+<span><span class="co">#&gt; Tagging data are fit to 30 age groups</span></span>
+<span><span class="co">#&gt; Tagging data are fit to 2 sex groups</span></span>
 <span><span class="co">#&gt; Tag Reporting estimated with 2 block for region 1</span></span>
 <span><span class="co">#&gt; Tag Reporting estimated with 2 block for region 2</span></span>
 <span><span class="co">#&gt; Tag Reporting estimated with 2 block for region 3</span></span>
@@ -555,7 +551,7 @@ scalar or vector of (<code>n_regions</code>) can be defined for
 be applied. If a vector of different values for each region are
 provided, then the Dirichlet prior will be applied according to those
 concentration parameters.</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Setup recruitment stuff (using defaults for other stuff)</span></span>
 <span><span class="va">input_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/Setup_Mod_Rec.html">Setup_Mod_Rec</a></span><span class="op">(</span>input_list <span class="op">=</span> <span class="va">input_list</span>, <span class="co"># input data list from above</span></span>
 <span>                            do_rec_bias_ramp <span class="op">=</span> <span class="fl">0</span>,</span>
@@ -573,7 +569,7 @@ concentration parameters.</p>
 <span><span class="co">#&gt; Sex Ratios estimated with 1 block for region 4</span></span>
 <span><span class="co">#&gt; Sex Ratios estimated with 1 block for region 5</span></span>
 <span><span class="co">#&gt; Recruitment Bias Ramp is: Off</span></span>
-<span><span class="co">#&gt; Initial Age Structure is: Matrix Geometric Series</span></span>
+<span><span class="co">#&gt; Initial Age Structure is: Movement and Matrix Geometric Series</span></span>
 <span><span class="co">#&gt; Recruitment deviations for every year are estimated</span></span>
 <span><span class="co">#&gt; Recruitment Variability is estimated for both early and late periods</span></span>
 <span><span class="co">#&gt; Initial Age Deviations is stochastic for all ages, but the plus group follows equilibrium calculations.</span></span>
@@ -591,7 +587,7 @@ concentration parameters.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.2.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer>

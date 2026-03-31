@@ -242,7 +242,7 @@ Regional biological $SPR$-based reference points ($B_{x}$) can then be
 derived by multiplying $SS{BPR}_{r}^{\text{fished}}$ by regional mean
 recruitment over a user-defined period and the recruitment sex-ratio:
 
-$$B_{r,x} = SS{BPR}_{r}^{\text{fished}} \cdot \frac{\sum_{RecYear}^{n_{y} - RecAge}{Rec}_{r,y,s}}{n_{y} - RecAge - RecYear}$$
+$$B_{r,x} = SS{BPR}_{r}^{\text{fished}} \cdot \sum_r \frac{\sum_{RecYear}^{n_{y} - RecAge}{Rec}_{r,y,s}}{n_{y} - RecAge - RecYear}$$
 
 ##### Global
 
@@ -479,7 +479,7 @@ $${EqRec}_{r} = \frac{4 \cdot h \cdot \mu^{Rec}\zeta_{r} \cdot \sum_{r}^{}{SS{BP
 Yield and $B_{r,msy}$ are calculated as:
 
 $${Yield = \sum_{a}^{}{\sum_{r}^{}C_{r,a}} \cdot W_{r,y = y^{*},a,s = 1}^{spawn} \cdot {EqRec}_{r}
-}{B_{r,msy} = SS{BPR}_{r}^{\text{fished}} \cdot {EqRec}_{r}}$$
+} {B_{r,msy} = SS{BPR}_{r}^{\text{fished}} \cdot \sum_r {EqRec}_{r}}$$
 
 $F_{msy}$ can then be solved for using the following:
 

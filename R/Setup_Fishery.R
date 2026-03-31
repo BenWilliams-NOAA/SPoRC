@@ -19,7 +19,7 @@
 #' @param ObsFishIdx_SE Observation error of fishery index
 #'   [n_regions × n_yrs × n_fish_fleets]
 #'   (default: `0.2`)
-#' @param fish_idx_type Vector of index types [n_fish_fleets]
+#' @param fish_idx_type Array of index types [n_regions x n_fish_fleets]
 #'   (default: all `1` = biomass index)
 #'   \itemize{
 #'     \item \code{0}: Abundance index
@@ -106,7 +106,7 @@ Setup_Sim_Fishing <- function(sim_list,
                               fish_sel_input,
                               fish_q_input = array(1, dim = c(sim_list$n_regions, sim_list$n_yrs, sim_list$n_fish_fleets, sim_list$n_sims)),
                               ObsFishIdx_SE = array(0.2, dim = c(sim_list$n_regions, sim_list$n_yrs, sim_list$n_fish_fleets)),
-                              fish_idx_type = rep(1, sim_list$n_fish_fleets),
+                              fish_idx_type = array(1, dim = c(sim_list$n_regions, sim_list$n_fish_fleets)),
                               comp_fishage_like = rep(0, sim_list$n_fish_fleets),
                               ISS_FishAgeComps = array(100, dim = c(sim_list$n_regions, sim_list$n_yrs, sim_list$n_sexes, sim_list$n_fish_fleets, sim_list$n_sims)),
                               ln_FishAge_theta = array(log(1), dim = c(sim_list$n_regions, sim_list$n_sexes, sim_list$n_fish_fleets)),
@@ -505,9 +505,9 @@ do_Fmort_mapping <- function(input_list) {
 #' @export Setup_Mod_Catch_and_F
 #' @family Model Setup
 Setup_Mod_Catch_and_F <- function(input_list,
-                                  ObsCatch = array(1, dim = c(length(input_list$data$years), input_list$data$n_fish_fleets)),
+                                  ObsCatch,
                                   catch_units = array("biom", dim = c(input_list$data$n_regions, input_list$data$n_fish_fleets)),
-                                  Catch_Type,
+                                  Catch_Type = array(1, dim = c(length(input_list$data$years), input_list$data$n_fish_fleets)),
                                   UseCatch,
                                   Use_F_pen = 1,
                                   est_all_regional_F = 1,
@@ -1327,7 +1327,6 @@ do_fish_fixed_sel_pars_mapping <- function(input_list, fish_fixed_sel_pars_spec)
 
   # input into mapping list
   input_list$map$ln_fish_fixed_sel_pars <- factor(map_fish_fixed_sel_pars)
-
   return(input_list)
 }
 
@@ -1588,9 +1587,11 @@ do_fishsel_pe_pars_mapping <- function(input_list, fishsel_pe_pars_spec, corr_op
 #' Helper function to set up fishery selectivity deviations mapping
 #'
 #' @param input_list Input list
+#' @param fishsel_devs_shared_ages List object for specifying which ages are shared when selectivity deviations are semi-parametric (e.g., list(1:5, 6:10, 11:30) specifies that ages 1-5, 6-10, and 11-30 have the same deviations.)
 #' @param fish_sel_devs_spec Character vector specifying fishery selectivity deviations parameterization
+#'
 #' @keywords internal
-do_fishsel_devs_mapping <- function(input_list, fish_sel_devs_spec) {
+do_fishsel_devs_mapping <- function(input_list, fish_sel_devs_spec, fishsel_devs_shared_ages) {
 
   # Initialize counter and mapping array for fishery selectivity deviations
   fishsel_devs_counter <- 1
@@ -1602,10 +1603,12 @@ do_fishsel_devs_mapping <- function(input_list, fish_sel_devs_spec) {
 
       # Validate options
       if(!is.null(fish_sel_devs_spec)) {
-        if(!fish_sel_devs_spec[f] %in% c("fix", "none", "est_all", "est_shared_r", "est_shared_s", "est_shared_r_s") &&
+        if(!fish_sel_devs_spec[f] %in% c("fix", "none", "est_all", "est_shared_r", "est_shared_s", "est_shared_r_s", "est_shared_a", "est_shared_r_a", "est_shared_r_a_s", "est_shared_a_s") &&
            !stringr::str_detect(fish_sel_devs_spec[f], "est_shared_f_\\d+"))
-          stop("fish_sel_devs_spec not correctly specfied. Should be one of these: est_all, est_shared_r, est_shared_r_s, est_shared_s, fix, or est_shared_f_# (where # is fleet number)")
-      }
+          stop("fish_sel_devs_spec not correctly specfied. Should be one of these: est_all, est_shared_r, est_shared_r_s, est_shared_s, est_shared_a, est_shared_r_a, est_shared_r_a_s, est_shared_r_s, fix, or est_shared_f_# (where # is fleet number)")
+        if(fish_sel_devs_spec[f] %in% c("est_shared_a", "est_shared_r_a", "est_shared_r_a_s", "est_shared_a_s") &&
+           !input_list$data$cont_tv_fish_sel[r,f] %in% c(3,4,5)) stop("Sharing age deviations with iid or random walk parametric forms is not supported!")
+       }
 
       # Skip fleet sharing specs in first pass
       if(!is.null(fish_sel_devs_spec)) if(stringr::str_detect(fish_sel_devs_spec[f], "est_shared_f")) next
@@ -1691,6 +1694,34 @@ do_fishsel_devs_mapping <- function(input_list, fish_sel_devs_spec) {
                   fishsel_devs_counter <- fishsel_devs_counter + 1
                 }
 
+                if(fish_sel_devs_spec[f] == 'est_shared_a') {
+                  for(k in 1:length(fishsel_devs_shared_ages)) {
+                    map_fishsel_devs[r,y,fishsel_devs_shared_ages[[k]],s,f] <- fishsel_devs_counter
+                    fishsel_devs_counter <- fishsel_devs_counter + 1
+                  } # end k loop
+                }
+
+                if(fish_sel_devs_spec[f] == 'est_shared_r_a' && r == 1) {
+                  for(k in 1:length(fishsel_devs_shared_ages)) {
+                    map_fishsel_devs[,y,fishsel_devs_shared_ages[[k]],s,f] <- fishsel_devs_counter
+                    fishsel_devs_counter <- fishsel_devs_counter + 1
+                  } # end k loop
+                }
+
+                if(fish_sel_devs_spec[f] == 'est_shared_a_s' && s == 1) {
+                  for(k in 1:length(fishsel_devs_shared_ages)) {
+                    map_fishsel_devs[r,y,fishsel_devs_shared_ages[[k]],,f] <- fishsel_devs_counter
+                    fishsel_devs_counter <- fishsel_devs_counter + 1
+                  } # end k loop
+                }
+
+                if(fish_sel_devs_spec[f] == 'est_shared_r_a_s' && s == 1 && r == 1) {
+                  for(k in 1:length(fishsel_devs_shared_ages)) {
+                    map_fishsel_devs[,y,fishsel_devs_shared_ages[[k]],,f] <- fishsel_devs_counter
+                    fishsel_devs_counter <- fishsel_devs_counter + 1
+                  } # end k loop
+                }
+
               } # end i loop
             } # end 3d gmrf
 
@@ -1772,7 +1803,7 @@ do_fishsel_devs_mapping <- function(input_list, fish_sel_devs_spec) {
 #' Each element must follow one of the following structures:
 #' \itemize{
 #'   \item \code{"<selectivity model>_Fleet_<fleet number>"}
-#'   \item \code{"<selectivity model>_Block_<block number>_Fleet_<fleet number>"}
+#'   \item \code{"<selectivity model>_Fleet_<fleet number>_Block_<block number>"}
 #' }
 #'
 #' The first form applies a single selectivity model across all years for the specified fleet.
@@ -1859,6 +1890,10 @@ do_fishsel_devs_mapping <- function(input_list, fish_sel_devs_spec) {
 #'   \item \code{"est_shared_r"}: Shares deviations across regions (sex-specific deviations are still estimated).
 #'   \item \code{"est_shared_s"}: Shares deviations across sexes (region-specific deviations are still estimated).
 #'   \item \code{"est_shared_r_s"}: Shares deviations across both regions and sexes, estimating a single deviation time series.
+#'   \item \code{"est_shared_a"}: Shares deviations across age blocks.
+#'   \item \code{"est_shared_r_a"}: Shares deviations across regions and age shared blocks.
+#'   \item \code{"est_shared_a_s"}: Shares deviations across age shared blocks and sexes.
+#'   \item \code{"est_shared_r_a_s"}: Shares deviations across regions, age shared blocks, and sexes.
 #'   \item \code{"est_shared_f_x"}: Shares deviations with another fleet, where \code{x} is the fleet number to share with.
 #'     This option allows multiple fleets to use identical deviation parameters, reducing the number of parameters
 #'     to estimate. For example, \code{"est_shared_f_2"} means the current fleet will use the same deviation
@@ -1899,7 +1934,6 @@ do_fishsel_devs_mapping <- function(input_list, fish_sel_devs_spec) {
 #'   \code{block} (time block index), \code{mu} (prior mean on natural scale), and \code{sd} (prior standard deviation on log scale).
 #'   Each row specifies a log-normal prior N(log(mu), sd) for a given catchability parameter.
 #'   Only parameters with rows in this data frame will have priors applied.
-#' @param ... Additional arguments specifying starting values for fishery selectivity and catchability parameters (fishsel_pe_pars, ln_fishsel_devs, ln_fish_fixed_sel_pars, ln_fish_q)
 #' @param Use_fish_selex_prior Integer (0 or 1). Flag to enable/disable fishery selectivity priors.
 #'   When set to 1, applies log-normal priors to fishery selectivity parameters as specified
 #'   in \code{fish_selex_prior}. When set to 0, no priors are applied.
@@ -1910,6 +1944,7 @@ do_fishsel_devs_mapping <- function(input_list, fish_sel_devs_spec) {
 #'   Each row specifies a log-normal prior N(log(mu), sd) for one selectivity parameter.
 #'   Only parameters with rows in this data frame will have priors applied.
 #' @param cont_tv_fish_sel_penalty Whether or not continuous fishery time varying selectivity penalties are applied (if cont_tv_fish_sel > 0)
+#' @param fishsel_devs_shared_ages List object for specifying which ages are shared when selectivity deviations are semi-parametric (e.g., list(1:5, 6:10, 11:30) specifies that ages 1-5, 6-10, and 11-30 have the same deviations.)
 #'
 #' @export Setup_Mod_Fishsel_and_Q
 #'
@@ -1930,6 +1965,7 @@ Setup_Mod_Fishsel_and_Q <- function(input_list,
                                     Use_fish_selex_prior = 0,
                                     fish_selex_prior = NULL,
                                     cont_tv_fish_sel_penalty = TRUE,
+                                    fishsel_devs_shared_ages = NULL,
                                     ...
                                     ) {
 
@@ -2035,26 +2071,28 @@ Setup_Mod_Fishsel_and_Q <- function(input_list,
   # Selectivity Functional Forms --------------------------------------------
   sel_map <- data.frame(sel = c('logist1', "gamma", "exponential", "logist2", "dbnrml"), num = c(0,1,2,3,4)) # set up values we can map to
   fish_sel_model_arr <- array(NA, dim = c(input_list$data$n_regions, length(input_list$data$years), input_list$data$n_fish_fleets))
+
   for(i in 1:length(fish_sel_model)) {
+
     # Extract out fishery selectivity components from vector
     tmp_sel_form <- fish_sel_model[i]
     tmp_sel_form_vec <- unlist(strsplit(tmp_sel_form, "_")) # split string
     sel_form <- tmp_sel_form_vec[1] # get selectivity type
 
     # get fleet index
-    fleet <- if(length(tmp_sel_form_vec) == 3) as.numeric(tmp_sel_form_vec[3]) else as.numeric(tmp_sel_form_vec[5]) # fleet index changes if block is included in character vector
+    tmp_fleet <- if(length(tmp_sel_form_vec) == 3) as.numeric(tmp_sel_form_vec[3]) else as.numeric(tmp_sel_form_vec[5]) # fleet index changes if block is included in character vector
     # get block index
-    block <- if(length(tmp_sel_form_vec) == 5) as.numeric(tmp_sel_form_vec[3]) else NULL
+    tmp_block <- if(length(tmp_sel_form_vec) == 5) as.numeric(tmp_sel_form_vec[3]) else NULL
 
     # validate options
     if(!sel_form %in% c(sel_map$sel)) stop("fish_sel_model is not correctly specified. This needs to be one of these: logist1, gamma, exponential, logist2, dbnrml (the seltypes) and specified as seltype_Fleet_x")
-    if(!fleet %in% c(1:input_list$data$n_fish_fleets)) stop("Invalid fleet specified for fish_sel_model This needs to be specified as seltype_Fleet_x or seltype_Block_x_Fleet_x (if blocks are specified to change for a fleet)")
+    if(!tmp_fleet %in% c(1:input_list$data$n_fish_fleets)) stop("Invalid fleet specified for fish_sel_model This needs to be specified as seltype_Fleet_x or seltype_Fleet_x_Block_x (if blocks are specified to change for a fleet)")
 
     # Input options
-    if(is.null(block)) fish_sel_model_arr[,,fleet] <- sel_map$num[which(sel_map$sel == sel_form)] # same selectivity form across blocks
-    else fish_sel_model_arr[,which(fish_sel_blocks_arr[,,fleet] == block),fleet] <- sel_map$num[which(sel_map$sel == sel_form)]
-    collect_message("Fishery selectivity functional form specified as:", sel_form, " for fishery fleet ", fleet)
-
+    if(is.null(tmp_block)) fish_sel_model_arr[,,tmp_fleet] <- sel_map$num[which(sel_map$sel == sel_form)] # same selectivity form across blocks
+    else fish_sel_model_arr[,which(fish_sel_blocks_arr[,,tmp_fleet] == tmp_block),tmp_fleet] <- sel_map$num[which(sel_map$sel == sel_form)]
+    rm(tmp_block) # remove tmp block to start next loop
+    collect_message("Fishery selectivity functional form specified as:", sel_form, " for fishery fleet ", tmp_fleet)
   }
 
   # Validate that blocks and continuous time-variation aren't both specified for same fleet
@@ -2155,7 +2193,7 @@ Setup_Mod_Fishsel_and_Q <- function(input_list,
   input_list <- do_fish_fixed_sel_pars_mapping(input_list, fish_fixed_sel_pars_spec)
   input_list <- do_fish_q_mapping(input_list, fish_q_spec)
   input_list <- do_fishsel_pe_pars_mapping(input_list, fishsel_pe_pars_spec, corr_opt_semipar)
-  input_list <- do_fishsel_devs_mapping(input_list, fish_sel_devs_spec)
+  input_list <- do_fishsel_devs_mapping(input_list, fish_sel_devs_spec, fishsel_devs_shared_ages)
 
   # Print Messages ----------------------------------------------------------
   if(input_list$verbose) for(msg in messages_list) message(msg)

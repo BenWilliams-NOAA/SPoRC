@@ -364,24 +364,70 @@ movement prior, 1: Use movement prior</td>
 </tr>
 <tr class="odd">
 <td><code>Movement_prior</code></td>
-<td>Array dimensioned by n_regions, n_regions, n_years, n_ages, n_sexes
-specifying values for a Dirichlet prior</td>
+<td>Data frame with columns representing origin region
+(<code>region_from</code>), representative age (<code>age</code>), sex
+(<code>sex</code>), and a list column (<code>alpha</code>) containing
+Dirichlet prior parameters. Each element of <code>alpha</code> is a
+numeric vector of length <em>n_regions</em>, specifying the prior
+concentration (<code>alpha</code> values) for movement among destination
+regions.</td>
 </tr>
 <tr class="even">
-<td><code>map_Movement_Pars</code></td>
-<td>Array by n_regions, n_regions, n_years, n_ages, n_sexes specifying
-which movement parameters are shared and mapped off</td>
-</tr>
-<tr class="odd">
 <td><code>cont_vary_movement</code></td>
 <td>Integer indicating whether movement is continuously varying across
 regions, years, and ages (0 = none, 1 = iid deviations)</td>
 </tr>
-<tr class="even">
-<td><code>map_logit_move_devs</code></td>
+<tr class="odd">
+<td><code>map_move_devs</code></td>
 <td>Array dimensioned by n_regions, n_regions - 1, n_years, n_ages, and
 n_sexes specifying which movement parameters are shared and mapped
 off</td>
+</tr>
+<tr class="even">
+<td><code>move_type</code></td>
+<td>Integer indicating movement model type: 0 = unstructured Markov
+(multinomial logit), 1 = Continuous Time Markov Chain (CTMC)</td>
+</tr>
+<tr class="odd">
+<td><code>ctmc_move_dat</code></td>
+<td>Data frame with CTMC covariates (<code>regions</code>,
+<code>years</code>, <code>ages</code>, <code>sexes</code>, plus formula
+variables) used to build design matrices for diffusion and preference
+when <code>move_type == 1</code>. Can include projection years with
+projected covariate values.</td>
+</tr>
+<tr class="even">
+<td><code>diffusion_formula</code></td>
+<td>R formula specifying diffusion covariates for CTMC movement (when
+<code>move_type == 1</code>)</td>
+</tr>
+<tr class="odd">
+<td><code>preference_formula</code></td>
+<td>R formula specifying preference covariates for CTMC movement (when
+<code>move_type == 1</code>)</td>
+</tr>
+<tr class="even">
+<td><code>adjacency_mat</code></td>
+<td>Square adjacency matrix (<code>n_regions</code> ×
+<code>n_regions</code>) defining allowed transitions between regions for
+CTMC movement</td>
+</tr>
+<tr class="odd">
+<td><code>adjacency_collapsed</code></td>
+<td>Collasped adjacency matrix (<code>n_regions</code> ×
+<code>n_regions - 1</code>) defining allowed transitions between regions
+for CTMC movement (but excluding diagonals)</td>
+</tr>
+<tr class="even">
+<td><code>area_r</code></td>
+<td>Numeric vector of region areas (length <code>n_regions</code>) used
+to scale diffusion rates in CTMC movement</td>
+</tr>
+<tr class="odd">
+<td><code>ctmc_diffusion_bounds</code></td>
+<td>Integer flag (0 or 1) indicating whether diffusion bounds are
+applied to ensure the generator matrix is Metzler (1 = bounds
+enforced)</td>
 </tr>
 </tbody>
 </table>
@@ -520,12 +566,6 @@ recaptures when fitting to these data</td>
 <td><code>Tag_Reporting_blocks</code></td>
 <td>Array dimensioned by n_regions and n_years indicating the regions
 and years for which a block is specified</td>
-</tr>
-<tr class="odd">
-<td><code>map_Tag_Reporting_Pars</code></td>
-<td>Array dimensioned by n_regions and n_years indicating the regions
-and years for which a block is specified and which tagging parameters
-are mapped off / shared.</td>
 </tr>
 </tbody>
 </table>
@@ -910,18 +950,13 @@ prior N(log(mu), sd) for one catchability parameter.</td>
 and n_fish_fleets indicating which values are mapped off</td>
 </tr>
 <tr class="even">
-<td><code>map_fish_q</code></td>
-<td>Array of values dimensioned by n_regions, n_q_time_blocks, and
-n_fish_fleets indicating which values are mapped off</td>
-</tr>
-<tr class="odd">
 <td><code>Use_fish_selex_prior</code></td>
 <td>Integer (0 or 1). Flag to enable/disable fishery selectivity priors.
 When set to 1, applies log-normal priors to fishery selectivity
 parameters as specified in <code>fish_selex_prior</code>. When set to 0,
 no priors are applied.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>fish_selex_prior</code></td>
 <td>Data frame containing prior specifications for fishery selectivity
 parameters. Must include columns: <code>region</code> (region index),
@@ -931,7 +966,7 @@ parameters. Must include columns: <code>region</code> (region index),
 (prior standard deviation on log scale). Each row specifies a log-normal
 prior N(log(mu), sd) for one selectivity parameter.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>cont_tv_fish_sel_penalty</code></td>
 <td>Boolean on whether fishery selectivity penalties are applied to
 continous time-varying selectivity</td>
@@ -1016,29 +1051,24 @@ prior N(log(mu), sd) for one catchability parameter.</td>
 and n_srv_fleets indicating which values are mapped off</td>
 </tr>
 <tr class="even">
-<td><code>map_srv_q</code></td>
-<td>Array of values dimensioned by n_regions, n_q_time_blocks, and
-n_srv_fleets indicating which values are mapped off</td>
-</tr>
-<tr class="odd">
 <td><code>do_srv_q_cov</code></td>
 <td>Numeric value indicating whether a survey catchability covariate is
 used in the model. 0 == Not used, 1 == Used</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>srv_q_cov</code></td>
 <td>Array dimensioned by <code>n_regions</code>, <code>n_years</code>,
 <code>n_srv_fleets</code>, <code>n_covariates</code> representing the
 covariates used to compute survey catchability.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>Use_srv_selex_prior</code></td>
 <td>Integer (0 or 1). Flag to enable/disable survey selectivity priors.
 When set to 1, applies log-normal priors to survey selectivity
 parameters as specified in <code>srv_selex_prior</code>. When set to 0,
 no priors are applied.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>srv_selex_prior</code></td>
 <td>Data frame containing prior specifications for survey selectivity
 parameters. Must include columns: <code>region</code> (region index),
@@ -1048,7 +1078,7 @@ parameters. Must include columns: <code>region</code> (region index),
 (prior standard deviation on log scale). Each row specifies a log-normal
 prior N(log(mu), sd) for one selectivity parameter.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>cont_tv_srv_sel_penalty</code></td>
 <td>Boolean on whether survey selectivity penalties are applied to
 continous time-varying selectivity</td>
@@ -1138,7 +1168,7 @@ which should ideally be derived using Francis re-weighting methods</td>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.2.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer>
