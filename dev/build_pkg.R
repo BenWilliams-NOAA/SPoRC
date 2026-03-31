@@ -30,6 +30,7 @@ install() # install locally
 unloadNamespace('SPoRC')
 # devtools::load_all(here("R"))
 # usethis::use_pkgdown_github_pages()
+desc::desc_del_dep("compResidual", "Suggests")
 
 
 

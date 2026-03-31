@@ -40,14 +40,12 @@ Imports:
     tidyr,
     TMB
 Suggests: 
-    compResidual,
     igraph,
     knitr,
     purrr,
     rmarkdown,
     splines2,
     testthat (>= 3.0.0)
-Remotes:fishfollower/compResidual/compResidual
 VignetteBuilder: 
     knitr
 Config/testthat/edition: 3
