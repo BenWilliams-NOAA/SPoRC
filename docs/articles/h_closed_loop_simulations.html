@@ -515,7 +515,7 @@ in the next year, completing the feedback loop.</p>
 <span>        <span class="va">tac_year_index</span> <span class="op">&lt;-</span> <span class="va">y</span> <span class="op">-</span> <span class="va">last_assess_year</span> <span class="op">+</span> <span class="fl">1</span> <span class="co"># get years to index TACs</span></span>
 <span>        <span class="va">rf_grid</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span>r <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">sim_env</span><span class="op">$</span><span class="va">n_regions</span><span class="op">)</span>, f <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">sim_env</span><span class="op">$</span><span class="va">n_fish_fleets</span><span class="op">)</span><span class="op">)</span> <span class="co"># set up region, fleet grid to bisection across</span></span>
 <span>        <span class="va">tmp_f</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/mapply.html" class="external-link">mapply</a></span><span class="op">(</span><span class="kw">function</span><span class="op">(</span><span class="va">r</span>, <span class="va">f</span><span class="op">)</span> <span class="op">{</span> <span class="co"># do bisection to go from region and fleet specific catch to region and fleet specific F rates</span></span>
-<span>          <span class="fu"><a href="../reference/bisection_F.html">bisection_F</a></span><span class="op">(</span></span>
+<span>          <span class="fu"><a href="../reference/catch_to_F_singlefleet.html">catch_to_F_singlefleet</a></span><span class="op">(</span></span>
 <span>            f_guess <span class="op">=</span> <span class="fl">0.05</span>, <span class="co"># guess for fishing mortality rate</span></span>
 <span>            catch <span class="op">=</span> <span class="va">tmp_TAC</span><span class="op">[</span><span class="va">r</span>, <span class="va">tac_year_index</span>, <span class="va">f</span><span class="op">]</span>, <span class="co"># catch values to use</span></span>
 <span>            NAA <span class="op">=</span> <span class="va">sim_env</span><span class="op">$</span><span class="va">NAA</span><span class="op">[</span><span class="va">r</span>, <span class="va">y</span><span class="op">+</span><span class="fl">1</span>, , , <span class="va">sim</span><span class="op">]</span>, <span class="co"># numbers at age in simulation (truth)</span></span>
@@ -596,7 +596,7 @@ mortality, and spawning stock biomass for a given simulation.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.2.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer>

@@ -41,9 +41,11 @@
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">Get_move_PE_loglik</span><span class="op">(</span></span>
 <span>  <span class="va">PE_model</span>,</span>
 <span>  <span class="va">PE_pars</span>,</span>
-<span>  <span class="va">logit_devs</span>,</span>
+<span>  <span class="va">move_devs</span>,</span>
 <span>  <span class="va">map_move_devs</span>,</span>
-<span>  <span class="va">do_recruits_move</span></span>
+<span>  <span class="va">do_recruits_move</span>,</span>
+<span>  <span class="va">adjacency_collapsed</span>,</span>
+<span>  <span class="va">move_type</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -59,7 +61,7 @@
 <dd><p>Process error parameters</p></dd>
 
 
-<dt id="arg-logit-devs">logit_devs<a class="anchor" aria-label="anchor" href="#arg-logit-devs"></a></dt>
+<dt id="arg-move-devs">move_devs<a class="anchor" aria-label="anchor" href="#arg-move-devs"></a></dt>
 <dd><p>Deviations</p></dd>
 
 
@@ -69,6 +71,14 @@
 
 <dt id="arg-do-recruits-move">do_recruits_move<a class="anchor" aria-label="anchor" href="#arg-do-recruits-move"></a></dt>
 <dd><p>Whether recruits move (0, don't move, 1 move)</p></dd>
+
+
+<dt id="arg-adjacency-collapsed">adjacency_collapsed<a class="anchor" aria-label="anchor" href="#arg-adjacency-collapsed"></a></dt>
+<dd><p>Adjacency matrix collapsed w/o retention</p></dd>
+
+
+<dt id="arg-move-type">move_type<a class="anchor" aria-label="anchor" href="#arg-move-type"></a></dt>
+<dd><p>Movement type (0 == unstructed; all regions connected, 1 == ctmc)</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -85,7 +95,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.2.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer></div>

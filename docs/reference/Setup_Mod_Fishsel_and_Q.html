@@ -54,6 +54,7 @@
 <span>  Use_fish_selex_prior <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  fish_selex_prior <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  cont_tv_fish_sel_penalty <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  fishsel_devs_shared_ages <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -95,7 +96,7 @@ The default for each fleet is <code>"none_Fleet_x"</code> (i.e., no selectivity 
 <dt id="arg-fish-sel-model">fish_sel_model<a class="anchor" aria-label="anchor" href="#arg-fish-sel-model"></a></dt>
 <dd><p>Character vector specifying the fishery selectivity functional form for each fleet, and optionally by time block.</p>
 <p>Each element must follow one of the following structures:</p><ul><li><p><code>"&lt;selectivity model&gt;_Fleet_&lt;fleet number&gt;"</code></p></li>
-<li><p><code>"&lt;selectivity model&gt;_Block_&lt;block number&gt;_Fleet_&lt;fleet number&gt;"</code></p></li>
+<li><p><code>"&lt;selectivity model&gt;_Fleet_&lt;fleet number&gt;_Block_&lt;block number&gt;"</code></p></li>
 </ul><p>The first form applies a single selectivity model across all years for the specified fleet.
 The second form allows the user to assign a distinct selectivity model to a specific time block, as defined in <code>fish_sel_blocks</code>.</p>
 <p>Available selectivity model types include:</p><ul><li><p><code>"logist1"</code> — Logistic function with parameters <code>a50</code> and <code>k</code>.</p></li>
@@ -186,6 +187,10 @@ in time-varying fishery selectivity dimensioned by the number of fishery fleets.
 <li><p><code>"est_shared_r"</code>: Shares deviations across regions (sex-specific deviations are still estimated).</p></li>
 <li><p><code>"est_shared_s"</code>: Shares deviations across sexes (region-specific deviations are still estimated).</p></li>
 <li><p><code>"est_shared_r_s"</code>: Shares deviations across both regions and sexes, estimating a single deviation time series.</p></li>
+<li><p><code>"est_shared_a"</code>: Shares deviations across age blocks.</p></li>
+<li><p><code>"est_shared_r_a"</code>: Shares deviations across regions and age shared blocks.</p></li>
+<li><p><code>"est_shared_a_s"</code>: Shares deviations across age shared blocks and sexes.</p></li>
+<li><p><code>"est_shared_r_a_s"</code>: Shares deviations across regions, age shared blocks, and sexes.</p></li>
 <li><p><code>"est_shared_f_x"</code>: Shares deviations with another fleet, where <code>x</code> is the fleet number to share with.
     This option allows multiple fleets to use identical deviation parameters, reducing the number of parameters
     to estimate. For example, <code>"est_shared_f_2"</code> means the current fleet will use the same deviation
@@ -234,23 +239,23 @@ Only parameters with rows in this data frame will have priors applied.</p></dd>
 <dd><p>Whether or not continuous fishery time varying selectivity penalties are applied (if cont_tv_fish_sel &gt; 0)</p></dd>
 
 
-<dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
-<dd><p>Additional arguments specifying starting values for fishery selectivity and catchability parameters (fishsel_pe_pars, ln_fishsel_devs, ln_fish_fixed_sel_pars, ln_fish_q)</p></dd>
+<dt id="arg-fishsel-devs-shared-ages">fishsel_devs_shared_ages<a class="anchor" aria-label="anchor" href="#arg-fishsel-devs-shared-ages"></a></dt>
+<dd><p>List object for specifying which ages are shared when selectivity deviations are semi-parametric (e.g., list(1:5, 6:10, 11:30) specifies that ages 1-5, 6-10, and 11-30 have the same deviations.)</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p>Other Model Setup:
-<code><a href="Setup_Mod_Biologicals.html">Setup_Mod_Biologicals</a>()</code>,
-<code><a href="Setup_Mod_Catch_and_F.html">Setup_Mod_Catch_and_F</a>()</code>,
-<code><a href="Setup_Mod_Dim.html">Setup_Mod_Dim</a>()</code>,
-<code><a href="Setup_Mod_FishIdx_and_Comps.html">Setup_Mod_FishIdx_and_Comps</a>()</code>,
-<code><a href="Setup_Mod_Movement.html">Setup_Mod_Movement</a>()</code>,
-<code><a href="Setup_Mod_Rec.html">Setup_Mod_Rec</a>()</code>,
-<code><a href="Setup_Mod_SrvIdx_and_Comps.html">Setup_Mod_SrvIdx_and_Comps</a>()</code>,
-<code><a href="Setup_Mod_Srvsel_and_Q.html">Setup_Mod_Srvsel_and_Q</a>()</code>,
-<code><a href="Setup_Mod_Tagging.html">Setup_Mod_Tagging</a>()</code>,
-<code><a href="Setup_Mod_Weighting.html">Setup_Mod_Weighting</a>()</code></p></div>
+<code><a href="Setup_Mod_Biologicals.html">Setup_Mod_Biologicals()</a></code>,
+<code><a href="Setup_Mod_Catch_and_F.html">Setup_Mod_Catch_and_F()</a></code>,
+<code><a href="Setup_Mod_Dim.html">Setup_Mod_Dim()</a></code>,
+<code><a href="Setup_Mod_FishIdx_and_Comps.html">Setup_Mod_FishIdx_and_Comps()</a></code>,
+<code><a href="Setup_Mod_Movement.html">Setup_Mod_Movement()</a></code>,
+<code><a href="Setup_Mod_Rec.html">Setup_Mod_Rec()</a></code>,
+<code><a href="Setup_Mod_SrvIdx_and_Comps.html">Setup_Mod_SrvIdx_and_Comps()</a></code>,
+<code><a href="Setup_Mod_Srvsel_and_Q.html">Setup_Mod_Srvsel_and_Q()</a></code>,
+<code><a href="Setup_Mod_Tagging.html">Setup_Mod_Tagging()</a></code>,
+<code><a href="Setup_Mod_Weighting.html">Setup_Mod_Weighting()</a></code></p></div>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
@@ -262,7 +267,7 @@ Only parameters with rows in this data frame will have priors applied.</p></dd>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.2.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer></div>

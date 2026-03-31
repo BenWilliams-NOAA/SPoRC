@@ -56,25 +56,26 @@
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p>Other Model Diagnostics:
-<code><a href="do_jitter.html">do_jitter</a>()</code>,
-<code><a href="do_likelihood_profile.html">do_likelihood_profile</a>()</code>,
-<code><a href="do_retrospective.html">do_retrospective</a>()</code>,
-<code><a href="do_runs_test.html">do_runs_test</a>()</code>,
-<code><a href="get_catch_fits_plot.html">get_catch_fits_plot</a>()</code>,
-<code><a href="get_comp_prop.html">get_comp_prop</a>()</code>,
-<code><a href="get_idx_fits.html">get_idx_fits</a>()</code>,
-<code><a href="get_idx_fits_plot.html">get_idx_fits_plot</a>()</code>,
-<code><a href="get_model_rep_from_mcmc.html">get_model_rep_from_mcmc</a>()</code>,
-<code><a href="get_nLL_plot.html">get_nLL_plot</a>()</code>,
-<code><a href="get_osa.html">get_osa</a>()</code>,
-<code><a href="get_retrospective_plot.html">get_retrospective_plot</a>()</code>,
-<code><a href="get_retrospective_relative_difference.html">get_retrospective_relative_difference</a>()</code></p></div>
+<code><a href="do_jitter.html">do_jitter()</a></code>,
+<code><a href="do_likelihood_profile.html">do_likelihood_profile()</a></code>,
+<code><a href="do_retrospective.html">do_retrospective()</a></code>,
+<code><a href="do_runs_test.html">do_runs_test()</a></code>,
+<code><a href="get_catch_fits_plot.html">get_catch_fits_plot()</a></code>,
+<code><a href="get_comp_prop.html">get_comp_prop()</a></code>,
+<code><a href="get_idx_fits.html">get_idx_fits()</a></code>,
+<code><a href="get_idx_fits_plot.html">get_idx_fits_plot()</a></code>,
+<code><a href="get_model_rep_from_mcmc.html">get_model_rep_from_mcmc()</a></code>,
+<code><a href="get_nLL_plot.html">get_nLL_plot()</a></code>,
+<code><a href="get_osa.html">get_osa()</a></code>,
+<code><a href="get_retrospective_plot.html">get_retrospective_plot()</a></code>,
+<code><a href="get_retrospective_relative_difference.html">get_retrospective_relative_difference()</a></code></p></div>
     </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span>
-<span><span class="va">comp_props</span> <span class="op">&lt;-</span> <span class="fu"><a href="get_comp_prop.html">get_comp_prop</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">data</span>, rep <span class="op">=</span> <span class="va">sabie_rtmb_model</span><span class="op">$</span><span class="va">rep</span>, age_labels <span class="op">=</span> <span class="fl">2</span><span class="op">:</span><span class="fl">31</span>, len_labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">41</span>, <span class="fl">99</span>, <span class="fl">2</span><span class="op">)</span>, year_labels <span class="op">=</span> <span class="fl">1960</span><span class="op">:</span><span class="fl">2024</span><span class="op">)</span></span>
+<span><span class="va">comp_props</span> <span class="op">&lt;-</span> <span class="fu"><a href="get_comp_prop.html">get_comp_prop</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">data</span>, rep <span class="op">=</span> <span class="va">sabie_rtmb_model</span><span class="op">$</span><span class="va">rep</span>,</span>
+<span> age_labels <span class="op">=</span> <span class="fl">2</span><span class="op">:</span><span class="fl">31</span>, len_labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">41</span>, <span class="fl">99</span>, <span class="fl">2</span><span class="op">)</span>, year_labels <span class="op">=</span> <span class="fl">1960</span><span class="op">:</span><span class="fl">2024</span><span class="op">)</span></span>
 <span><span class="fu">plot_resids</span><span class="op">(</span><span class="fu"><a href="get_osa.html">get_osa</a></span><span class="op">(</span>obs_mat <span class="op">=</span> <span class="va">comp_props</span><span class="op">$</span><span class="va">Obs_FishAge_mat</span>,</span>
 <span>                    exp_mat <span class="op">=</span> <span class="va">comp_props</span><span class="op">$</span><span class="va">Pred_FishAge_mat</span>,</span>
 <span>                    N <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">16.52215</span>, <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="fl">1999</span><span class="op">:</span><span class="fl">2023</span><span class="op">)</span><span class="op">)</span>,</span>
@@ -97,7 +98,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.2.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer></div>

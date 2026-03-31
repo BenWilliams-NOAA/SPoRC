@@ -77,7 +77,6 @@ first load in the necessary packages and data files.</p>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://chengmatt.github.io/SPoRC">SPoRC</a></span><span class="op">)</span> </span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/kaskr/RTMB" class="external-link">RTMB</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: package 'ggplot2' was built under R version 4.4.3</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">mlt_rg_sable_data</span><span class="op">)</span> <span class="co"># load in data</span></span></code></pre></div>
 <div class="section level2">
@@ -205,14 +204,14 @@ In particular, users can specify any number of age, year, and sex blocks
 for movement. If users wish to specify blocks for the aforementioned
 partitions, a list needs to be supplied detailing the blocking
 structure, where the number of elements in the list represents the
-number of blocks to estiamte, and the elements within the list should
+number of blocks to estimate, and the elements within the list should
 specify the range of the block. For instance, the spatial model for
 sablefish estimates 3 age blocks,
 (<code>Movement_ageblk_spec = list(c(1:6), c(7:15), c(16:30))</code>),
 where the first element specifies the first age block, which ranges from
-ages 1 - 6, the second element specifies the second age block, which
-ranges from ages 7 - 15, and the third element specifies the third age
-block, which ranges from ages 16 - 30. No year and sex blocks are
+ages 1–6, the second element specifies the second age block, which
+ranges from ages 7–15, and the third element specifies the third age
+block, which ranges from ages 16–30. No year and sex blocks are
 specified for this application. Thus, both
 <code>Movement_yearblk_spec</code> and <code>Movement_sexblk_spec</code>
 are set at <code>"constant"</code>. Additionally, recruits are not
@@ -222,9 +221,41 @@ recruitment and movement if this is allowed
 case (<code>use_fixed_movement = 0</code>) and a vague Dirichlet prior
 for movement (<code>Use_Movement_Prior = 1</code> and
 <code>Movement_prior = 2.5</code>) is used to penalize movement away
-from the extremes (i.e, away from 0s and 1s).</p>
+from the extremes (i.e., away from 0s and 1s).</p>
+<p>The Dirichlet prior defines the relative probability of individuals
+moving among spatial regions and ensures that all probabilities from a
+given region sum to one. The hyperparameter value (<code>alpha</code>)
+determines the prior shape and concentration:</p>
+<ul>
+<li>When <code>alpha &lt; 1</code>, the prior favors extreme values
+(movement concentrated in a single destination).</li>
+<li>When <code>alpha &gt; 1</code>, the prior favors more uniform
+movement among destinations.</li>
+<li>Setting <code>alpha = 2.5</code> provides a weakly informative prior
+that discourages both complete isolation and unrestricted mixing,
+allowing the data to inform movement rates while maintaining numerical
+stability during estimation.</li>
+</ul>
+<p>In this implementation, the movement prior is constructed by
+expanding over all combinations of regions, representative ages
+(corresponding to the defined age blocks), and sexes, assigning the same
+Dirichlet hyperparameter to each combination. The use of
+<code>list(rep(2.5, 5))</code> creates a list of three
+<code>alpha</code> values (one for each potential destination region).
+Wrapping this expression with <code><a href="https://rdrr.io/r/base/AsIs.html" class="external-link">I()</a></code> ensures that
+<code><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid()</a></code> treats the list as a single element rather
+than expanding it into separate rows. This approach preserves the
+intended structure of the Dirichlet hyperparameters for each movement
+row.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># setting up movement parameterization</span></span>
+<span><span class="va">Movement_prior</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span></span>
+<span>  region_from <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, <span class="co"># regions</span></span>
+<span>  age <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">6</span>,<span class="fl">7</span>,<span class="fl">16</span><span class="op">)</span>, <span class="co"># age blocks</span></span>
+<span>  sex <span class="op">=</span> <span class="fl">1</span>, <span class="co"># sex</span></span>
+<span>  alpha <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/AsIs.html" class="external-link">I</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">2.5</span>, <span class="fl">5</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="co"># prior alpha to each row</span></span>
+<span><span class="op">)</span></span>
+<span></span>
 <span><span class="va">input_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/Setup_Mod_Movement.html">Setup_Mod_Movement</a></span><span class="op">(</span>input_list <span class="op">=</span> <span class="va">input_list</span>,</span>
 <span>                                 <span class="co"># Model options</span></span>
 <span>                                 Movement_ageblk_spec <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">6</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">7</span><span class="op">:</span><span class="fl">15</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">16</span><span class="op">:</span><span class="fl">30</span><span class="op">)</span><span class="op">)</span>,</span>
@@ -235,8 +266,7 @@ from the extremes (i.e, away from 0s and 1s).</p>
 <span>                                 do_recruits_move <span class="op">=</span> <span class="fl">0</span>, <span class="co"># recruits do not move</span></span>
 <span>                                 use_fixed_movement <span class="op">=</span> <span class="fl">0</span>, <span class="co"># estimating movement</span></span>
 <span>                                 Use_Movement_Prior <span class="op">=</span> <span class="fl">1</span>, <span class="co"># priors used for movement</span></span>
-<span>                                 Movement_prior <span class="op">=</span> <span class="fl">2.5</span></span>
-<span>                                 <span class="co"># vague prior to penalize movement away from the extremes</span></span>
+<span>                                 Movement_prior <span class="op">=</span> <span class="va">Movement_prior</span></span>
 <span>                                 <span class="op">)</span></span></code></pre></div>
 <p>Specification of tagging dynamics can be a bit cumbersome given the
 myriad of options available. In the current application, tagging data
@@ -772,7 +802,7 @@ the CGOA appear to exhibit the highest recruitment levels.</p>
 <span></span>
 <span><span class="co"># Do some data munging here</span></span>
 <span><span class="va">ts_df</span> <span class="op">&lt;-</span> <span class="va">ts_df</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/rename.html" class="external-link">rename</a></span><span class="op">(</span>Region <span class="op">=</span> <span class="va">Var1</span>, Year <span class="op">=</span> <span class="va">Var2</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
-<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>Region <span class="op">=</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/case_when.html" class="external-link">case_when</a></span><span class="op">(</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>Region <span class="op">=</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/case-and-replace-when.html" class="external-link">case_when</a></span><span class="op">(</span></span>
 <span>    <span class="va">Region</span> <span class="op">==</span> <span class="fl">1</span> <span class="op">~</span> <span class="st">'BS'</span>,</span>
 <span>    <span class="va">Region</span> <span class="op">==</span> <span class="fl">2</span> <span class="op">~</span> <span class="st">'AI'</span>,</span>
 <span>    <span class="va">Region</span> <span class="op">==</span> <span class="fl">3</span> <span class="op">~</span> <span class="st">'WGOA'</span>,</span>
@@ -803,7 +833,7 @@ the CGOA appear to exhibit the highest recruitment levels.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.2.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer>

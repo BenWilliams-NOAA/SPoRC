@@ -1,5 +1,5 @@
-pandoc: '3.2'
-pkgdown: 2.1.2
+pandoc: 3.6.3
+pkgdown: 2.2.0
 pkgdown_sha: ~
 articles:
   a_model_dimensions: a_model_dimensions.html
@@ -18,7 +18,8 @@ articles:
   n_single_region_ebs_pollock_randomeff_case_study: n_single_region_ebs_pollock_randomeff_case_study.html
   o_get_started: o_get_started.html
   p_single_region_dusky_alt_mp_testing: p_single_region_dusky_alt_mp_testing.html
-last_built: 2025-11-24T16:42Z
+  q_movement_param: q_movement_param.html
+last_built: 2026-03-31T04:33Z
 urls:
   reference: https://chengmatt.github.io/SPoRC/reference
   article: https://chengmatt.github.io/SPoRC/articles

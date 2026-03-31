@@ -501,6 +501,7 @@ estimates.</p>
 <span>  <span class="co"># Get fishery selectivity estimates</span></span>
 <span>  <span class="va">fishsel_df</span> <span class="op">&lt;-</span> <span class="fu">reshape2</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/reshape2/man/melt.html" class="external-link">melt</a></span><span class="op">(</span><span class="va">models</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">rep</span><span class="op">$</span><span class="va">fish_sel</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/rename.html" class="external-link">rename</a></span><span class="op">(</span>Region <span class="op">=</span> <span class="va">Var1</span>, Year <span class="op">=</span> <span class="va">Var2</span>, Age <span class="op">=</span> <span class="va">Var3</span>, Sex <span class="op">=</span> <span class="va">Var4</span>, Fleet <span class="op">=</span> <span class="va">Var5</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">Year</span>, <span class="va">Region</span>, <span class="va">Sex</span>, <span class="va">Fleet</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
 <span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>value <span class="op">=</span> <span class="va">value</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">value</span><span class="op">)</span>,</span>
 <span>           Year <span class="op">=</span> <span class="va">Year</span> <span class="op">+</span> <span class="fl">1963</span><span class="op">)</span></span>
 <span>  <span class="va">fishsel_df</span><span class="op">$</span><span class="va">Model</span> <span class="op">&lt;-</span> <span class="va">model_names</span><span class="op">[</span><span class="va">i</span><span class="op">]</span></span>
@@ -574,7 +575,7 @@ remain logistic).</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.2.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer>

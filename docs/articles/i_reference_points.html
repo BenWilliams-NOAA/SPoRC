@@ -344,7 +344,7 @@ can then be derived by multiplying
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi><mi>S</mi><msubsup><mrow><mi>B</mi><mi>P</mi><mi>R</mi></mrow><mi>r</mi><mtext mathvariant="normal">fished</mtext></msubsup></mrow><annotation encoding="application/x-tex">SS{BPR}_{r}^{\text{fished}}</annotation></semantics></math>
 by regional mean recruitment over a user-defined period and the
 recruitment sex-ratio:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>B</mi><mrow><mi>r</mi><mo>,</mo><mi>x</mi></mrow></msub><mo>=</mo><mi>S</mi><mi>S</mi><msubsup><mrow><mi>B</mi><mi>P</mi><mi>R</mi></mrow><mi>r</mi><mtext mathvariant="normal">fished</mtext></msubsup><mo>⋅</mo><mfrac><mrow><munderover><mo>∑</mo><mrow><mi>R</mi><mi>e</mi><mi>c</mi><mi>Y</mi><mi>e</mi><mi>a</mi><mi>r</mi></mrow><mrow><msub><mi>n</mi><mi>y</mi></msub><mo>−</mo><mi>R</mi><mi>e</mi><mi>c</mi><mi>A</mi><mi>g</mi><mi>e</mi></mrow></munderover><msub><mrow><mi>R</mi><mi>e</mi><mi>c</mi></mrow><mrow><mi>r</mi><mo>,</mo><mi>y</mi><mo>,</mo><mi>s</mi></mrow></msub></mrow><mrow><msub><mi>n</mi><mi>y</mi></msub><mo>−</mo><mi>R</mi><mi>e</mi><mi>c</mi><mi>A</mi><mi>g</mi><mi>e</mi><mo>−</mo><mi>R</mi><mi>e</mi><mi>c</mi><mi>Y</mi><mi>e</mi><mi>a</mi><mi>r</mi></mrow></mfrac></mrow><annotation encoding="application/x-tex">B_{r,x} = SS{BPR}_{r}^{\text{fished}} \cdot \frac{\sum_{RecYear}^{n_{y} - RecAge}{Rec}_{r,y,s}}{n_{y} - RecAge - RecYear}</annotation></semantics></math></p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>B</mi><mrow><mi>r</mi><mo>,</mo><mi>x</mi></mrow></msub><mo>=</mo><mi>S</mi><mi>S</mi><msubsup><mrow><mi>B</mi><mi>P</mi><mi>R</mi></mrow><mi>r</mi><mtext mathvariant="normal">fished</mtext></msubsup><mo>⋅</mo><munder><mo>∑</mo><mi>r</mi></munder><mfrac><mrow><munderover><mo>∑</mo><mrow><mi>R</mi><mi>e</mi><mi>c</mi><mi>Y</mi><mi>e</mi><mi>a</mi><mi>r</mi></mrow><mrow><msub><mi>n</mi><mi>y</mi></msub><mo>−</mo><mi>R</mi><mi>e</mi><mi>c</mi><mi>A</mi><mi>g</mi><mi>e</mi></mrow></munderover><msub><mrow><mi>R</mi><mi>e</mi><mi>c</mi></mrow><mrow><mi>r</mi><mo>,</mo><mi>y</mi><mo>,</mo><mi>s</mi></mrow></msub></mrow><mrow><msub><mi>n</mi><mi>y</mi></msub><mo>−</mo><mi>R</mi><mi>e</mi><mi>c</mi><mi>A</mi><mi>g</mi><mi>e</mi><mo>−</mo><mi>R</mi><mi>e</mi><mi>c</mi><mi>Y</mi><mi>e</mi><mi>a</mi><mi>r</mi></mrow></mfrac></mrow><annotation encoding="application/x-tex">B_{r,x} = SS{BPR}_{r}^{\text{fished}} \cdot \sum_r \frac{\sum_{RecYear}^{n_{y} - RecAge}{Rec}_{r,y,s}}{n_{y} - RecAge - RecYear}</annotation></semantics></math></p>
 </div>
 <div class="section level6">
 <h6 id="global">Global<a class="anchor" aria-label="anchor" href="#global"></a>
@@ -637,8 +637,8 @@ is computed in a similar manner:</p>
 <p>Yield and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>B</mi><mrow><mi>r</mi><mo>,</mo><mi>m</mi><mi>s</mi><mi>y</mi></mrow></msub><annotation encoding="application/x-tex">B_{r,msy}</annotation></semantics></math>
 are calculated as:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi>Y</mi><mi>i</mi><mi>e</mi><mi>l</mi><mi>d</mi><mo>=</mo><munderover><mo>∑</mo><mi>a</mi><mrow></mrow></munderover><mrow><munderover><mo>∑</mo><mi>r</mi><mrow></mrow></munderover><msub><mi>C</mi><mrow><mi>r</mi><mo>,</mo><mi>a</mi></mrow></msub></mrow><mo>⋅</mo><msubsup><mi>W</mi><mrow><mi>r</mi><mo>,</mo><mi>y</mi><mo>=</mo><msup><mi>y</mi><mo>*</mo></msup><mo>,</mo><mi>a</mi><mo>,</mo><mi>s</mi><mo>=</mo><mn>1</mn></mrow><mrow><mi>s</mi><mi>p</mi><mi>a</mi><mi>w</mi><mi>n</mi></mrow></msubsup><mo>⋅</mo><msub><mrow><mi>E</mi><mi>q</mi><mi>R</mi><mi>e</mi><mi>c</mi></mrow><mi>r</mi></msub></mrow><mrow><msub><mi>B</mi><mrow><mi>r</mi><mo>,</mo><mi>m</mi><mi>s</mi><mi>y</mi></mrow></msub><mo>=</mo><mi>S</mi><mi>S</mi><msubsup><mrow><mi>B</mi><mi>P</mi><mi>R</mi></mrow><mi>r</mi><mtext mathvariant="normal">fished</mtext></msubsup><mo>⋅</mo><msub><mrow><mi>E</mi><mi>q</mi><mi>R</mi><mi>e</mi><mi>c</mi></mrow><mi>r</mi></msub></mrow></mrow><annotation encoding="application/x-tex">{Yield = \sum_{a}^{}{\sum_{r}^{}C_{r,a}} \cdot W_{r,y = y^{*},a,s = 1}^{spawn} \cdot {EqRec}_{r}
-}{B_{r,msy} = SS{BPR}_{r}^{\text{fished}} \cdot {EqRec}_{r}}</annotation></semantics></math></p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi>Y</mi><mi>i</mi><mi>e</mi><mi>l</mi><mi>d</mi><mo>=</mo><munderover><mo>∑</mo><mi>a</mi><mrow></mrow></munderover><mrow><munderover><mo>∑</mo><mi>r</mi><mrow></mrow></munderover><msub><mi>C</mi><mrow><mi>r</mi><mo>,</mo><mi>a</mi></mrow></msub></mrow><mo>⋅</mo><msubsup><mi>W</mi><mrow><mi>r</mi><mo>,</mo><mi>y</mi><mo>=</mo><msup><mi>y</mi><mo>*</mo></msup><mo>,</mo><mi>a</mi><mo>,</mo><mi>s</mi><mo>=</mo><mn>1</mn></mrow><mrow><mi>s</mi><mi>p</mi><mi>a</mi><mi>w</mi><mi>n</mi></mrow></msubsup><mo>⋅</mo><msub><mrow><mi>E</mi><mi>q</mi><mi>R</mi><mi>e</mi><mi>c</mi></mrow><mi>r</mi></msub></mrow><mrow><msub><mi>B</mi><mrow><mi>r</mi><mo>,</mo><mi>m</mi><mi>s</mi><mi>y</mi></mrow></msub><mo>=</mo><mi>S</mi><mi>S</mi><msubsup><mrow><mi>B</mi><mi>P</mi><mi>R</mi></mrow><mi>r</mi><mtext mathvariant="normal">fished</mtext></msubsup><mo>⋅</mo><munder><mo>∑</mo><mi>r</mi></munder><msub><mrow><mi>E</mi><mi>q</mi><mi>R</mi><mi>e</mi><mi>c</mi></mrow><mi>r</mi></msub></mrow></mrow><annotation encoding="application/x-tex">{Yield = \sum_{a}^{}{\sum_{r}^{}C_{r,a}} \cdot W_{r,y = y^{*},a,s = 1}^{spawn} \cdot {EqRec}_{r}
+} {B_{r,msy} = SS{BPR}_{r}^{\text{fished}} \cdot \sum_r {EqRec}_{r}}</annotation></semantics></math></p>
 <p><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>F</mi><mrow><mi>m</mi><mi>s</mi><mi>y</mi></mrow></msub><annotation encoding="application/x-tex">F_{msy}</annotation></semantics></math>
 can then be solved for using the following:</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>F</mi><mrow><mi>m</mi><mi>s</mi><mi>y</mi></mrow></msub><mo>=</mo><mi>a</mi><mi>r</mi><mi>g</mi><munder><mo>min</mo><mi>F</mi></munder><mspace width="0.222em"></mspace><mi>Y</mi><mi>i</mi><mi>e</mi><mi>l</mi><mi>d</mi></mrow><annotation encoding="application/x-tex">F_{msy} = arg\min_{F}\ Yield</annotation></semantics></math></p>
@@ -1098,9 +1098,9 @@ values are all identical.</p>
 <span>                                                 sex_ratio_f <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="va">mlt_rg_sable_data</span><span class="op">$</span><span class="va">n_regions</span><span class="op">)</span> <span class="co"># recruitment sex-ratio for females</span></span>
 <span>                                                 <span class="op">)</span></span>
 <span><span class="va">mlt_ref_pt_global</span><span class="op">$</span><span class="va">f_ref_pt</span> <span class="co"># F40</span></span>
-<span><span class="co">#&gt; [1] 0.08099479 0.08099479 0.08099479 0.08099479 0.08099479</span></span>
+<span><span class="co">#&gt; [1] 0.08071231 0.08071231 0.08071231 0.08071231 0.08071231</span></span>
 <span><span class="va">mlt_ref_pt_global</span><span class="op">$</span><span class="va">b_ref_pt</span> <span class="co"># B40</span></span>
-<span><span class="co">#&gt; [1] 31.93313 26.89321 20.22807 30.01715 14.03777</span></span></code></pre></div>
+<span><span class="co">#&gt; [1]  9.452354 14.343612  9.479421 52.144410 37.689547</span></span></code></pre></div>
 <p>Similarly, MSY-based reference points assuming a Beverton-Holt stock
 recruitment function can be specified as well. This can be easily
 specified and involves either assuming independent populations
@@ -1358,13 +1358,13 @@ value. For example, in the first projection year:</p>
 <span><span class="va">f_ref_pt_indp</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span> <span class="co"># independent SPR</span></span>
 <span><span class="co">#&gt; [1] 0.08702899 0.08571633 0.08056453 0.08181050 0.07977200</span></span>
 <span><span class="va">f_ref_pt_global</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span> <span class="co"># global SPR</span></span>
-<span><span class="co">#&gt; [1] 0.08099479 0.08099479 0.08099479 0.08099479 0.08099479</span></span>
+<span><span class="co">#&gt; [1] 0.08071231 0.08071231 0.08071231 0.08071231 0.08071231</span></span>
 <span></span>
 <span><span class="co"># b40</span></span>
 <span><span class="va">b_ref_pt_indp</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span> <span class="co"># independent SPR</span></span>
 <span><span class="co">#&gt; [1] 31.93313 26.89321 20.22807 30.01715 14.03777</span></span>
 <span><span class="va">b_ref_pt_global</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span> <span class="co"># global SPR</span></span>
-<span><span class="co">#&gt; [1] 31.93313 26.89321 20.22807 30.01715 14.03777</span></span></code></pre></div>
+<span><span class="co">#&gt; [1]  9.452354 14.343612  9.479421 52.144410 37.689547</span></span></code></pre></div>
 <p>For the projections that follow, we use independent SPR rates to
 allow for region-specific reference points:</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
@@ -1558,7 +1558,7 @@ results:</p>
 <span><span class="co"># Get all scenario projections</span></span>
 <span><span class="va">scenarios</span> <span class="op">&lt;-</span> <span class="fu">reshape2</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/reshape2/man/melt.html" class="external-link">melt</a></span><span class="op">(</span><span class="va">all_scenarios_ssb</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>Year <span class="op">=</span> <span class="va">Var2</span> <span class="op">+</span> <span class="fl">2023</span>,</span>
-<span>         Scenario <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/case_when.html" class="external-link">case_when</a></span><span class="op">(</span></span>
+<span>         Scenario <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/case-and-replace-when.html" class="external-link">case_when</a></span><span class="op">(</span></span>
 <span>           <span class="va">Var4</span> <span class="op">==</span> <span class="fl">1</span> <span class="op">~</span> <span class="st">"S1: FABC (F40)"</span>,</span>
 <span>           <span class="va">Var4</span> <span class="op">==</span> <span class="fl">2</span> <span class="op">~</span> <span class="st">"S2: F = 0"</span></span>
 <span>         <span class="op">)</span>,</span>
@@ -1599,7 +1599,7 @@ results:</p>
 <span><span class="co"># Get all scenario projections</span></span>
 <span><span class="va">scenarios</span> <span class="op">&lt;-</span> <span class="fu">reshape2</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/reshape2/man/melt.html" class="external-link">melt</a></span><span class="op">(</span><span class="va">all_scenarios_catch</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>Year <span class="op">=</span> <span class="va">Var2</span> <span class="op">+</span> <span class="fl">2023</span>,</span>
-<span>         Scenario <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/case_when.html" class="external-link">case_when</a></span><span class="op">(</span></span>
+<span>         Scenario <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/case-and-replace-when.html" class="external-link">case_when</a></span><span class="op">(</span></span>
 <span>           <span class="va">Var5</span> <span class="op">==</span> <span class="fl">1</span> <span class="op">~</span> <span class="st">"S1: FABC (F40)"</span>,</span>
 <span>           <span class="va">Var5</span> <span class="op">==</span> <span class="fl">2</span> <span class="op">~</span> <span class="st">"S2: F = 0"</span></span>
 <span>         <span class="op">)</span>,</span>
@@ -1649,7 +1649,7 @@ Research 244, 106132. <a href="https://doi.org/10.1016/j.fishres.2021.106132" cl
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.2.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer>
