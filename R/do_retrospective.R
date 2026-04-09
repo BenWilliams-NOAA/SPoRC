@@ -63,6 +63,12 @@ truncate_yr <- function(j,
   retro_mapping$ln_fish_q <- factor(array(mapping$ln_fish_q, dim = dim(parameters$ln_fish_q))[,1:max(retro_data$fish_q_blocks),,drop = FALSE])
   retro_mapping$ln_fish_fixed_sel_pars <- factor(array(mapping$ln_fish_fixed_sel_pars, dim = dim(parameters$ln_fish_fixed_sel_pars))[,,1:max(retro_data$fish_sel_blocks),,,drop = FALSE])
 
+  # Adjust sigmaC
+  retro_parameters$ln_sigmaC <- parameters$ln_sigmaC[,1:(length(data$years) - j),,drop = FALSE]
+  retro_mapping$ln_sigmaC <- factor(array(mapping$ln_sigmaC, dim = dim(parameters$ln_sigmaC))[,1:(length(data$years) - j),,drop = FALSE])
+  retro_parameters$ln_sigmaC_agg <- parameters$ln_sigmaC_agg[1:(length(data$years) - j),,drop = FALSE]
+  retro_mapping$ln_sigmaC_agg <- factor(array(mapping$ln_sigmaC_agg, dim = dim(parameters$ln_sigmaC_agg))[1:(length(data$years) - j),,drop = FALSE])
+
 # Survey ------------------------------------------------------------------
 
   # Survey index and compositions
@@ -141,6 +147,11 @@ truncate_yr <- function(j,
   retro_data$UseSrvIdx <- data$UseSrvIdx[,1:(length(data$years) - j),,drop = FALSE]
   retro_data$UseSrvLenComps <- data$UseSrvLenComps[,1:(length(data$years) - j),,drop = FALSE]
 
+  # Input sample sizes
+  retro_data$ISS_FishAgeComps <- data$ISS_FishAgeComps[,1:(length(data$years) - j),,,drop = FALSE]
+  retro_data$ISS_SrvAgeComps <- data$ISS_SrvAgeComps[,1:(length(data$years) - j),,,drop = FALSE]
+  retro_data$ISS_FishLenComps <- data$ISS_FishLenComps[,1:(length(data$years) - j),,,drop = FALSE]
+  retro_data$ISS_SrvLenComps <- data$ISS_SrvLenComps[,1:(length(data$years) - j),,,drop = FALSE]
 
   return(list(retro_data = retro_data,
               retro_parameters = retro_parameters,
