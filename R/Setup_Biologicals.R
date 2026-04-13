@@ -174,7 +174,7 @@ do_M_mapping <- function(input_list,
 #' @param M_yearblk_spec Specification of year blocking for natural mortality.
 #'   Either a character string ("constant") or a list of index vectors, e.g., \code{list(1:10, 11:30)}, which specifies 2 year blocks for M.
 #' @param M_sexblk_spec Specification of sex blocking for natural mortality.
-#'   Either a character string ("constant") or a list of index vectors, e.g., \code{list(1:2)}, which specifies sex-invariant M.
+#'   Either a character string ("constant") or a list of index vectors, e.g., \code{list(1,2)}, which specifies sex-invariant M.
 #' @param ... Additional arguments for starting values such as \code{ln_M} and \code{M_offset.} These are ignored if \code{M_spec = fix}.
 #' @param addtocomp Numeric value for a constant to add to composition data. Default is 1e-3. Not used if logistic normal likelihoods are utilized.
 #' @param addtofishidx Numeric value for a constant to add to composition data. Default is 1e-4.
