@@ -91,7 +91,7 @@ Either a character string ("constant") or a list of index vectors, e.g., \code{l
 Either a character string ("constant") or a list of index vectors, e.g., \code{list(1:10, 11:30)}, which specifies 2 year blocks for M.}
 
 \item{M_sexblk_spec}{Specification of sex blocking for natural mortality.
-Either a character string ("constant") or a list of index vectors, e.g., \code{list(1:2)}, which specifies sex-invariant M.}
+Either a character string ("constant") or a list of index vectors, e.g., \code{list(1,2)}, which specifies sex-invariant M.}
 
 \item{Fixed_natmort}{Numeric array of fixed natural mortality values, dimensioned \code{[n_regions, n_years, n_ages, n_sexes]}. Required if \code{M_spec = "fix"}.}
 
