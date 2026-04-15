@@ -308,7 +308,7 @@ do_likelihood_profile <- function(data,
   SrvLen_nLL_df <- SrvLen_nLL %>%
     dplyr::rename(Region = Var1, Year = Var2, Sex = Var3, Fleet = Var4) %>%
     dplyr::mutate(type = 'SrvLen')
-  FishIdx_nLL_df <- FishLen_nLL %>%
+  FishIdx_nLL_df <- FishIdx_nLL %>%
     dplyr::rename(Region = Var1, Year = Var2, Fleet = Var3) %>%
     dplyr::mutate(type = 'FishIdx')
   SrvIdx_nLL_df <- SrvIdx_nLL %>%
