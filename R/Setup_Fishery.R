@@ -542,7 +542,7 @@ Setup_Mod_Catch_and_F <- function(input_list,
   else collect_message("Fishing mortality penalty is: ", ifelse(Use_F_pen == 0, 'Not Used', "Used"))
 
   if(sigmaC_spec == "fix" && !("ln_sigmaC" %in% names(starting_values))) warning("sigmaC is specified as fix, but no starting values / fixed values are provided. Either do this post-hoc, or use the ... argument if you do not want to use default values")
-  if(sigmaC_agg_spec == "fix" && !("ln_sigmaC_agg" %in% names(starting_values))) warning("sigmaF_spec is specified as fix, but no starting values / fixed values are provided. Either do this post-hoc, or use the ... argument if you do not want to use default values")
+  if(sigmaC_agg_spec == "fix" && !("ln_sigmaC_agg" %in% names(starting_values))) warning("sigmaC_agg_spec is specified as fix, but no starting values / fixed values are provided. Either do this post-hoc, or use the ... argument if you do not want to use default values")
   if(sigmaF_spec == "fix" && !("ln_sigmaF" %in% names(starting_values))) warning("sigmaF_spec is specified as fix, but no starting values / fixed values are provided. Either do this post-hoc, or use the ... argument if you do not want to use default values")
   if(sigmaF_agg_spec == "fix" && !("ln_sigmaF_agg" %in% names(starting_values))) warning("sigmaF_agg_spec is specified as fix, but no starting values / fixed values are provided. Either do this post-hoc, or use the ... argument if you do not want to use default values")
 
