@@ -475,6 +475,7 @@ Setup_Mod_Rec <- function(input_list,
 
   messages_list <<- character(0)
   starting_values <- list(...)
+  if(input_list$store_config) input_list$config$Setup_Mod_Rec <- mget(names(formals()))[-1]
 
   # Recruitment Model Type and Options --------------------------------------
 

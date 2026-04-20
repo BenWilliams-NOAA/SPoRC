@@ -72,12 +72,14 @@ Setup_Sim_Dim <- function(n_sims,
 #' @param lens Numeric vector of length bins; can be set to \code{1} if length data are not modeled.
 #' @param verbose Logical flag indicating whether to print progress messages (default \code{FALSE}).
 #' @param n_proj_yrs_devs Number of projection years for deviation parameters (ln_RecDevs, move_devs, ln_fishsel_devs, ln_srvsel_devs)
+#' @param store_config Logical flag indicating whether or not to store configuration (default \code{FALSE}).
 #'
 #' @returns A list containing three named elements:
 #' \describe{
 #'   \item{\code{data}}{List of data inputs dimensioned by the model dimensions.}
 #'   \item{\code{parameters}}{List of model parameters initialized according to dimensions.}
 #'   \item{\code{map}}{List of parameter mappings for model fitting.}
+#'   \item{\code{config}{List of arguments being supplied into the Setup_Mod_* functions. }}
 #' }
 #' @export Setup_Mod_Dim
 #' @family Model Setup
@@ -89,13 +91,18 @@ Setup_Mod_Dim <- function(years,
                           n_fish_fleets,
                           n_srv_fleets,
                           n_proj_yrs_devs = 0,
-                          verbose = FALSE
+                          verbose = FALSE,
+                          store_config = FALSE
                           ) {
 
   messages_list <<- character(0) # string to attach to for printing messages
 
   # Create empty list
   input_list <- list(data = list(), par = list(), map = list())
+  if(store_config) {
+    input_list$config <- list()
+    input_list$config$Setup_Mod_Dim <- mget(names(formals()))
+  }
 
   # ouput variables into list
   input_list$data$years <- years
@@ -107,6 +114,7 @@ Setup_Mod_Dim <- function(years,
   input_list$data$n_srv_fleets <- n_srv_fleets
   input_list$data$n_proj_yrs_devs <- n_proj_yrs_devs
   input_list$verbose <- verbose
+  input_list$store_config <- store_config
 
   collect_message("Number of Years: ", length(years))
   collect_message("Number of Projection Years for Dev Pars: ", n_proj_yrs_devs)
