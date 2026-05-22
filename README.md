@@ -37,5 +37,5 @@ devtools::install_github("chengmatt/SPoRC", dependencies = c("Depends", "Imports
 1. Alaska Sablefish Spatial Closed Loop Simulations: https://github.com/chengmatt/sablefish_cie_sims_2026
 2. Alaska Sablefish 2026 CIE Review: https://github.com/dgoethel-noaa/2026_Sablefish_CIE
 3. Alaska Sabelfish 2025 Stock Assessment: https://github.com/dgoethel-noaa/2025_Sablefish_SAFE
-4. Continuous Time Markov Chain Movement: https://github.com/chengmatt/ctmc_movement/blob/main/README.md
+4. Continuous Time Markov Chain Movement: https://github.com/chengmatt/ctmc_movement
 
