@@ -21,7 +21,7 @@ The `SPoRC` package offers multiple approaches for modeling fish movement betwee
 
 The following demonstrations use the three region sablefish dataset as a basis (`three_rg_sable_data`). The initial setup establishes the genearl model dimensions.
 
-```{r setup, message = FALSE, eval = TRUE}
+```{r setup, message = FALSE, eval = FALSE}
 # Load in packages
 library(SPoRC) 
 data("three_rg_sable_data") # load in data
@@ -47,7 +47,7 @@ Like previous vignettes, the `Setup_Mod_Dim()` function initializes the model st
 
 In the 'simplest' case, movement can be parameterized as an unstructured Markov model (`move_type = 0`), where movement parameters are constant across model partitions and are estimated as discrete transitions between regions, with `nregions x nregions - 1` parameters estimated. 
 
-```{r}
+```{r, eval = FALSE}
 # Setup movement
 input_list <- Setup_Mod_Movement(
   input_list = input_list,
@@ -61,7 +61,7 @@ length(unique(input_list$map$move_pars)) # number of parameters estimated
 
 The unstructured Markov model can be extended to incorporate blocking structures, with parameter sharing within blocks to reduce parameter load. In the following, we specify an unstructured Markov model with 2 age blocks, but constant movement across years and sexes. This results in `nregions x nregions - 1 x 2` parameters estimated.
 
-```{r}
+```{r, eval = FALSE}
 # define age block
 age_blk <- list(c(1:15), c(16:30))
 age_blk
@@ -82,7 +82,7 @@ length(unique(input_list$map$move_pars)) # number of parameters estimated
 ## Year Blocks
 
 Year blocks can be specified in a similar fashion. Here, 5 year blocks are specified, resulting in `nregions x nregions - 1 x 5` parameters estimated.
-```{r}
+```{r, eval = FALSE}
 # define year blocks
 yr_blk <- list(c(1:15), c(16:30), c(31:45), c(46:60), c(61:62))
 yr_blk
@@ -102,7 +102,7 @@ length(unique(input_list$map$move_pars)) # number of parameters estimated
 
 ## Sex Blocks
 Sex blocks are specified similarly. The following example shows sex-specific movement, resulting in `nregions x nregions - 1 x nsexes` parameters estimated.
-```{r}
+```{r, eval = FALSE}
 # define sex blocks
 sx_blk <- as.list(1:2)
 sx_blk
@@ -121,7 +121,7 @@ input_list <- Setup_Mod_Movement(
 ## Blocks Across all Dimensions
 Building on the principles described above, movement blocks can also be defined simultaneously across ages, years, and sexes. The example below specifies two age blocks, five year blocks, and sex-specific movement. This configuration results in `nregions × (nregions - 1) × 2 × 5 × nsexes` movement parameters being estimated. However, this parameterization is likely excessive and may lead to an unstable model solution.
 
-```{r}
+```{r, eval = FALSE}
 # define age block
 age_blk <- list(c(1:15), c(16:30))
 age_blk
@@ -151,7 +151,7 @@ input_list <- Setup_Mod_Movement(
 
 One potential approach to reduce model parameterization is to represent movement as a continuous-time Markov chain (CTMC) process, in which transitions are governed by a mechanistic framework composed of diffusion (random dispersal) and taxis (directed preference) components. Unlike the unstructured Markov model, CTMC movement processes are defined in continuous time and are converted to annual movement fractions using the matrix exponential, thereby allowing for sequential transitions among regions. To implement a CTMC-based movement model, an adjacency matrix must first be defined to specify which regions are connected. In the example below, all regions are assumed to be connected, permitting individuals to move among any spatial strata within a given period. An accompanying data frame is then created to define the `regions`, `years`, `ages`, `sexes`, and any additional covariates associated with movement preference.
 
-```{r}
+```{r, eval = FALSE}
 adjacency <- igraph::as_adjacency_matrix(
   igraph::make_graph(
     ~ 1 - 2,
@@ -175,7 +175,7 @@ In the code chunk below, movement is defined as arising from a purely diffusive 
 
 The argument `area_r = rep(1, 3)` specifies how diffusive processes scale with area size. Here, all areas are assumed to be equal. However, when areas differ in size, `area_r` should be defined as proportional to area, such that smaller areas are associated with higher diffusion rates.
 
-```{r}
+```{r, eval = FALSE}
 # setup formulas for CTMC
 diffusion_formula = ~0 + factor(regions) # constant diffusion
 preference_formula = ~0
@@ -204,7 +204,7 @@ Movement can also be specified to vary across model partitions. The examples bel
 ### Linear
 In this example, diffusion is assumed constant across ages, while preference varies linearly by age within each region. This specification results in the estimation of a single diffusion parameter, along with `nregions` additional parameters describing age-specific movement preferences.
 
-```{r}
+```{r, eval = FALSE}
 # setup formulas for CTMC
 diffusion_formula = ~1 # constant diffusion
 preference_formula = ~0 + factor(regions):ages # linear age effects
@@ -231,7 +231,7 @@ length(input_list$par$move_preference_pars)
 ### Spline
 In some cases, age-specific movement patterns may be more complex than a simple linear relationship can represent. To capture nonlinear variation, spline-based age-specific movement can be modeled using a spline basis, providing smoother and more flexible relationships between age and movement preference. In the example below, one diffusion parameter is estimated, along with `nregions × 4` parameters describing age-specific movement preferences.
 
-```{r}
+```{r, eval = FALSE}
 # setup formulas for CTMC
 diffusion_formula = ~1 # constant diffusion
 preference_formula = ~0 + factor(regions):splines2::bSpline(ages, df = 4, intercept = TRUE) # spline based age effect
@@ -258,7 +258,7 @@ length(input_list$par$move_preference_pars)
 ### Movement Across all Dimensions
 Movement can also be specified to vary continuously across all model dimensions. In this example, movement is modeled as a function of region, age, year, and sex. This specification results in the estimation of `nregions × 4 × 6 × nsexes` parameters.
 
-```{r}
+```{r, eval = FALSE}
 # setup formulas for CTMC
 diffusion_formula = ~1 # constant diffusion
 preference_formula = ~0 + factor(regions):
@@ -287,7 +287,7 @@ length(input_list$par$move_preference_pars)
 # Process Error
 Lastly, process error deviations can also be incorporated into movement estimates. In the example below, movement is modeled using a CTMC framework, although process error can similarly be applied to an unstructured Markov model. Movement is specified to vary smoothly across ages using a spline function, while allowing independent and identically distributed (`iid`) deviations across years for each source region (`cont_vary_movement = 'iid_y'`). Process error variance parameters are specified to be shared across source regions, ages, and sexes (`Movement_cont_pe_pars_spec = 'est_shared_r_a_s'`). Additional options for `cont_vary_movement` and `Movement_cont_pe_pars_spec` is described in the function documentation (`?Setup_Mod_Movement`). Users may alternatively treat these variance parameters as random effects (integrated out via the Laplace approximation) or as penalized likelihood terms, depending on how the argument `Movement_cont_pe_pars_spec` is defined. When `Movement_cont_pe_pars_spec = 'fix'`, users can supply a fixed variance value directly through `input_list$par$move_pe_pars`. Note that deviations are only estimated for destination regions (i.e., `nregions - 1`), as no deviation term is defined for the source region.
 
-```{r}
+```{r, eval = FALSE}
 # setup formulas for CTMC
 diffusion_formula = ~1 # constant diffusion
 preference_formula = ~0 + factor(regions):splines2::bSpline(ages, df = 4, intercept = TRUE) # spline based age effect
