@@ -2,7 +2,6 @@
 
 <!-- badges: start -->
 [![Codecov test coverage](https://codecov.io/gh/chengmatt/SPoRC/graph/badge.svg)](https://app.codecov.io/gh/chengmatt/SPoRC)
-[![R-CMD-check](https://github.com/chengmatt/SPoRC/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/chengmatt/SPoRC/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
   
 ### Overview

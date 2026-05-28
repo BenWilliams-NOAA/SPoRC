@@ -35,7 +35,6 @@ desc::desc_del_dep("compResidual", "Suggests")
 # test code coverage and other actions
 # usethis::use_github_action("test-coverage")
 # covr::package_coverage(quiet = FALSE)
-# usethis::use_github_action("check-standard")
 
 # Unit Tests --------------------------------------------------------------
 # usethis::use_testthat()
