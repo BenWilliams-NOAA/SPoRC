@@ -186,8 +186,8 @@ test_that("Single-region Sablefish RTMB model produces expected results", {
   input_list$map$ln_srv_fixed_sel_pars <- factor(c(1:3, 2, 4:6, 5,rep(7,4), rep(8, 4), rep(c(NA,2), 2), rep(c(NA, 5), 2)))
 
   # Coop JP Survey (Logistic) Single time block (these estimates are fixed!)
-  input_list$par$ln_srv_fixed_sel_pars[1,,,1,3] <- c(0.980660760456, tem_par$coefficients[names(tem_par$coefficients) == "log_delta_srv1_f"])
-  input_list$par$ln_srv_fixed_sel_pars[1,,,2,3] <- c(1.22224502478, tem_par$coefficients[names(tem_par$coefficients) == "log_delta_srv1_m"])
+  input_list$par$ln_srv_fixed_sel_pars[1,,,1,3] <- c(0.980660760456, 0.9287775)
+  input_list$par$ln_srv_fixed_sel_pars[1,,,2,3] <- c(1.22224502478, 0.8831787)
 
   # Setup tagging stuff
   input_list <- Setup_Mod_Tagging(input_list = input_list,

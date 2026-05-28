@@ -223,6 +223,8 @@ Only parameters with rows in this data frame will have priors applied.}
 \item{cont_tv_fish_sel_penalty}{Whether or not continuous fishery time varying selectivity penalties are applied (if cont_tv_fish_sel > 0)}
 
 \item{fishsel_devs_shared_ages}{List object for specifying which ages are shared when selectivity deviations are semi-parametric (e.g., list(1:5, 6:10, 11:30) specifies that ages 1-5, 6-10, and 11-30 have the same deviations.)}
+
+\item{...}{Additional arguments specifying starting values for fishery selectivity and catchability parameters (fishsel_pe_pars, ln_fishsel_devs, ln_fish_fixed_sel_pars, ln_fish_q, fish_q_coeff)}
 }
 \description{
 Setup fishery selectivity and catchability specifications

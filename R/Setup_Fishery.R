@@ -1947,6 +1947,7 @@ do_fishsel_devs_mapping <- function(input_list, fish_sel_devs_spec, fishsel_devs
 #'   Only parameters with rows in this data frame will have priors applied.
 #' @param cont_tv_fish_sel_penalty Whether or not continuous fishery time varying selectivity penalties are applied (if cont_tv_fish_sel > 0)
 #' @param fishsel_devs_shared_ages List object for specifying which ages are shared when selectivity deviations are semi-parametric (e.g., list(1:5, 6:10, 11:30) specifies that ages 1-5, 6-10, and 11-30 have the same deviations.)
+#' @param ... Additional arguments specifying starting values for fishery selectivity and catchability parameters (fishsel_pe_pars, ln_fishsel_devs, ln_fish_fixed_sel_pars, ln_fish_q, fish_q_coeff)
 #'
 #' @export Setup_Mod_Fishsel_and_Q
 #'
@@ -2142,7 +2143,7 @@ Setup_Mod_Fishsel_and_Q <- function(input_list,
     }
   }
 
-  if(any(is.na(fish_q_blocks))) stop("Fishery Catchability Blocks are returning an NA. Did you forget to specify the year range of fish_q_blocks?")
+  if(any(is.na(fish_q_blocks_arr))) stop("Fishery Catchability Blocks are returning an NA...")
   for(f in 1:input_list$data$n_fish_fleets) collect_message(paste("Fishery Catchability Time Blocks for fishery", f, "is specified at:", length(unique(fish_q_blocks_arr[,,f]))))
 
   # Populate Data List ------------------------------------------------------

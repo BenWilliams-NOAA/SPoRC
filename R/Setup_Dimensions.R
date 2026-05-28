@@ -79,7 +79,7 @@ Setup_Sim_Dim <- function(n_sims,
 #'   \item{\code{data}}{List of data inputs dimensioned by the model dimensions.}
 #'   \item{\code{parameters}}{List of model parameters initialized according to dimensions.}
 #'   \item{\code{map}}{List of parameter mappings for model fitting.}
-#'   \item{\code{config}{List of arguments being supplied into the Setup_Mod_* functions. }}
+#'   \item{\code{config}}{List of arguments being supplied into the Setup_Mod_* functions.}
 #' }
 #' @export Setup_Mod_Dim
 #' @family Model Setup

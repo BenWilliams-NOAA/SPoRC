@@ -13,7 +13,8 @@ Setup_Mod_Dim(
   n_fish_fleets,
   n_srv_fleets,
   n_proj_yrs_devs = 0,
-  verbose = FALSE
+  verbose = FALSE,
+  store_config = FALSE
 )
 }
 \arguments{
@@ -34,6 +35,8 @@ Setup_Mod_Dim(
 \item{n_proj_yrs_devs}{Number of projection years for deviation parameters (ln_RecDevs, move_devs, ln_fishsel_devs, ln_srvsel_devs)}
 
 \item{verbose}{Logical flag indicating whether to print progress messages (default \code{FALSE}).}
+
+\item{store_config}{Logical flag indicating whether or not to store configuration (default \code{FALSE}).}
 }
 \value{
 A list containing three named elements:
@@ -41,6 +44,7 @@ A list containing three named elements:
   \item{\code{data}}{List of data inputs dimensioned by the model dimensions.}
   \item{\code{parameters}}{List of model parameters initialized according to dimensions.}
   \item{\code{map}}{List of parameter mappings for model fitting.}
+  \item{\code{config}}{List of arguments being supplied into the Setup_Mod_* functions.}
 }
 }
 \description{

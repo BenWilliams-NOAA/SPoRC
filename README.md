@@ -1,5 +1,10 @@
 ## SPoRC: Stochastic Population Model Over Regional Components <a href='https://github.com/chengmatt/SPoRC'><img src='man/figures/SPoRC_hex.png' align="right" style="height:139px;"/></a>
 
+<!-- badges: start -->
+[![Codecov test coverage](https://codecov.io/gh/chengmatt/SPoRC/graph/badge.svg)](https://app.codecov.io/gh/chengmatt/SPoRC)
+[![R-CMD-check](https://github.com/chengmatt/SPoRC/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/chengmatt/SPoRC/actions/workflows/R-CMD-check.yaml)
+<!-- badges: end -->
+  
 ### Overview
 `SPoRC` is a flexible modeling framework for spatially structured population dynamics. It accounts for stochasticity in vital rates and movement among geographically defined components. The framework supports:
 
