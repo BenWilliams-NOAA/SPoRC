@@ -24,6 +24,8 @@ The following demonstrations use the three region sablefish dataset as a basis (
 ```{r setup, message = FALSE, eval = FALSE}
 # Load in packages
 library(SPoRC) 
+library(igraph)
+library(splines2)
 data("three_rg_sable_data") # load in data
 
 # setup model dimensions
@@ -152,8 +154,8 @@ input_list <- Setup_Mod_Movement(
 One potential approach to reduce model parameterization is to represent movement as a continuous-time Markov chain (CTMC) process, in which transitions are governed by a mechanistic framework composed of diffusion (random dispersal) and taxis (directed preference) components. Unlike the unstructured Markov model, CTMC movement processes are defined in continuous time and are converted to annual movement fractions using the matrix exponential, thereby allowing for sequential transitions among regions. To implement a CTMC-based movement model, an adjacency matrix must first be defined to specify which regions are connected. In the example below, all regions are assumed to be connected, permitting individuals to move among any spatial strata within a given period. An accompanying data frame is then created to define the `regions`, `years`, `ages`, `sexes`, and any additional covariates associated with movement preference.
 
 ```{r, eval = FALSE}
-adjacency <- igraph::as_adjacency_matrix(
-  igraph::make_graph(
+adjacency <- as_adjacency_matrix(
+  make_graph(
     ~ 1 - 2,
     2 - 3,
     1 - 3
@@ -234,7 +236,7 @@ In some cases, age-specific movement patterns may be more complex than a simple 
 ```{r, eval = FALSE}
 # setup formulas for CTMC
 diffusion_formula = ~1 # constant diffusion
-preference_formula = ~0 + factor(regions):splines2::bSpline(ages, df = 4, intercept = TRUE) # spline based age effect
+preference_formula = ~0 + factor(regions):bSpline(ages, df = 4, intercept = TRUE) # spline based age effect
 
 # Setup movement
 input_list <- Setup_Mod_Movement(
@@ -262,8 +264,8 @@ Movement can also be specified to vary continuously across all model dimensions.
 # setup formulas for CTMC
 diffusion_formula = ~1 # constant diffusion
 preference_formula = ~0 + factor(regions):
-  splines2::bSpline(ages, df = 4, intercept = TRUE):
-  splines2::bSpline(years, df = 6, intercept = TRUE):
+  bSpline(ages, df = 4, intercept = TRUE):
+  bSpline(years, df = 6, intercept = TRUE):
   factor(sexes)
 
 # Setup movement
@@ -290,7 +292,7 @@ Lastly, process error deviations can also be incorporated into movement estimate
 ```{r, eval = FALSE}
 # setup formulas for CTMC
 diffusion_formula = ~1 # constant diffusion
-preference_formula = ~0 + factor(regions):splines2::bSpline(ages, df = 4, intercept = TRUE) # spline based age effect
+preference_formula = ~0 + factor(regions):bSpline(ages, df = 4, intercept = TRUE) # spline based age effect
 
 # Setup movement
 input_list <- Setup_Mod_Movement(
