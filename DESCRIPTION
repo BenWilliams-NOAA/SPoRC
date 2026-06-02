@@ -43,7 +43,6 @@ Imports:
     tidyr,
     TMB
 Suggests: 
-    compResidual,
     knitr,
     purrr,
     rmarkdown,
