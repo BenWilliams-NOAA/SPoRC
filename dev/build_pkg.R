@@ -17,7 +17,6 @@ Sys.unsetenv("GITHUB_PAT") # may need to unset to build vignettes
 build_site(examples = FALSE)
 use_build_ignore("dev") # ignore dev folder
 usethis::use_build_ignore("_pkgdown.yml") # ignore pkgdown.yml
-check() # check package stuff
 # devtools::test()
 # usethis::edit_git_ignore()
 # unignore dev folder
@@ -35,6 +34,15 @@ desc::desc_del_dep("compResidual", "Suggests")
 # test code coverage and other actions
 # usethis::use_github_action("test-coverage")
 # covr::package_coverage(quiet = FALSE)
+
+# citation
+# usethis::use_citation()
+
+# rmd checking
+check() # check package stuff
+rcmdcheck::rcmdcheck(args = c("--no-manual", "--as-cran"))
+
+
 
 # Unit Tests --------------------------------------------------------------
 # usethis::use_testthat()
