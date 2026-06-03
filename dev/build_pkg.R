@@ -41,6 +41,7 @@ desc::desc_del_dep("compResidual", "Suggests")
 # rmd checking
 check() # check package stuff
 rcmdcheck::rcmdcheck(args = c("--no-manual", "--as-cran"))
+usethis::use_github_action("check-standard")
 
 
 
