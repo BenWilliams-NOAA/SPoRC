@@ -43,7 +43,8 @@ check() # check package stuff
 rcmdcheck::rcmdcheck(args = c("--no-manual", "--as-cran"))
 usethis::use_github_action("check-standard")
 
-
+# pkgdown
+usethis::use_github_action("pkgdown")
 
 # Unit Tests --------------------------------------------------------------
 # usethis::use_testthat()
