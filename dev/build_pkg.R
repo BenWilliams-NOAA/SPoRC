@@ -38,6 +38,7 @@ desc::desc_del_dep("compResidual", "Suggests")
 
 # citation
 # usethis::use_citation()
+usethis::use_citation_cff()
 
 # rmd checking
 check() # check package stuff
