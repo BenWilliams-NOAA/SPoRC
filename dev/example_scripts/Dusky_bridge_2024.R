@@ -548,6 +548,9 @@ lines((rep_dat_rtem$tseries[5,]))
 # rather, they are due to differences in likelihood formulations
 
 # Optimize Values ---------------------------------------------------------
+detach("package:tmbstan", unload = TRUE)
+detach("package:rstan", unload = TRUE)
+detach("package:PBSmodelling", unload = TRUE)
 
 # Fit model
 dusky_rtmb_model <- fit_model(data,
@@ -705,4 +708,6 @@ ggplot(sel_comp) +
 dusky_rtmb_model$data <- data
 dusky_rtmb_model$parameters <- parameters
 dusky_rtmb_model$mapping <- mapping
+
+
 usethis::use_data(dusky_rtmb_model, internal = FALSE, overwrite = TRUE)
