@@ -6,6 +6,7 @@ library(usethis)
 library(here)
 
 # Build Package -----------------------------------------------------------
+desc::desc_set_version("1.1.1")
 document() # document functions
 roxygenise() # make sure functions have roxygen documentation
 att_amend_desc(update = TRUE)
