@@ -17,8 +17,11 @@ basis (`three_rg_sable_data`). The initial setup establishes the genearl
 model dimensions.
 
 ``` r
+
 # Load in packages
 library(SPoRC) 
+library(igraph)
+library(splines2)
 data("three_rg_sable_data") # load in data
 
 # setup model dimensions
@@ -50,23 +53,14 @@ across model partitions and are estimated as discrete transitions
 between regions, with `nregions x nregions - 1` parameters estimated.
 
 ``` r
+
 # Setup movement
 input_list <- Setup_Mod_Movement(
   input_list = input_list,
   do_recruits_move = 0, # recruits don't move
   move_type = 0 # unstructured markov
 )
-#> Movement is: Estimated
-#> Movement priors are: Not Used
-#> Recruits are: Not Moving
-#> Continuous movement specification is: none
-#> Continuous movement process error specification is: none
-#> Movement type is: Unstructured Markov
-#> Movement fixed effect blocks are sex-invariant
-#> Movement fixed effect blocks are time-invariant
-#> Movement fixed effect blocks are age-invariant
 length(unique(input_list$map$move_pars)) # number of parameters estimated
-#> [1] 6
 ```
 
 ### Age Blocks
@@ -78,14 +72,10 @@ age blocks, but constant movement across years and sexes. This results
 in `nregions x nregions - 1 x 2` parameters estimated.
 
 ``` r
+
 # define age block
 age_blk <- list(c(1:15), c(16:30))
 age_blk
-#> [[1]]
-#>  [1]  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15
-#> 
-#> [[2]]
-#>  [1] 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30
 
 # Setup movement
 input_list <- Setup_Mod_Movement(
@@ -96,18 +86,8 @@ input_list <- Setup_Mod_Movement(
   Movement_yearblk_spec = "constant", # constant movement across years
   Movement_sexblk_spec = "constant" # constant movement across sexes
 )
-#> Movement is: Estimated
-#> Movement priors are: Not Used
-#> Recruits are: Not Moving
-#> Continuous movement specification is: none
-#> Continuous movement process error specification is: none
-#> Movement type is: Unstructured Markov
-#> Movement fixed effect blocks are sex-invariant
-#> Movement fixed effect blocks are time-invariant
-#> Movement fixed effect blocks are specified with 2 age blocks
 
 length(unique(input_list$map$move_pars)) # number of parameters estimated
-#> [1] 12
 ```
 
 ### Year Blocks
@@ -117,23 +97,10 @@ are specified, resulting in `nregions x nregions - 1 x 5` parameters
 estimated.
 
 ``` r
+
 # define year blocks
 yr_blk <- list(c(1:15), c(16:30), c(31:45), c(46:60), c(61:62))
 yr_blk
-#> [[1]]
-#>  [1]  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15
-#> 
-#> [[2]]
-#>  [1] 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30
-#> 
-#> [[3]]
-#>  [1] 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45
-#> 
-#> [[4]]
-#>  [1] 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60
-#> 
-#> [[5]]
-#> [1] 61 62
 
 # Setup movement
 input_list <- Setup_Mod_Movement(
@@ -144,18 +111,8 @@ input_list <- Setup_Mod_Movement(
   Movement_yearblk_spec = yr_blk, # time blocks for movement
   Movement_sexblk_spec = "constant" # constant movement across sexes
 )
-#> Movement is: Estimated
-#> Movement priors are: Not Used
-#> Recruits are: Not Moving
-#> Continuous movement specification is: none
-#> Continuous movement process error specification is: none
-#> Movement type is: Unstructured Markov
-#> Movement fixed effect blocks are sex-invariant
-#> Movement fixed effect blocks are specified with 5 year blocks
-#> Movement fixed effect blocks are age-invariant
 
 length(unique(input_list$map$move_pars)) # number of parameters estimated
-#> [1] 30
 ```
 
 ### Sex Blocks
@@ -165,14 +122,10 @@ sex-specific movement, resulting in `nregions x nregions - 1 x nsexes`
 parameters estimated.
 
 ``` r
+
 # define sex blocks
 sx_blk <- as.list(1:2)
 sx_blk
-#> [[1]]
-#> [1] 1
-#> 
-#> [[2]]
-#> [1] 2
 
 # Setup movement
 input_list <- Setup_Mod_Movement(
@@ -183,15 +136,6 @@ input_list <- Setup_Mod_Movement(
   Movement_yearblk_spec = 'constant', # constant movement across years
   Movement_sexblk_spec = sx_blk # sex-specific movement
 )
-#> Movement is: Estimated
-#> Movement priors are: Not Used
-#> Recruits are: Not Moving
-#> Continuous movement specification is: none
-#> Continuous movement process error specification is: none
-#> Movement type is: Unstructured Markov
-#> Movement fixed effect blocks are specified with 2 sex blocks
-#> Movement fixed effect blocks are time-invariant
-#> Movement fixed effect blocks are age-invariant
 ```
 
 ### Blocks Across all Dimensions
@@ -205,41 +149,18 @@ estimated. However, this parameterization is likely excessive and may
 lead to an unstable model solution.
 
 ``` r
+
 # define age block
 age_blk <- list(c(1:15), c(16:30))
 age_blk
-#> [[1]]
-#>  [1]  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15
-#> 
-#> [[2]]
-#>  [1] 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30
 
 # define year blocks
 yr_blk <- list(c(1:15), c(16:30), c(31:45), c(46:60), c(61:62))
 yr_blk
-#> [[1]]
-#>  [1]  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15
-#> 
-#> [[2]]
-#>  [1] 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30
-#> 
-#> [[3]]
-#>  [1] 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45
-#> 
-#> [[4]]
-#>  [1] 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60
-#> 
-#> [[5]]
-#> [1] 61 62
 
 # define sex blocks
 sx_blk <- as.list(1:2)
 sx_blk
-#> [[1]]
-#> [1] 1
-#> 
-#> [[2]]
-#> [1] 2
 
 # Setup movement
 input_list <- Setup_Mod_Movement(
@@ -252,15 +173,6 @@ input_list <- Setup_Mod_Movement(
   Movement_yearblk_spec = yr_blk,
   Movement_sexblk_spec = sx_blk
 )
-#> Movement is: Estimated
-#> Movement priors are: Not Used
-#> Recruits are: Not Moving
-#> Continuous movement specification is: none
-#> Continuous movement process error specification is: none
-#> Movement type is: Unstructured Markov
-#> Movement fixed effect blocks are specified with 2 sex blocks
-#> Movement fixed effect blocks are specified with 5 year blocks
-#> Movement fixed effect blocks are specified with 2 age blocks
 ```
 
 ## Continuous-Time Markov Chain (CTMC)
@@ -281,8 +193,9 @@ define the `regions`, `years`, `ages`, `sexes`, and any additional
 covariates associated with movement preference.
 
 ``` r
-adjacency <- igraph::as_adjacency_matrix(
-  igraph::make_graph(
+
+adjacency <- as_adjacency_matrix(
+  make_graph(
     ~ 1 - 2,
     2 - 3,
     1 - 3
@@ -316,6 +229,7 @@ area, such that smaller areas are associated with higher diffusion
 rates.
 
 ``` r
+
 # setup formulas for CTMC
 diffusion_formula = ~0 + factor(regions) # constant diffusion
 preference_formula = ~0
@@ -333,17 +247,9 @@ input_list <- Setup_Mod_Movement(
   diffusion_formula = diffusion_formula,
   preference_formula = preference_formula
 )
-#> Movement is: Estimated
-#> Movement priors are: Not Used
-#> Recruits are: Not Moving
-#> Continuous movement specification is: none
-#> Continuous movement process error specification is: none
-#> Movement type is: Continuous Time Markov Chain
 
 length(input_list$par$log_move_diffusion_pars)
-#> [1] 3
 length(input_list$par$move_preference_pars)
-#> [1] 0
 ```
 
 ### Age-Varying
@@ -362,6 +268,7 @@ results in the estimation of a single diffusion parameter, along with
 preferences.
 
 ``` r
+
 # setup formulas for CTMC
 diffusion_formula = ~1 # constant diffusion
 preference_formula = ~0 + factor(regions):ages # linear age effects
@@ -379,17 +286,9 @@ input_list <- Setup_Mod_Movement(
   diffusion_formula = diffusion_formula,
   preference_formula = preference_formula
 )
-#> Movement is: Estimated
-#> Movement priors are: Not Used
-#> Recruits are: Not Moving
-#> Continuous movement specification is: none
-#> Continuous movement process error specification is: none
-#> Movement type is: Continuous Time Markov Chain
 
 length(input_list$par$log_move_diffusion_pars)
-#> [1] 1
 length(input_list$par$move_preference_pars)
-#> [1] 3
 ```
 
 #### Spline
@@ -403,9 +302,10 @@ parameter is estimated, along with `nregions × 4` parameters describing
 age-specific movement preferences.
 
 ``` r
+
 # setup formulas for CTMC
 diffusion_formula = ~1 # constant diffusion
-preference_formula = ~0 + factor(regions):splines2::bSpline(ages, df = 4, intercept = TRUE) # spline based age effect
+preference_formula = ~0 + factor(regions):bSpline(ages, df = 4, intercept = TRUE) # spline based age effect
 
 # Setup movement
 input_list <- Setup_Mod_Movement(
@@ -420,17 +320,9 @@ input_list <- Setup_Mod_Movement(
   diffusion_formula = diffusion_formula,
   preference_formula = preference_formula
 )
-#> Movement is: Estimated
-#> Movement priors are: Not Used
-#> Recruits are: Not Moving
-#> Continuous movement specification is: none
-#> Continuous movement process error specification is: none
-#> Movement type is: Continuous Time Markov Chain
 
 length(input_list$par$log_move_diffusion_pars)
-#> [1] 1
 length(input_list$par$move_preference_pars)
-#> [1] 12
 ```
 
 #### Movement Across all Dimensions
@@ -441,11 +333,12 @@ region, age, year, and sex. This specification results in the estimation
 of `nregions × 4 × 6 × nsexes` parameters.
 
 ``` r
+
 # setup formulas for CTMC
 diffusion_formula = ~1 # constant diffusion
 preference_formula = ~0 + factor(regions):
-  splines2::bSpline(ages, df = 4, intercept = TRUE):
-  splines2::bSpline(years, df = 6, intercept = TRUE):
+  bSpline(ages, df = 4, intercept = TRUE):
+  bSpline(years, df = 6, intercept = TRUE):
   factor(sexes)
 
 # Setup movement
@@ -461,17 +354,9 @@ input_list <- Setup_Mod_Movement(
   diffusion_formula = diffusion_formula,
   preference_formula = preference_formula
 )
-#> Movement is: Estimated
-#> Movement priors are: Not Used
-#> Recruits are: Not Moving
-#> Continuous movement specification is: none
-#> Continuous movement process error specification is: none
-#> Movement type is: Continuous Time Markov Chain
 
 length(input_list$par$log_move_diffusion_pars)
-#> [1] 1
 length(input_list$par$move_preference_pars)
-#> [1] 144
 ```
 
 ## Process Error
@@ -498,9 +383,10 @@ deviations are only estimated for destination regions (i.e.,
 `nregions - 1`), as no deviation term is defined for the source region.
 
 ``` r
+
 # setup formulas for CTMC
 diffusion_formula = ~1 # constant diffusion
-preference_formula = ~0 + factor(regions):splines2::bSpline(ages, df = 4, intercept = TRUE) # spline based age effect
+preference_formula = ~0 + factor(regions):bSpline(ages, df = 4, intercept = TRUE) # spline based age effect
 
 # Setup movement
 input_list <- Setup_Mod_Movement(
@@ -517,17 +403,8 @@ input_list <- Setup_Mod_Movement(
   cont_vary_movement = 'iid_y', 
   Movement_cont_pe_pars_spec = 'est_shared_r_a_s'
 )
-#> Movement is: Estimated
-#> Movement priors are: Not Used
-#> Recruits are: Not Moving
-#> Continuous movement specification is: iid_y
-#> Continuous movement process error specification is: est_shared_r_a_s
-#> Movement type is: Continuous Time Markov Chain
 
 length(input_list$par$log_move_diffusion_pars)
-#> [1] 1
 length(input_list$par$move_preference_pars)
-#> [1] 12
 length(unique(input_list$map$move_devs))
-#> [1] 372
 ```
